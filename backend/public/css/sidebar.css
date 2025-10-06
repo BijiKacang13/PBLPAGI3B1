@@ -1,0 +1,137 @@
+/* .left-sidebar {
+    width: 270px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transition: all 0.3s ease;
+    transform: translateX(0);
+    background: #fff; 
+  }
+  
+  .left-sidebar.hide-sidebar {
+    transform: translateX(-270px);
+  }
+  
+  .sidebar-toggle-handle {
+    position: fixed;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 99;
+    background: #fff;
+    width: 30px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0 5px 5px 0;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0;
+  }
+  
+  .left-sidebar.hide-sidebar ~ .sidebar-toggle-handle {
+    left: 0;
+    opacity: 1;
+  }
+  
+  #desktopSidebarToggle {
+    position: absolute;
+    top: 20px;
+    background: white;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    z-index: 101;
+  }
+  
+  @media (max-width: 1199px) {
+    .left-sidebar {
+      transform: translateX(-270px);
+    }
+    
+    .left-sidebar.sidebar-display {
+      transform: translateX(0);
+      box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .sidebar-toggle-handle {
+      display: none;
+    }
+  } */
+
+
+
+  .left-sidebar {
+    width: 270px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transition: all 0.3s ease;
+    transform: translateX(0);
+    background: #fff;
+}
+
+.left-sidebar.hide-sidebar {
+    transform: translateX(-270px);
+}
+
+/* Full width untuk konten saat sidebar disembunyikan */
+.body-wrapper {
+    margin-left: 270px;
+    transition: all 0.3s ease;
+}
+
+.body-wrapper.full-width {
+    margin-left: 0;
+}
+
+/* Tombol toggle untuk desktop */
+#desktopSidebarToggle {
+    position: fixed;
+    /* left: 310px; */
+    top: 20px;
+    background: white;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    z-index: 101;
+    transition: all 0.3s ease;
+}
+
+.left-sidebar.hide-sidebar ~ #desktopSidebarToggle {
+    left: 0;
+}
+
+/* Style untuk mobile */
+@media (max-width: 1199px) {
+    .left-sidebar {
+        transform: translateX(-270px);
+    }
+    
+    .left-sidebar.sidebar-display {
+        transform: translateX(0);
+        box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .body-wrapper {
+        margin-left: 0;
+    }
+    
+    #desktopSidebarToggle {
+        display: none;
+    }
+}

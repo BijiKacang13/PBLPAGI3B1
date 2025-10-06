@@ -1,0 +1,90 @@
+DELIMITER $$
+CREATE FUNCTION get_kenaikan_aset_neto(
+    p_id_akun INT,
+    p_start_date DATE,
+    p_end_date DATE,
+    p_id_unit INT,
+    p_id_divisi INT
+) RETURNS JSON
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+    DECLARE total_debit DECIMAL(15,2) DEFAULT 0;
+    DECLARE total_kredit DECIMAL(15,2) DEFAULT 0;
+    
+    SELECT 
+        COALESCE(SUM(CASE WHEN dju.debit_kredit = 'debit' THEN dju.nominal ELSE 0 END), 0),
+        COALESCE(SUM(CASE WHEN dju.debit_kredit = 'kredit' THEN dju.nominal ELSE 0 END), 0)
+    INTO total_debit, total_kredit
+    FROM detail_jurnal_umum dju
+    JOIN jurnal_umum ju ON dju.id_jurnal_umum = ju.id_jurnal_umum
+    JOIN buku_besar bb ON ju.id_jurnal_umum = bb.id_jurnal_umum
+    WHERE dju.id_akun = p_id_akun
+    AND ju.tanggal BETWEEN p_start_date AND p_end_date
+    AND (p_id_unit IS NULL OR ju.id_unit = p_id_unit)
+    AND (p_id_divisi IS NULL OR ju.id_divisi = p_id_divisi);
+    
+    RETURN JSON_OBJECT('total_debit', total_debit, 'total_kredit', total_kredit);
+END $$
+DELIMITER ;
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE get_neraca_saldo(
+    IN p_start_date DATE,
+    IN p_end_date DATE,
+    IN p_id_unit INT,
+    IN p_id_divisi INT
+)
+BEGIN
+    -- Temporary table untuk hasil
+    CREATE TEMPORARY TABLE temp_neraca_result (
+        id_akun INT,
+        saldo_akhir DECIMAL(15,2),
+        periode_lalu DECIMAL(15,2),
+        kategori VARCHAR(50)
+    );
+    
+    -- Insert hasil perhitungan kompleks
+    INSERT INTO temp_neraca_result
+    SELECT 
+        a.id_akun,
+        CASE 
+            WHEN ka.kategori_akun = 'AKTIVA' THEN
+                (a.saldo_awal_debit + COALESCE(mutasi.debit, 0)) - 
+                (a.saldo_awal_kredit + COALESCE(mutasi.kredit, 0))
+            ELSE
+                (a.saldo_awal_kredit + COALESCE(mutasi.kredit, 0)) - 
+                (a.saldo_awal_debit + COALESCE(mutasi.debit, 0))
+        END as saldo_akhir,
+        CASE 
+            WHEN ka.kategori_akun = 'AKTIVA' THEN
+                a.saldo_awal_debit - a.saldo_awal_kredit
+            ELSE
+                a.saldo_awal_kredit - a.saldo_awal_debit
+        END as periode_lalu,
+        ka.kategori_akun
+    FROM akun a
+    JOIN sub_kategori_akun ska ON a.id_sub_kategori_akun = ska.id_sub_kategori_akun
+    JOIN kategori_akun ka ON ska.id_kategori_akun = ka.id_kategori_akun
+    LEFT JOIN (
+        SELECT 
+            dju.id_akun,
+            SUM(CASE WHEN dju.debit_kredit = 'debit' THEN dju.nominal ELSE 0 END) as debit,
+            SUM(CASE WHEN dju.debit_kredit = 'kredit' THEN dju.nominal ELSE 0 END) as kredit
+        FROM detail_jurnal_umum dju
+        JOIN jurnal_umum ju ON dju.id_jurnal_umum = ju.id_jurnal_umum
+        JOIN buku_besar bb ON ju.id_jurnal_umum = bb.id_jurnal_umum
+        WHERE ju.tanggal BETWEEN p_start_date AND p_end_date
+        AND (p_id_unit IS NULL OR ju.id_unit = p_id_unit)
+        AND (p_id_divisi IS NULL OR ju.id_divisi = p_id_divisi)
+        GROUP BY dju.id_akun
+    ) mutasi ON a.id_akun = mutasi.id_akun
+    WHERE ka.kategori_akun IN ('AKTIVA', 'KEWAJIBAN', 'ASET NETO');
+    
+    SELECT * FROM temp_neraca_result;
+    DROP TEMPORARY TABLE temp_neraca_result;
+END $$
+DELIMITER ;
