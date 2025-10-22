@@ -1,6 +1,6 @@
 import Image from "next/image";
 // import ChartTransaksi from "../components/ChartTransaksi";
-// import NavbarBottom from "../components/NavbarBottom";
+import NavbarBottom from "@/components/NavbarBottom";
 import { User } from "lucide-react";
 
 export default function Beranda() {
@@ -60,6 +60,7 @@ export default function Beranda() {
 
       {/* Navbar bawah */}
       {/* <NavbarBottom /> */}
+      <NavbarBottom />
     </div>
   );
 }

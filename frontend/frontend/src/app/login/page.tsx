@@ -31,7 +31,7 @@ export default function LoginScreen() {
 
     setTimeout(() => {
       setShowSuccess(false);
-      router.push("/beranda"); // arahkan ke halaman dashboard
+      router.push("admin/beranda"); // arahkan ke halaman dashboard
     }, 2000);
   };
 
