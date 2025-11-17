@@ -1,13 +1,12 @@
-import Image from "next/image";
+import Navbar from "@/components/Navbar";
 // import ChartTransaksi from "../components/ChartTransaksi";
 import NavbarBottom from "@/components/NavbarBottom";
-import { User } from "lucide-react";
 
 export default function Beranda() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       {/* Header */}
-      <header className="flex items-center justify-between px-3 py-2 ">
+      {/* <header className="flex items-center justify-between px-3 py-2 ">
         <div className="flex items-center gap-1">
            <img
             src="/logo.png"
@@ -33,7 +32,8 @@ export default function Beranda() {
         <div className="p-2 rounded-full bg-blue-200 border border-blue-200">
           <User size={20} className="text-blue-900" />
         </div>
-      </header>
+      </header> */}
+      <Navbar />
 
       {/* Konten utama */}
       <main className="flex flex-col items-center mt-6 px-4">
