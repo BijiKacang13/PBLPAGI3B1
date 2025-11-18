@@ -144,4 +144,10 @@ class KegiatanController extends Controller
             ->with('error', 'Silakan pilih unit terlebih dahulu untuk mereset data.');
     }
 
+    public function apiIndex()
+    {
+        $kegiatan = Kegiatan::orderBy('kode_kegiatan')->get();
+        return response()->json($kegiatan);
+    }
+
 }
