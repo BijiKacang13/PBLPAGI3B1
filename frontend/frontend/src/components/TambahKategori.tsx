@@ -1,14 +1,47 @@
 "use client";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 type TambahKategoriProps = {
   open: boolean;
   onClose: () => void;
+  onSuccess: () => void; // <-- untuk refresh list kategori
 };
 
-export default function TambahKategori({ open, onClose }: TambahKategoriProps) {
+export default function TambahKategori({ open, onClose, onSuccess }: TambahKategoriProps) {
+  const [kode, setKode] = useState("");
+  const [kategori, setKategori] = useState("");
+  const [loading, setLoading] = useState(false);
+
   if (!open) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await axios.post("http://127.0.0.1:8000/api/kategori-akun", {
+        kode_kategori_akun: kode,
+        kategori_akun: kategori,
+      });
+
+      console.log("BERHASIL:", res.data);
+
+      onSuccess(); // refresh list
+      onClose(); // tutup modal
+
+      // reset form
+      setKode("");
+      setKategori("");
+    } catch (error: any) {
+      console.error("Gagal tambah kategori:", error);
+      alert("Gagal menambah kategori!");
+    }
+
+    setLoading(false);
+  };
 
   return (
     <AnimatePresence>
@@ -39,24 +72,28 @@ export default function TambahKategori({ open, onClose }: TambahKategoriProps) {
             </h3>
 
             {/* Form */}
-            <form className="flex flex-col gap-3">
+            <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Kode</label>
                 <input
                   type="text"
+                  value={kode}
+                  onChange={(e) => setKode(e.target.value)}
                   placeholder="Masukkan kode"
                   className="w-full border rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Kategori Akun
-                </label>
+                <label className="block text-sm text-gray-700 mb-1">Kategori Akun</label>
                 <input
                   type="text"
+                  value={kategori}
+                  onChange={(e) => setKategori(e.target.value)}
                   placeholder="Masukkan kategori"
                   className="w-full border rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                  required
                 />
               </div>
 
@@ -71,9 +108,10 @@ export default function TambahKategori({ open, onClose }: TambahKategoriProps) {
                 </button>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow hover:bg-blue-700 transition"
                 >
-                  SIMPAN
+                  {loading ? "MENYIMPAN..." : "SIMPAN"}
                 </button>
               </div>
             </form>
