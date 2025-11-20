@@ -14,10 +14,12 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use App\Http\Middleware\RoleMiddleware; 
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Fruitcake\Cors\HandleCors;
 
 class Kernel extends HttpKernel
 {
     protected $middleware = [
+        HandleCors::class,
         // Middleware global
     ];
 

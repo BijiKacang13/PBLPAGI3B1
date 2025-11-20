@@ -3,11 +3,8 @@
 namespace App\Providers;
 
 use Carbon\Carbon;
-use App\Models\Sop;
-use App\Models\Hak_Akses;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,40 +19,21 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot()
+    public function boot(): void
     {
-        View::composer('*', function ($view) {
-            if (Auth::check()) {
-                $user = Auth::user();
-                $hak_akses = null;
-                $sidebarSop = collect(); 
+        // Set default string length untuk MySQL
+        Schema::defaultStringLength(191);
 
-                try {
-                    if ($user->role === 'akuntan_unit') {
-                        $hak_akses = Hak_Akses::where('id_akuntan_unit', $user->id_user)->first();
-                    }
-
-                    $sidebarSop = Sop::orderBy('urutan')->get();
-
-                } catch (\Throwable $e) {
-                    // Jika terjadi error, jangan lakukan apa-apa di sini
-                    // Biarkan Laravel menanganinya dan masuk ke Handler
-                    // Kamu bisa log kalau mau:
-                    // \Log::error('Gagal memuat data sidebar: ' . $e->getMessage());
-                }
-
-                // Tetap kirim data ke view (meski mungkin nilainya null/kosong)
-                $view->with('user', $user)
-                     ->with('sidebarRole', $user->role)
-                     ->with('sidebarHakAkses', $hak_akses)
-                     ->with('sidebarSop', $sidebarSop);
-            }
-        });
-
+        // Set locale Carbon ke Indonesia
         Carbon::setLocale('id');
+
+        // Konfigurasi timezone (opsional)
+        date_default_timezone_set('Asia/Jakarta');
+
+        // Untuk API, kita tidak perlu View Composer
+        // karena frontend Next.js akan fetch data sendiri via API endpoint
+        
+        // Jika nanti butuh share data ke semua API response,
+        // bisa pakai Middleware atau Response Macro
     }
-
-
-
-
 }
