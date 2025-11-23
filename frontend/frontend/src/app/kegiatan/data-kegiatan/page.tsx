@@ -8,12 +8,17 @@ import {
   Book,
   Layers,
   BarChart2,
+  Pencil,
+  Trash2,
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import TambahKegiatan from "@/components/TambahKegiatan";
 import { useState, useEffect } from "react";
+import HapusKegiatan from "@/components/HapusKegiatan";
+import EditKegiatan from "@/components/EditKegiatan";
+
 
 type Kegiatan = {
   id_kegiatan: number;
@@ -29,13 +34,17 @@ export default function Akun() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
+  const [openTambah, setOpenTambah] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openHapus, setOpenHapus] = useState(false);
+  const [selected, setSelected] = useState<Kegiatan | null>(null);
 
-  // FETCH DATA
+
   const fetchKegiatan = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kegiatan`);
+      const res = await fetch("http://127.0.0.1:8000/api/kegiatan");
       const json = await res.json();
-      setData(json); // json sudah sesuai tipe Kegiatan[]
+      setData(json);
     } catch (error) {
       console.log("Gagal mengambil data:", error);
     }
@@ -148,22 +157,50 @@ export default function Akun() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="text-left px-4 py-2 w-1/3">Kode</th>
-                <th className="text-left px-4 py-2">Akun</th>
+                <th className="text-center px-4 py-2">Akun</th>
+                <th className="text-right px-4 py-2 w-20"></th>
               </tr>
             </thead>
-            <tbody>
-              {paginatedData.map((item) => (
-                <tr
-                  key={item.id_kegiatan}
-                  className="border-t hover:bg-gray-50 transition-all"
-                >
-                  <td className="px-4 py-2 text-gray-600 font-mono">
-                    {item.kode_kegiatan}
-                  </td>
-                  <td className="px-4 py-2">{item.kegiatan}</td>
-                </tr>
-              ))}
-            </tbody>
+              <tbody>
+                {paginatedData.map((item) => (
+                  <tr
+                    key={item.id_kegiatan}
+                    className="border-t hover:bg-gray-50 transition-all"
+                  >
+                    <td className="px-4 py-2 text-gray-600 font-mono">
+                      {item.kode_kegiatan}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {item.kegiatan}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      <div className="flex justify-end gap-3">
+                        <button
+                          className="text-yellow-500 hover:text-yellow-600"
+                          onClick={() => {
+                            setSelected(item);
+                            setOpenEdit(true);
+                          }}
+                        >
+                          <Pencil size={16} />
+                        </button>
+
+                        <button
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => {
+                            setSelected(item);
+                            setOpenHapus(true);
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
           </table>
         </div>
 
@@ -208,7 +245,23 @@ export default function Akun() {
       <TambahKegiatan
         open={openModal}
         onClose={() => setOpenModal(false)}
+        onSuccess={() => fetchKegiatan()}
       />
+
+      <HapusKegiatan
+        open={openHapus}
+        onClose={() => setOpenHapus(false)}
+        onSuccess={() => fetchKegiatan()}
+        data={selected}
+      />
+
+      <EditKegiatan
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={() => fetchKegiatan()}
+        data={selected}
+      />
+
     </div>
   );
 }

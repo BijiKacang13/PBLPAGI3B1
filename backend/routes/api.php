@@ -43,6 +43,8 @@ Route::get('/users/{id}', [UserController::class, 'show']);
 Route::get('/kegiatan', [KegiatanController::class, 'index']);
 Route::post('/kegiatan', [KegiatanController::class, 'store']);
 Route::get('/kegiatan', [KegiatanController::class, 'apiIndex']);
+Route::put('/kegiatan/{id}', [KegiatanController::class, 'update']);
+Route::delete('/{id}', [KegiatanController::class, 'destroy']);
 
 
 Route::prefix('kategori-akun')->group(function () {
