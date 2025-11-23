@@ -11,10 +11,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
+  
   // Tentukan halaman yang menampilkan NavbarBottom
 const showNavbarBottom =
-  ["/beranda", "/akun", "/keuangan", "/transaksi", "/kegiatan", "/pencatatan"].some((path) =>
+  ["/admin/beranda", "/akun", "/keuangan", "/transaksi", "/kegiatan", "/pencatatan"].some((path) =>
     pathname.startsWith(path)
   );
 
@@ -27,7 +27,7 @@ const showNavbarBottom =
         </aside>
 
         {/* Konten utama */}
-        <main className="flex-1 relative pb-20 md:pb-0">{children}</main>
+        <main className="flex-1 relative pb-20 md:pb-0 pt-[90px]">{children}</main>
 
         {/* Navbar Bottom hanya muncul di mobile DAN hanya jika sudah login */}
         {showNavbarBottom && (

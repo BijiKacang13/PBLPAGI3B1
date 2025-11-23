@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { User, UserPlus } from "lucide-react";
@@ -55,35 +56,8 @@ export default function TambahPengguna() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
-      {/* Header */}
-      <header className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-1">
-          <img
-            src="/logo.png"
-            alt="Logo Yayasan"
-            width={55}
-            height={55}
-            className="w-16 h-16 object-contain"
-          />
-          <div className="w-[2px] h-10 bg-[#1A3E85]"></div>
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-1">
-              <h1 className="text-3xl font-extrabold text-[#1A3E85] tracking-wide">
-                SIA
-              </h1>
-              <p className="text-xs font-semibold text-[#1A3E85] tracking-wide leading-tight">
-                <span className="inline-block w-[70px] text-left">YAYASAN</span>
-                <br />
-                <span className="inline-block w-[70px] text-left">DARUSSALAM</span>
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="p-2 rounded-full bg-blue-200 border border-blue-200">
-          <User size={20} className="text-blue-900 cursor-pointer" />
-        </div>
-      </header>
+      <Navbar />
 
       {/* Konten utama */}
       <main

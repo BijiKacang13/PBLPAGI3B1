@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Home, Folder, Users, FileText } from "lucide-react";
 
 const menus = [
-  { name: "Beranda", icon: <Home size={20} />, path: "/beranda" },
+  { name: "Beranda", icon: <Home size={20} />, path: "/admin/beranda" },
   {
     name: "Akun",
     icon: <Users size={20} />,
@@ -24,16 +24,11 @@ export default function SidebarHover() {
     <aside
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
-      className={`h-screen bg-white border-r transition-all duration-300 ${
+      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-white border-r transition-all duration-300 ${
         expanded ? "w-64" : "w-20"
       }`}
     >
       <div className="p-4">
-        <h1 className={`text-blue-700 font-bold text-lg transition-opacity ${expanded ? "opacity-100" : "opacity-0"}`}>
-          SIA
-        </h1>
-      </div>
-
       <ul className="mt-6 space-y-2">
         {menus.map((item) => (
           <li key={item.name}>
@@ -59,6 +54,7 @@ export default function SidebarHover() {
           </li>
         ))}
       </ul>
+      </div>
     </aside>
   );
 }

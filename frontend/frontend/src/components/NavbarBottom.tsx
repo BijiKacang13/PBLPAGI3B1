@@ -16,7 +16,7 @@ export default function NavbarBottom({ isModalOpen = false }) {
   const pathname = usePathname();
 
   const menus = [
-    { name: "Beranda", href: "/beranda", icon: <House size={20} /> },
+    { name: "Beranda", href: "/admin/beranda", icon: <House size={20} /> },
     { name: "Akun", href: "/akun", icon: <Users size={20} /> },
     { name: "Keuangan", href: "/keuangan", icon: <CreditCard size={20} /> },
     { name: "Kegiatan", href: "/kegiatan", icon: <Activity size={20} /> },

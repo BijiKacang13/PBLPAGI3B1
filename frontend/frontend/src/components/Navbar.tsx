@@ -3,7 +3,7 @@ import ProfileDropdown from "./ProfileDropdown";
 
 export default function Navbar() {
   return (
-    <nav className="w-full py-2 md:py-3 px-3 md:px-6 bg-white shadow flex justify-between items-center">
+    <nav className="fixed top-0 left-0 w-full z-50 py-2 md:py-3 px-3 md:px-6 bg-white shadow flex justify-between items-center">
     <div className="flex items-center gap-2 md:gap-3">
 
         <img
