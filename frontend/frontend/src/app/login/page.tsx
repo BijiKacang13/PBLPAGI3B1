@@ -141,32 +141,36 @@ const handleLogin = async (e: React.FormEvent) => {
       style={{ WebkitOverflowScrolling: "touch" }}
     >
       <div
-        className={`bg-white p-8 rounded-2xl shadow-lg w-[90%] max-w-md text-center transition-all duration-300 ease-in-out
+        className={`bg-white p-8 rounded-2xl shadow-lg w-[90%] max-w-lg text-center transition-all duration-300 ease-in-out
         ${isKeyboardVisible ? "translate-y-[-40px]" : "translate-y-0"}`}
       >
-        {/* Header */}
-        <div className="flex items-center text-justify-center mb-4 gap-2">
+        {/* Header - RESPONSIF */}
+        <div className="flex items-center justify-center mb-6 gap-2 sm:gap-2 md:gap-3">
+          {/* Logo */}
           <img
             src="/logo.png"
             alt="Logo Yayasan"
-            width={55}
-            height={55}
-            className="w-22 h-22 object-contain"
+            className="w-16 h-16 sm:w-18 sm:h-18 md:w-[85px] md:h-[85px] object-contain"
           />
-          <div className="w-[3px] h-12 bg-[#1A3E85]"></div>
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-1">
-              <h1 className="text-5xl font-extrabold text-[#1A3E85] tracking-wide">
-                SIA
-              </h1>
-              <p className="text-sm font-semibold text-[#1A3E85] tracking-wide leading-tight">
-                <span className="inline-block w-[80px] text-left">YAYASAN</span>
-                <br />
-                <span className="inline-block w-[80px] text-left">DARUSSALAM</span>
+          
+          {/* Divider */}
+          <div className="w-[3px] h-8 sm:h-10 bg-[#1A3E85]"></div>
+          
+          {/* Text SIA + Yayasan Darussalam */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h1 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-[#1A3E85] leading-none">
+              SIA
+            </h1>
+            <div className="flex flex-col justify-center text-left">
+              <p className="text-[10px] sm:text-[14px] md:text-[14px] font-bold text-[#1A3E85] leading-tight uppercase">
+                YAYASAN
+              </p>
+              <p className="text-[10px] sm:text-[14px] md:text-[14px] font-bold text-[#1A3E85] leading-tight uppercase">
+                DARUSSALAM
               </p>
             </div>
           </div>
-        </div>
+      </div>  
 
         {/* Subjudul */}
         <p className="text-gray-400 text-sm mb-8 -mt-6">

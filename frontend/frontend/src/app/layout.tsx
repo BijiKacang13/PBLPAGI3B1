@@ -11,9 +11,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  // Daftar halaman yang TIDAK menampilkan Sidebar & Navbar
+  // Tambahkan "/" untuk splash screen dan "/login" untuk halaman login
+  const isAuthPage =
+    pathname === "/" || 
+    pathname === "/login" || 
+    pathname.startsWith("/auth");
   
   // Tentukan halaman yang menampilkan NavbarBottom
-const showNavbarBottom =
+  const showNavbarBottom =
+  !isAuthPage &&
   ["/admin/beranda", "/akun", "/keuangan", "/transaksi", "/kegiatan", "/pencatatan"].some((path) =>
     pathname.startsWith(path)
   );
@@ -21,13 +29,15 @@ const showNavbarBottom =
   return (
     <html lang="id">
       <body className="min-h-screen flex flex-col md:flex-row bg-gray-50 text-gray-800">
-        {/* Sidebar hanya di layar besar */}
-        <aside className="hidden md:block w-64 bg-white border-r shadow-sm">
-          <Sidebar />
-        </aside>
+        {/* Sidebar hanya di layar besar dan bukan halaman auth */}
+        {!isAuthPage && (
+          <aside className="hidden md:block w-64 bg-white border-r shadow-sm">
+            <Sidebar />
+          </aside>
+        )}
 
         {/* Konten utama */}
-        <main className="flex-1 relative pb-20 md:pb-0 pt-[90px]">{children}</main>
+        <main className={`flex-1 relative ${!isAuthPage ? 'pb-20 md:pb-0 pt-[90px]' : ''}`}>{children}</main>
 
         {/* Navbar Bottom hanya muncul di mobile DAN hanya jika sudah login */}
         {showNavbarBottom && (
