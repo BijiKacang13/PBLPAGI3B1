@@ -1,57 +1,67 @@
 "use client";
 
-import { ArrowLeft, User, X } from "lucide-react";
+import axios from "axios";
+import { ArrowLeft, User, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TambahSubKategori from "@/components/TambahSubKategori";
-import { motion, AnimatePresence } from "framer-motion";
+import EditSubKategori from "@/components/EditSubKategori";
+import HapusSubKategori from "@/components/HapusSubKategori";
 
 export default function SubKategoriAkun() {
-  const [openModal, setOpenModal] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+  const [openTambah, setOpenTambah] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [openHapus, setOpenHapus] = useState(false);
 
-  const data = [
-    { kode: "1-1100", nama: "Kas" },
-    { kode: "1-1200", nama: "Bank" },
-  ];
+  const API_URL = "http://127.0.0.1:8000/api/sub-kategori-akun";
 
+  // ======================
+  // FETCH DATA
+  // ======================
+  const fetchSubKategori = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      const arr = Array.isArray(res.data) ? res.data : res.data.data ?? [];
+      const mapped = arr.map((x: any) => ({
+        id_sub_kategori_akun: Number(x.id_sub_kategori_akun),
+        kode_sub_kategori_akun: x.kode_sub_kategori_akun,
+        sub_kategori_akun: x.sub_kategori_akun,
+        id_kategori_akun: x.id_kategori_akun,
+      }));
+      setData(mapped);
+    } catch (err) {
+      console.error("Gagal fetch sub kategori:", err);
+      setData([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubKategori();
+  }, []);
+
+  // ======================
+  // RENDER
+  // ======================
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
+    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20 relative">
       {/* Header */}
       <header className="flex items-center justify-between px-3 py-2">
         <div className="flex items-center gap-1">
-          <img
-            src="/logo.png"
-            alt="Logo Yayasan"
-            width={55}
-            height={55}
-            className="w-16 h-16 object-contain"
-          />
-          <div className="w-[2px] h-10 bg-[#1A3E85]"></div>
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-1">
-              <h1 className="text-3xl font-extrabold text-[#1A3E85] tracking-wide">
-                SIA
-              </h1>
-              <p className="text-xs font-semibold text-[#1A3E85] tracking-wide leading-tight">
-                <span className="inline-block w-[70px] text-left">YAYASAN</span>
-                <br />
-                <span className="inline-block w-[70px] text-left">
-                  DARUSSALAM
-                </span>
-              </p>
-            </div>
-          </div>
+          <img src="/logo.png" className="w-16 h-16 object-contain" />
+          <div className="w-[2px] h-10 bg-[#1A3E85]" />
+          <h1 className="text-3xl font-extrabold text-[#1A3E85]">SIA</h1>
         </div>
         <div className="p-2 rounded-full bg-blue-200 border border-blue-200">
           <User size={20} className="text-blue-900" />
         </div>
       </header>
 
-      {/* Konten utama */}
-      <div className="mt-6 w-[90%] max-w-md mx-auto bg-white rounded-xl shadow-md p-4">
-        {/* Tombol kembali dan judul */}
+      {/* Content */}
+      <div className="mt-6 w-[90%] max-w-md mx-auto bg-white rounded-xl shadow-md p-4 z-[20] relative">
         <div className="flex items-center mb-4">
-          <Link href="/keuangan/kategori-akun">
+          <Link href="/keuangan">
             <ArrowLeft className="text-gray-600 w-5 h-5" />
           </Link>
           <h2 className="flex-1 text-center font-semibold text-gray-800">
@@ -59,128 +69,86 @@ export default function SubKategoriAkun() {
           </h2>
         </div>
 
-        {/* Tombol Tambah */}
+        {/* Tombol tambah */}
         <button
-          onClick={() => setOpenModal(true)}
-          className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold text-sm mb-4 shadow-md hover:bg-blue-700 transition"
+          onClick={() => setOpenTambah(true)}
+          className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold mb-4 shadow hover:bg-blue-700"
         >
           Tambah Sub Kategori Akun
         </button>
 
-        {/* Tabel data */}
-        <div className="overflow-hidden rounded-lg border border-gray-200">
+        {/* Table */}
+        <div className="overflow-hidden rounded-lg border border-gray-200 relative z-[50]">
           <table className="w-full text-sm text-gray-700">
             <thead className="bg-gray-100">
               <tr>
-                <th className="text-left px-4 py-2 w-1/3">Kode</th>
-                <th className="text-left px-4 py-2">Sub Kategori Akun</th>
+                <th className="px-4 py-2 w-1/3 text-left">Kode</th>
+                <th className="px-4 py-2 text-left">Sub Kategori Akun</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((item, index) => (
-                <tr
-                  key={index}
-                  className="border-t hover:bg-gray-50 transition-all"
-                >
-                  <td className="px-4 py-2 text-gray-500 font-mono">
-                    {item.kode}
+              {data.map((item) => (
+                <tr key={item.id_sub_kategori_akun} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-2">{item.kode_sub_kategori_akun}</td>
+                  <td className="px-4 py-2 flex items-center justify-between">
+                    {item.sub_kategori_akun}
+                    <div className="flex gap-2">
+                      <button
+                        className="text-yellow-500 hover:text-yellow-600"
+                        onClick={() => {
+                          setSelected(item);
+                          setOpenEdit(true);
+                        }}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => {
+                          setSelected(item);
+                          setOpenHapus(true);
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
-                  <td className="px-4 py-2">{item.nama}</td>
                 </tr>
               ))}
+              {data.length === 0 && (
+                <tr>
+                  <td colSpan={2} className="text-center py-4 text-gray-400">
+                    Tidak ada data
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Footer Info */}
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
 
-      {/* Modal Tambah Kategori */}
-           <TambahSubKategori
-             open={openModal}
-             onClose={() => setOpenModal(false)}
-           />
-         </div>
-       );
-     }
-
-/* Modal Component */
-// function TambahSubKategori({ open, onClose }: { open: boolean; onClose: () => void }) {
-//   if (!open) return null;
-
-//   return (
-//     <AnimatePresence>
-//       {open && (
-//         <motion.div
-//           className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50"
-//           initial={{ opacity: 0 }}
-//           animate={{ opacity: 1 }}
-//           exit={{ opacity: 0 }}
-//         >
-//           <motion.div
-//             initial={{ scale: 0.9, opacity: 0 }}
-//             animate={{ scale: 1, opacity: 1 }}
-//             exit={{ scale: 0.9, opacity: 0 }}
-//             className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
-//           >
-//             {/* Tombol close */}
-//             <button
-//               onClick={onClose}
-//               className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-//             >
-//               <X className="w-5 h-5" />
-//             </button>
-
-//             {/* Judul */}
-//             <h3 className="text-center font-semibold text-gray-800 mb-4 mt-2">
-//               TAMBAH SUB KATEGORI AKUN
-//             </h3>
-
-//             {/* Form */}
-//             <form className="flex flex-col gap-3">
-//               <div>
-//                 <label className="block text-sm text-gray-700 mb-1">Kode</label>
-//                 <input
-//                   type="text"
-//                   placeholder="Masukkan kode"
-//                   className="w-full border rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
-//                 />
-//               </div>
-
-//               <div>
-//                 <label className="block text-sm text-gray-700 mb-1">
-//                   Sub Kategori Akun
-//                 </label>
-//                 <input
-//                   type="text"
-//                   placeholder="Masukkan sub kategori"
-//                   className="w-full border rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
-//                 />
-//               </div>
-
-//               {/* Tombol aksi */}
-//               <div className="flex justify-center gap-3 mt-4">
-//                 <button
-//                   type="button"
-//                   onClick={onClose}
-//                   className="bg-red-500 text-white px-5 py-2 rounded-full text-sm font-semibold shadow hover:bg-red-600 transition"
-//                 >
-//                   BATAL
-//                 </button>
-//                 <button
-//                   type="submit"
-//                   className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow hover:bg-blue-700 transition"
-//                 >
-//                   SIMPAN
-//                 </button>
-//               </div>
-//             </form>
-//           </motion.div>
-//         </motion.div>
-//       )}
-//     </AnimatePresence>
-//   );
-// }
+      {/* MODALS */}
+      <TambahSubKategori
+        open={openTambah}
+        onClose={() => setOpenTambah(false)}
+        onSuccess={fetchSubKategori}
+      />
+      <EditSubKategori
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={fetchSubKategori}
+        data={selected}
+      />
+      <HapusSubKategori
+        open={openHapus}
+        onClose={() => setOpenHapus(false)}
+        onSuccess={fetchSubKategori}
+        data={selected}
+      />
+    </div>
+  );
+}
