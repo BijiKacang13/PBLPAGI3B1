@@ -1,15 +1,7 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import {
-  ArrowLeft,
-  User,
-  Home,
-  Book,
-  Layers,
-  BarChart2,
-  ChevronDown,
-} from "lucide-react";
+import { ArrowLeft, User, Home, Book, Layers, BarChart2, ChevronDown, } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import TambahAkun from "@/components/TambahAkun";

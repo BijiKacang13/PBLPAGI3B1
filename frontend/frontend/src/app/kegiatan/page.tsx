@@ -40,13 +40,13 @@ export default function ManajemenKeuangan() {
           </div>
         </div>
 
-        <p className="text-gray-400 text-xs italic mt-8 text-center">
+         <p className="text-gray-400 text-xs italic mt-8 text-center">
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
       </main>
 
       {/* Navbar bawah */}
-      {/* <NavbarBottom /> */}
+    <NavbarBottom/>
     </div>
   );
 }

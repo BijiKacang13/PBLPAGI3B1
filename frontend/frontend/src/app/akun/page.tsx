@@ -2,7 +2,9 @@
 
 import Navbar from "@/components/Navbar"; 
 import { UserPlus, DollarSign, ClipboardCheck, User } from "lucide-react";
-import { useRouter } from "next/navigation";    
+import { useRouter } from "next/navigation";
+import NavbarBottom from "@/components/NavbarBottom";    
+
 
 export default function ManajemenAkun() {
     const router = useRouter();
@@ -44,13 +46,13 @@ export default function ManajemenAkun() {
           </div>
         </div>
 
-        <p className="text-gray-400 text-xs italic mt-8 text-center">
+           <p className="text-gray-400 text-xs italic mt-8 text-center">
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
       </main>
 
       {/* Navbar bawah */}
-      {/* <NavbarBottom /> */}
+   <NavbarBottom/>
     </div>
   );
 }

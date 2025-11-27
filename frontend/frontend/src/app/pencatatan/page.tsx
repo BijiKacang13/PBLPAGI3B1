@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar"; 
 import { CircleDollarSign, Files, User, Notebook  } from "lucide-react";
 import { useRouter } from "next/navigation";   
+import NavbarBottom from "@/components/NavbarBottom";
 
 export default function ManajemenKeuangan() {
     const router = useRouter();
@@ -52,7 +53,7 @@ export default function ManajemenKeuangan() {
       </main>
 
       {/* Navbar bawah */}
-      {/* <NavbarBottom /> */}
+     <NavbarBottom/>
     </div>
   );
 }

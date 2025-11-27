@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import TambahKategori from "@/components/TambahKategori";
 import EditKategori from "@/components/EditKategori";
 import HapusKategori from "@/components/HapusKategori";
+import Navbar from "@/components/Navbar";
+import NavbarBottom from "@/components/NavbarBottom";
 
 export default function KategoriAkun() {
   const [data, setData] = useState<any[]>([]);
@@ -51,17 +53,9 @@ export default function KategoriAkun() {
   // ======================
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20 relative">
-      {/* Header */}
-      <header className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-1">
-          <img src="/logo.png" className="w-16 h-16 object-contain" />
-          <div className="w-[2px] h-10 bg-[#1A3E85]" />
-          <h1 className="text-3xl font-extrabold text-[#1A3E85]">SIA</h1>
-        </div>
-        <div className="p-2 rounded-full bg-blue-200 border border-blue-200">
-          <User size={20} className="text-blue-900" />
-        </div>
-      </header>
+      <Navbar />
+
+     
 
       {/* Content */}
       <div className="mt-6 w-[90%] max-w-md mx-auto bg-white rounded-xl shadow-md p-4 z-[20] relative">
@@ -140,9 +134,12 @@ export default function KategoriAkun() {
         </div>
       </div>
 
-      <p className="text-gray-400 text-xs italic mt-8 text-center">
-        Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
-      </p>
+       {/* Footer Text */}
+        <div className="text-center text-[9px] text-gray-400 italic pt-2 pb-1">
+          Sistem Informasi Akuntansi Yayasan<br/>
+          Darussalam Batam | 2025
+        </div>
+        <NavbarBottom />
 
       {/* MODALS */}
       <TambahKategori
