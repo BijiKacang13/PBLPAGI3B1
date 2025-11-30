@@ -24,10 +24,11 @@ class Akun extends Model
     }
 
 
-    public function sub_kategori_akun(): BelongsTo
+    public function subKategori(): BelongsTo
     {
         return $this->belongsTo(Sub_Kategori_Akun::class, 'id_sub_kategori_akun', 'id_sub_kategori_akun');
     }
+
 
     // Model Akun
     public function unit()

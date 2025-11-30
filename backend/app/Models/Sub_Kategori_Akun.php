@@ -27,6 +27,7 @@ class Sub_Kategori_Akun extends Model
 
     public function akun(): HasMany
     {
-        return $this->hasMany(Akun::class, 'id_akun');
+        return $this->hasMany(Akun::class, 'id_sub_kategori_akun', 'id_sub_kategori_akun');
     }
+
 }

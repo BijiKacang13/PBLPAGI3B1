@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\AuditorController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AkuntanUnitController;
 use App\Http\Controllers\Api\SubKategoriAkunController;
-
+use App\Http\Controllers\Api\AkunController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -59,3 +59,8 @@ Route::get('/sub-kategori-akun', [SubKategoriAkunController::class, 'index']);
 Route::post('/sub-kategori-akun', [SubKategoriAkunController::class, 'store']);
 Route::put('/sub-kategori-akun/{id}', [SubKategoriAkunController::class, 'update']);
 Route::delete('/sub-kategori-akun/{id}', [SubKategoriAkunController::class, 'destroy']);
+
+Route::get('/akun', [AkunController::class, 'index']);
+Route::post('/akun', [AkunController::class, 'store']);
+Route::put('/akun/{id}', [AkunController::class, 'update']);
+Route::delete('/akun/{id}', [AkunController::class, 'destroy']);
