@@ -6,13 +6,16 @@ import { ArrowLeft, Pencil, Trash2, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TambahAkun from "@/components/TambahAkun";
-// import EditAkun from "@/components/EditAkun";
+import EditAkun from "@/components/EditAkun";
 // import HapusAkun from "@/components/HapusAkun";
 
 type Akun = {
   id_akun: number;
+  id_sub_kategori_akun: number;
   kode_akun: string;
   akun: string;
+  saldo_awal_debit: number;
+  saldo_awal_kredit: number;
 };
 
 export default function AkunPage() {
@@ -45,8 +48,11 @@ export default function AkunPage() {
         : res.data.data ?? res.data.akun ?? [];
       const mapped = arr.map((x: any) => ({
         id_akun: Number(x.id_akun),
+        id_sub_kategori_akun: Number(x.id_sub_kategori_akun),
         kode_akun: x.kode_akun,
         akun: x.akun,
+        saldo_awal_debit: Number(x.saldo_awal_debit),
+        saldo_awal_kredit: Number(x.saldo_awal_kredit),
       }));
       setData(mapped);
     } catch (err) {
@@ -153,23 +159,25 @@ export default function AkunPage() {
           )}
         </div>
 
-        {/* TABLE */}
-        <div className="overflow-hidden rounded-xl border border-gray-200">
-          <table className="w-full text-sm text-gray-700">
+        {/* TABLE */} 
+        <div className="overflow-x-auto rounded-xl border border-gray-200"> 
+          <table className="w-full text-sm text-gray-700 min-w-[600px]"> 
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 text-left w-1/3">Kode</th>
-                <th className="px-4 py-2 text-left">Akun</th>
+                <th className="px-4 py-2 text-left w-1/6">Kode</th> 
+                <th className="px-4 py-2 text-left w-1/4">Akun</th> 
+                <th className="px-4 py-2 text-right w-1/4">Saldo Debit Awal</th> 
+                <th className="px-4 py-2 text-right w-1/4">Saldo Kredit Awal</th>
                 <th className="px-4 py-2 w-20"></th>
               </tr>
             </thead>
             <tbody>
               {paginated.map((item) => (
                 <tr key={item.id_akun} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 font-mono text-gray-600">
-                    {item.kode_akun}
-                  </td>
+                  <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
                   <td className="px-4 py-2">{item.akun}</td>
+                  <td className="px-4 py-2 text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(item.saldo_awal_debit)}</td>
+                  <td className="px-4 py-2 text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(item.saldo_awal_kredit)}</td>
                   <td className="px-4 py-2 flex justify-end gap-3">
                     <button
                       onClick={() => {
@@ -192,13 +200,9 @@ export default function AkunPage() {
                   </td>
                 </tr>
               ))}
-
               {paginated.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={3}
-                    className="text-center py-4 text-gray-400"
-                  >
+                  <td colSpan={5} className="text-center py-4 text-gray-400"> {/* CHANGE: colspan 5 */}
                     Tidak ada data
                   </td>
                 </tr>
@@ -206,6 +210,7 @@ export default function AkunPage() {
             </tbody>
           </table>
         </div>
+
 
         {/* PAGINATION */}
         <div className="flex justify-center items-center gap-3 mt-4">
@@ -249,13 +254,13 @@ export default function AkunPage() {
         onClose={() => setOpenTambah(false)}
         onSuccess={fetchAkun}
       />
-      {/* <EditAkun
+      <EditAkun
         open={openEdit}
         onClose={() => setOpenEdit(false)}
         onSuccess={fetchAkun}
         data={selected}
       />
-      <HapusAkun
+      {/* <HapusAkun
         open={openHapus}
         onClose={() => setOpenHapus(false)}
         onSuccess={fetchAkun}
