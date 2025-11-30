@@ -1,9 +1,13 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
+import axios from "axios";
 import { ArrowLeft, Pencil, Trash2, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import TambahAkun from "@/components/TambahAkun";
+// import EditAkun from "@/components/EditAkun";
+// import HapusAkun from "@/components/HapusAkun";
 
 type Akun = {
   id_akun: number;
@@ -13,6 +17,7 @@ type Akun = {
 
 export default function AkunPage() {
   const [data, setData] = useState<Akun[]>([]);
+  const [selected, setSelected] = useState<Akun | null>(null);
 
   // Search
   const [search, setSearch] = useState("");
@@ -22,36 +27,31 @@ export default function AkunPage() {
   const [page, setPage] = useState(1);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Modal
+  // Modals
   const [openTambah, setOpenTambah] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
-  const [selected, setSelected] = useState<Akun | null>(null);
+
+  const API_URL = "http://127.0.0.1:8000/api/akun";
 
   // ======================
   // FETCH DATA
   // ======================
   const fetchAkun = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/akun");
-      const json = await res.json();
-
-      let arr: any[] = [];
-
-      if (Array.isArray(json)) arr = json;
-      else if (Array.isArray(json.data)) arr = json.data;
-      else if (Array.isArray(json.akun)) arr = json.akun;
-      else if (Array.isArray(json?.data?.data)) arr = json.data.data;
-
-      const mapped = arr.map((x) => ({
+      const res = await axios.get(API_URL);
+      const arr = Array.isArray(res.data)
+        ? res.data
+        : res.data.data ?? res.data.akun ?? [];
+      const mapped = arr.map((x: any) => ({
         id_akun: Number(x.id_akun),
         kode_akun: x.kode_akun,
         akun: x.akun,
       }));
-
       setData(mapped);
-    } catch (error) {
-      console.log("Gagal mengambil data akun:", error);
+    } catch (err) {
+      console.error("Gagal fetch akun:", err);
+      setData([]);
     }
   };
 
@@ -68,7 +68,7 @@ export default function AkunPage() {
       x.akun.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Reset page kalau search berubah
+  // Reset page saat search berubah
   useEffect(() => {
     setPage(1);
   }, [search]);
@@ -90,7 +90,6 @@ export default function AkunPage() {
           <Link href="/keuangan">
             <ArrowLeft className="text-gray-700 w-5 h-5" />
           </Link>
-
           <h2 className="flex-1 text-center font-semibold text-gray-800">
             AKUN
           </h2>
@@ -164,16 +163,13 @@ export default function AkunPage() {
                 <th className="px-4 py-2 w-20"></th>
               </tr>
             </thead>
-
             <tbody>
               {paginated.map((item) => (
                 <tr key={item.id_akun} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-2 font-mono text-gray-600">
                     {item.kode_akun}
                   </td>
-
                   <td className="px-4 py-2">{item.akun}</td>
-
                   <td className="px-4 py-2 flex justify-end gap-3">
                     <button
                       onClick={() => {
@@ -184,7 +180,6 @@ export default function AkunPage() {
                     >
                       <Pencil size={16} />
                     </button>
-
                     <button
                       onClick={() => {
                         setSelected(item);
@@ -200,7 +195,10 @@ export default function AkunPage() {
 
               {paginated.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="text-center py-4 text-gray-400">
+                  <td
+                    colSpan={3}
+                    className="text-center py-4 text-gray-400"
+                  >
                     Tidak ada data
                   </td>
                 </tr>
@@ -245,13 +243,24 @@ export default function AkunPage() {
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
 
-      {/*  
-      <TambahAkun open={openTambah} onClose={() => setOpenTambah(false)} onSuccess={fetchAkun} />
-
-      <EditAkun open={openEdit} onClose={() => setOpenEdit(false)} onSuccess={fetchAkun} data={selected} />
-
-      <HapusAkun open={openHapus} onClose={() => setOpenHapus(false)} onSuccess={fetchAkun} data={selected} />
-      */}
+      {/* MODALS */}
+      <TambahAkun
+        open={openTambah}
+        onClose={() => setOpenTambah(false)}
+        onSuccess={fetchAkun}
+      />
+      {/* <EditAkun
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={fetchAkun}
+        data={selected}
+      />
+      <HapusAkun
+        open={openHapus}
+        onClose={() => setOpenHapus(false)}
+        onSuccess={fetchAkun}
+        data={selected}
+      /> */}
     </div>
   );
 }

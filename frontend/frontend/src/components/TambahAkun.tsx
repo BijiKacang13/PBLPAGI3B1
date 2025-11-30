@@ -1,161 +1,242 @@
 "use client";
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 
 type TambahAkunProps = {
   open: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 };
 
-export default function TambahAkun({ open, onClose }: TambahAkunProps) {
-  const [kategori, setKategori] = useState("");
+export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps) {
+  const API_URL = "http://127.0.0.1:8000/api";
+
+  const [subKategoriOptions, setSubKategoriOptions] = useState<any[]>([]);
+  const [selectedSubKategori, setSelectedSubKategori] = useState<any>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const kategoriOptions = [
-    "1-0000 - AKTIVA",
-    "2-0000 - KEWAJIBAN",
-    "3-0000 - ASET NETO",
-    "4-0000 - PENERIMAAN DAN SUMBANGAN",
-    "5-0000 - BEBAN",
-  ];
+  const [kodeAkun, setKodeAkun] = useState("");
+  const [akun, setAkun] = useState("");
+  const [saldoDebit, setSaldoDebit] = useState<number | "">("");
+  const [saldoCredit, setSaldoCredit] = useState<number | "">("");
+  const [loading, setLoading] = useState(false);
+  const [loadingSubKategori, setLoadingSubKategori] = useState(false);
+
+  // ======================
+  // FETCH SUB KATEGORI
+  // ======================
+  const fetchSubKategori = async () => {
+    setLoadingSubKategori(true);
+    try {
+      const res = await axios.get(`${API_URL}/sub-kategori-akun`);
+      const list = Array.isArray(res.data.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      const mapped = list.map((item: any) => ({
+        id: item.id_sub_kategori_akun,
+        label: `${item.kode_sub_kategori_akun} - ${item.sub_kategori_akun}`,
+      }));
+      setSubKategoriOptions(mapped);
+    } catch (err) {
+      console.error("Gagal fetch sub kategori:", err);
+    } finally {
+      setLoadingSubKategori(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open) fetchSubKategori();
+  }, [open]);
+
+  // ======================
+  // SUBMIT
+  // ======================
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedSubKategori) {
+      alert("Pilih Sub Kategori Akun terlebih dahulu!");
+      return;
+    }
+
+    setLoading(true);
+    const payload = {
+      id_sub_kategori_akun: selectedSubKategori.id,
+      kode_akun: kodeAkun.trim(),
+      akun: akun.trim(),
+      saldo_awal_debit: saldoDebit ? Number(saldoDebit) : 0,
+      saldo_awal_kredit: saldoCredit ? Number(saldoCredit) : 0,
+    };
+
+    console.log("Mengirim payload:", payload);
+
+    try {
+      await axios.post(`${API_URL}/akun`, payload);
+      onSuccess();
+      onClose();
+
+      // reset form
+      setKodeAkun("");
+      setAkun("");
+      setSaldoDebit("");
+      setSaldoCredit("");
+      setSelectedSubKategori(null);
+    } catch (error: any) {
+      console.error("Gagal tambah akun:", error.response?.data || error);
+      alert("Gagal menambah akun! Periksa input dan coba lagi.");
+    }
+
+    setLoading(false);
+  };
+
+  if (!open) return null;
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          {/* Card Modal */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="bg-white rounded-2xl p-6 w-11/12 max-w-md mx-auto shadow-2xl relative"
+            className="bg-white w-[85%] max-w-md rounded-2xl shadow-lg p-6 relative"
           >
-            {/* Tombol Close */}
+            {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
 
-            <h2 className="text-center text-lg font-semibold text-gray-800 mb-4">
+            <h2 className="text-center font-semibold text-gray-800 mb-4">
               TAMBAH AKUN
             </h2>
 
-            {/* Dropdown versi baru */}
-            <div className="relative mb-4">
-              <label className="block text-sm text-gray-700 mb-1">
-                Sub Kategori Akun
-              </label>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              {/* DROPDOWN SUB KATEGORI */}
+              <div className="relative">
+                <label className="block text-sm text-gray-700 mb-1">
+                  Sub Kategori Akun
+                </label>
+                <div
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm bg-white cursor-pointer flex justify-between items-center"
+                >
+                  <span className={selectedSubKategori ? "text-gray-800" : "text-gray-400"}>
+                    {loadingSubKategori ? "Memuat..." : selectedSubKategori?.label || "Pilih Sub Kategori"}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-gray-500 transition ${dropdownOpen ? "rotate-180" : ""}`}
+                  />
+                </div>
 
-              <div
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full border border-gray-300 bg-white rounded-xl px-4 py-2 text-sm flex justify-between items-center cursor-pointer shadow-sm hover:border-blue-400 transition"
-              >
-                <span className={kategori ? "text-gray-800" : "text-gray-400"}>
-                  {kategori || "Pilih Kategori Akun"}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 text-gray-500 transition-transform ${
-                    dropdownOpen ? "rotate-180" : ""
-                  }`}
+                <AnimatePresence>
+                  {dropdownOpen && !loadingSubKategori && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute w-full bg-white border rounded-xl shadow-lg mt-2 py-2 z-20 max-h-56 overflow-y-auto"
+                    >
+                      {subKategoriOptions.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            setSelectedSubKategori(item);
+                            setDropdownOpen(false);
+                          }}
+                          className={`px-4 py-2 text-sm cursor-pointer ${
+                            selectedSubKategori?.id === item.id
+                              ? "bg-blue-100 text-blue-700"
+                              : "hover:bg-blue-50 text-gray-700"
+                          }`}
+                        >
+                          {item.label}
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* INPUT KODE */}
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Kode Akun</label>
+                <input
+                  type="text"
+                  value={kodeAkun}
+                  onChange={(e) => setKodeAkun(e.target.value)}
+                  className="w-full border rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                  placeholder="Masukkan kode akun"
+                  required
                 />
               </div>
 
-              <AnimatePresence>
-                {dropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute w-full bg-white border border-gray-200 shadow-xl rounded-2xl mt-2 py-2 max-h-56 overflow-y-auto z-10"
-                  >
-                    {kategoriOptions.map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          setKategori(item);
-                          setDropdownOpen(false);
-                        }}
-                        className={`px-4 py-2 text-sm cursor-pointer rounded-lg transition ${
-                          kategori === item
-                            ? "bg-blue-100 text-blue-700"
-                            : "hover:bg-blue-50 text-gray-700"
-                        }`}
-                      >
-                        {item}
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              {/* INPUT AKUN */}
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Akun</label>
+                <input
+                  type="text"
+                  value={akun}
+                  onChange={(e) => setAkun(e.target.value)}
+                  className="w-full border rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                  placeholder="Masukkan nama akun"
+                  required
+                />
+              </div>
 
-      {/* Input fields */}
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Kode Akun</label>
-          <input
-            type="text"
-            className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none"
-          />
-        </div>
+              {/* SALDO DEBIT */}
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Saldo Awal Debit</label>
+                <div className="flex items-center border border-gray-300 rounded-xl px-3 py-2 text-sm">
+                  <span className="text-gray-500 mr-2">Rp</span>
+                  <input
+                    type="number"
+                    value={saldoDebit}
+                    onChange={(e) => setSaldoDebit(e.target.valueAsNumber)}
+                    className="w-full outline-none text-gray-800"
+                  />
+                </div>
+              </div>
 
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">Akun</label>
-          <input
-            type="text"
-            className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-300 outline-none"
-          />
-        </div>
+              {/* SALDO KREDIT */}
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Saldo Awal Kredit</label>
+                <div className="flex items-center border border-gray-300 rounded-xl px-3 py-2 text-sm">
+                  <span className="text-gray-500 mr-2">Rp</span>
+                  <input
+                    type="number"
+                    value={saldoCredit}
+                    onChange={(e) => setSaldoCredit(e.target.valueAsNumber)}
+                    className="w-full outline-none text-gray-800"
+                  />
+                </div>
+              </div>
 
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">
-            Saldo Awal Debit
-          </label>
-          <div className="flex items-center border border-gray-300 rounded-xl px-3 py-2 text-sm">
-            <span className="text-gray-500 mr-2">Rp</span>
-            <input
-              type="number"
-              className="w-full outline-none text-gray-800"
-            />
-          </div>
-        </div>
+              {/* BUTTON */}
+              <div className="flex justify-center gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="bg-red-500 text-white px-5 py-2 rounded-full text-sm font-semibold shadow hover:bg-red-600 transition"
+                >
+                  BATAL
+                </button>
 
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">
-            Saldo Awal Credit
-          </label>
-          <div className="flex items-center border border-gray-300 rounded-xl px-3 py-2 text-sm">
-            <span className="text-gray-500 mr-2">Rp</span>
-            <input
-              type="number"
-              className="w-full outline-none text-gray-800"
-            />
-          </div>
-        </div>
-      </div>
-
-            {/* Tombol aksi */}
-            <div className="flex justify-center gap-3 mt-5">
-              <button
-                onClick={onClose}
-                className="px-5 py-2 rounded-full text-white text-sm font-semibold bg-red-500 hover:bg-red-600 transition"
-              >
-                BATAL
-              </button>
-              <button className="px-5 py-2 rounded-full text-white text-sm font-semibold bg-blue-500 hover:bg-blue-600 transition">
-                SIMPAN
-              </button>
-            </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow hover:bg-blue-700 transition"
+                >
+                  {loading ? "MENYIMPAN..." : "SIMPAN"}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </motion.div>
       )}
