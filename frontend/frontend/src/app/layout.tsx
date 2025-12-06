@@ -22,7 +22,7 @@ export default function RootLayout({
   // Tentukan halaman yang menampilkan NavbarBottom
   const showNavbarBottom =
   !isAuthPage &&
-  ["/admin/beranda", "/akun", "/keuangan", "/transaksi", "/kegiatan", "/pencatatan"].some((path) =>
+  ["/admin/beranda", "/akun", "/keuangan", "/transaksi", "/kegiatan", "/pencatatan", "/sop"].some((path) =>
     pathname.startsWith(path)
   );
 
