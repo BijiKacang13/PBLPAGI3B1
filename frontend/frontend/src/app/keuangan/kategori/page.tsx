@@ -1,6 +1,5 @@
 "use client";
 
-import axios from "axios";
 import { ArrowLeft, User, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -25,8 +24,6 @@ export default function KategoriAkun() {
   const fetchKategori = async () => {
     try {
       const res = await api.get("/kategori-akun");
-    
-      // res langsung isi JSON dari backend
       const arr = Array.isArray(res)
         ? res
         : res.data ?? [];

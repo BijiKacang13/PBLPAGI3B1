@@ -1,267 +1,267 @@
-"use client";
+  "use client";
 
-import Navbar from "@/components/Navbar";
-import {
-  ArrowLeft,
-  User,
-  Home,
-  Book,
-  Layers,
-  BarChart2,
-  Pencil,
-  Trash2,
-  ChevronDown,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
-import TambahKegiatan from "@/components/TambahKegiatan";
-import { useState, useEffect } from "react";
-import HapusKegiatan from "@/components/HapusKegiatan";
-import EditKegiatan from "@/components/EditKegiatan";
-
-
-type Kegiatan = {
-  id_kegiatan: number;
-  kode_kegiatan: string;
-  kegiatan: string;
-};
-
-export default function Akun() {
-  const [openModal, setOpenModal] = useState(false);
-
-  const [data, setData] = useState<Kegiatan[]>([]);
-
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [limit, setLimit] = useState(10);
-  const [page, setPage] = useState(1);
-  const [openTambah, setOpenTambah] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
-  const [openHapus, setOpenHapus] = useState(false);
-  const [selected, setSelected] = useState<Kegiatan | null>(null);
+  import Navbar from "@/components/Navbar";
+  import {
+    ArrowLeft,
+    User,
+    Home,
+    Book,
+    Layers,
+    BarChart2,
+    Pencil,
+    Trash2,
+    ChevronDown,
+  } from "lucide-react";
+  import { motion, AnimatePresence } from "framer-motion";
+  import Link from "next/link";
+  import TambahKegiatan from "@/components/TambahKegiatan";
+  import { useState, useEffect } from "react";
+  import HapusKegiatan from "@/components/HapusKegiatan";
+  import EditKegiatan from "@/components/EditKegiatan";
 
 
-  const fetchKegiatan = async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/kegiatan");
-      const json = await res.json();
-      setData(json);
-    } catch (error) {
-      console.log("Gagal mengambil data:", error);
-    }
+  type Kegiatan = {
+    id_kegiatan: number;
+    kode_kegiatan: string;
+    kegiatan: string;
   };
 
-  useEffect(() => {
-    fetchKegiatan();
-  }, []);
+  export default function Akun() {
+    const [openModal, setOpenModal] = useState(false);
 
-  const totalPages = Math.ceil(data.length / limit);
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
+    const [data, setData] = useState<Kegiatan[]>([]);
 
-  const paginatedData: Kegiatan[] = data.slice(startIndex, endIndex);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [limit, setLimit] = useState(10);
+    const [page, setPage] = useState(1);
+    const [openTambah, setOpenTambah] = useState(false);
+    const [openEdit, setOpenEdit] = useState(false);
+    const [openHapus, setOpenHapus] = useState(false);
+    const [selected, setSelected] = useState<Kegiatan | null>(null);
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
 
-      <Navbar />
+    const fetchKegiatan = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/kegiatan");
+        const json = await res.json();
+        setData(json);
+      } catch (error) {
+        console.log("Gagal mengambil data:", error);
+      }
+    };
 
-      {/* MAIN CARD */}
-      <div className="mt-4 w-[90%] max-w-md mx-auto bg-white rounded-2xl shadow-md p-5">
-        <h2 className="text-center font-semibold text-gray-800 mb-4">
-          DATA KEGIATAN
-        </h2>
+    useEffect(() => {
+      fetchKegiatan();
+    }, []);
 
-        {/* IMPORT FILE */}
-        <a
-          href="#"
-          className="text-blue-600 text-sm font-semibold underline block text-center mb-3"
-        >
-          Download Template Import Kegiatan
-        </a>
+    const totalPages = Math.ceil(data.length / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
 
-        <div className="flex items-center gap-2 mb-3">
-          <label className="bg-gray-200 text-gray-700 px-3 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-300 transition">
-            Pilih File
-            <input type="file" className="hidden" />
-          </label>
-          <input
-            type="text"
-            value="Tidak ada file"
-            readOnly
-            className="flex-1 border border-gray-300 rounded-full px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
-          />
-          <button className="bg-blue-500 text-white px-3 py-2 rounded-full text-xs font-semibold hover:bg-blue-600 transition">
-            Import Excel
-          </button>
-        </div>
+    const paginatedData: Kegiatan[] = data.slice(startIndex, endIndex);
 
-        {/* TOMBOL TAMBAH */}
-        <button
-          onClick={() => setOpenModal(true)}
-          className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold text-sm mb-3 shadow hover:bg-blue-700 transition"
-        >
-          Tambah Kegiatan
-        </button>
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
 
-        {/* DROPDOWN LIMIT */}
-        <div className="relative text-sm mb-3">
-          <label className="block text-gray-700 mb-1">
-            Tampilkan Data per Halaman
-          </label>
+        <Navbar />
 
-          <div
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="w-32 border border-gray-300 bg-white rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm"
+        {/* MAIN CARD */}
+        <div className="mt-4 w-[90%] max-w-md mx-auto bg-white rounded-2xl shadow-md p-5">
+          <h2 className="text-center font-semibold text-gray-800 mb-4">
+            DATA KEGIATAN
+          </h2>
+
+          {/* IMPORT FILE */}
+          <a
+            href="#"
+            className="text-blue-600 text-sm font-semibold underline block text-center mb-3"
           >
-            <span>{limit}</span>
-            <ChevronDown
-              className={`w-4 h-4 transition ${
-                showDropdown ? "rotate-180" : ""
-              }`}
+            Download Template Import Kegiatan
+          </a>
+
+          <div className="flex items-center gap-2 mb-3">
+            <label className="bg-gray-200 text-gray-700 px-3 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-300 transition">
+              Pilih File
+              <input type="file" className="hidden" />
+            </label>
+            <input
+              type="text"
+              value="Tidak ada file"
+              readOnly
+              className="flex-1 border border-gray-300 rounded-full px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
             />
+            <button className="bg-blue-500 text-white px-3 py-2 rounded-full text-xs font-semibold hover:bg-blue-600 transition">
+              Import Excel
+            </button>
           </div>
 
-          <AnimatePresence>
-            {showDropdown && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="absolute w-32 bg-white border rounded-xl shadow-xl mt-2 py-2 z-10"
-              >
-                {[2, 5, 10].map((value) => (
-                  <div
-                    key={value}
-                    onClick={() => {
-                      setLimit(value);
-                      setPage(1);
-                      setShowDropdown(false);
-                    }}
-                    className={`px-4 py-2 cursor-pointer ${
-                      limit === value
-                        ? "bg-blue-100 text-blue-700"
-                        : "hover:bg-blue-50"
-                    }`}
-                  >
-                    {value} Data
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* TABEL */}
-        <div className="overflow-hidden rounded-xl border border-gray-200">
-          <table className="w-full text-sm text-gray-700">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="text-left px-4 py-2 w-1/3">Kode</th>
-                <th className="text-center px-4 py-2">Akun</th>
-                <th className="text-right px-4 py-2 w-20"></th>
-              </tr>
-            </thead>
-              <tbody>
-                {paginatedData.map((item) => (
-                  <tr
-                    key={item.id_kegiatan}
-                    className="border-t hover:bg-gray-50 transition-all"
-                  >
-                    <td className="px-4 py-2 text-gray-600 font-mono">
-                      {item.kode_kegiatan}
-                    </td>
-
-                    <td className="px-4 py-2">
-                      {item.kegiatan}
-                    </td>
-
-                    <td className="px-4 py-2">
-                      <div className="flex justify-end gap-3">
-                        <button
-                          className="text-yellow-500 hover:text-yellow-600"
-                          onClick={() => {
-                            setSelected(item);
-                            setOpenEdit(true);
-                          }}
-                        >
-                          <Pencil size={16} />
-                        </button>
-
-                        <button
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => {
-                            setSelected(item);
-                            setOpenHapus(true);
-                          }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-          </table>
-        </div>
-
-        {/* PAGINATION */}
-        <div className="flex justify-center items-center gap-3 mt-4">
+          {/* TOMBOL TAMBAH */}
           <button
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-            className={`px-3 py-1 rounded-lg text-sm ${
-              page === 1
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            onClick={() => setOpenModal(true)}
+            className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold text-sm mb-3 shadow hover:bg-blue-700 transition"
           >
-            Sebelumnya
+            Tambah Kegiatan
           </button>
 
-          <span className="text-gray-700 text-sm font-semibold">
-            Page {page} / {totalPages}
-          </span>
+          {/* DROPDOWN LIMIT */}
+          <div className="relative text-sm mb-3">
+            <label className="block text-gray-700 mb-1">
+              Tampilkan Data per Halaman
+            </label>
 
-          <button
-            onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
-            disabled={page === totalPages}
-            className={`px-3 py-1 rounded-lg text-sm ${
-              page === totalPages
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
-            Selanjutnya
-          </button>
+            <div
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="w-32 border border-gray-300 bg-white rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm"
+            >
+              <span>{limit}</span>
+              <ChevronDown
+                className={`w-4 h-4 transition ${
+                  showDropdown ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="absolute w-32 bg-white border rounded-xl shadow-xl mt-2 py-2 z-10"
+                >
+                  {[2, 5, 10].map((value) => (
+                    <div
+                      key={value}
+                      onClick={() => {
+                        setLimit(value);
+                        setPage(1);
+                        setShowDropdown(false);
+                      }}
+                      className={`px-4 py-2 cursor-pointer ${
+                        limit === value
+                          ? "bg-blue-100 text-blue-700"
+                          : "hover:bg-blue-50"
+                      }`}
+                    >
+                      {value} Data
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* TABEL */}
+          <div className="overflow-hidden rounded-xl border border-gray-200">
+            <table className="w-full text-sm text-gray-700">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="text-left px-4 py-2 w-1/3">Kode</th>
+                  <th className="text-center px-4 py-2">Akun</th>
+                  <th className="text-right px-4 py-2 w-20"></th>
+                </tr>
+              </thead>
+                <tbody>
+                  {paginatedData.map((item) => (
+                    <tr
+                      key={item.id_kegiatan}
+                      className="border-t hover:bg-gray-50 transition-all"
+                    >
+                      <td className="px-4 py-2 text-gray-600 font-mono">
+                        {item.kode_kegiatan}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        {item.kegiatan}
+                      </td>
+
+                      <td className="px-4 py-2">
+                        <div className="flex justify-end gap-3">
+                          <button
+                            className="text-yellow-500 hover:text-yellow-600"
+                            onClick={() => {
+                              setSelected(item);
+                              setOpenEdit(true);
+                            }}
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => {
+                              setSelected(item);
+                              setOpenHapus(true);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+            </table>
+          </div>
+
+          {/* PAGINATION */}
+          <div className="flex justify-center items-center gap-3 mt-4">
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded-lg text-sm ${
+                page === 1
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              Sebelumnya
+            </button>
+
+            <span className="text-gray-700 text-sm font-semibold">
+              Page {page} / {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded-lg text-sm ${
+                page === totalPages
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              Selanjutnya
+            </button>
+          </div>
         </div>
+
+        {/* FOOTER */}
+        <p className="text-gray-400 text-xs italic mt-8 text-center">
+          Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
+        </p>
+
+        {/* MODAL */}
+        <TambahKegiatan
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+          onSuccess={() => fetchKegiatan()}
+        />
+
+        <HapusKegiatan
+          open={openHapus}
+          onClose={() => setOpenHapus(false)}
+          onSuccess={() => fetchKegiatan()}
+          data={selected}
+        />
+
+        <EditKegiatan
+          open={openEdit}
+          onClose={() => setOpenEdit(false)}
+          onSuccess={() => fetchKegiatan()}
+          data={selected}
+        />
+
       </div>
-
-      {/* FOOTER */}
-      <p className="text-gray-400 text-xs italic mt-8 text-center">
-        Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
-      </p>
-
-      {/* MODAL */}
-      <TambahKegiatan
-        open={openModal}
-        onClose={() => setOpenModal(false)}
-        onSuccess={() => fetchKegiatan()}
-      />
-
-      <HapusKegiatan
-        open={openHapus}
-        onClose={() => setOpenHapus(false)}
-        onSuccess={() => fetchKegiatan()}
-        data={selected}
-      />
-
-      <EditKegiatan
-        open={openEdit}
-        onClose={() => setOpenEdit(false)}
-        onSuccess={() => fetchKegiatan()}
-        data={selected}
-      />
-
-    </div>
-  );
-}
+    );
+  }

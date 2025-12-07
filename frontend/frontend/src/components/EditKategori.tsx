@@ -38,7 +38,7 @@ export default function EditKategori({ open, onClose, onSuccess, data }: EditKat
         kode_kategori_akun: kode,
         kategori_akun: kategori,
       });
-
+      
       onSuccess();
       onClose();
     } catch (err: any) {

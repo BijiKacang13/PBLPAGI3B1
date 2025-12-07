@@ -86,7 +86,3 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
 });
-
-// Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
-// Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
-// Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
