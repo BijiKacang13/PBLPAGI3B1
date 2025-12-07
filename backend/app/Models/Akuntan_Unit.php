@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Models\Unit;
 use App\Models\User;
+use App\Models\Hak_Akses;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Akuntan_Unit extends Model
@@ -26,5 +28,8 @@ class Akuntan_Unit extends Model
         return $this->belongsTo(User::class, 'id_akuntan_unit', 'id_user');
     }
 
-
+    public function hakAkses(): HasOne
+    {
+        return $this->hasOne(Hak_Akses::class, 'id_akuntan_unit', 'id_akuntan_unit');
+    }
 }
