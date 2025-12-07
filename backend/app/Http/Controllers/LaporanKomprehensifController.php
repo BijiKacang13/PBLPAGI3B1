@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Unit;
 use App\Models\Akuntan_Unit;
+use App\Models\Akuntan_Divisi;
 
 use App\Models\Divisi;
 use Illuminate\Http\Request;

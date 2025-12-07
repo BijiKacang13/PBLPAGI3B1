@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SubKategoriAkunController;
 use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
+use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\AkuntanUnitController;
 
 // Public Routes
@@ -66,6 +67,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [AuditorController::class, 'destroy']);
     });
 
-});Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
+     Route::prefix('laporan-komprehensif')->group(function () {
+        // Get data laporan
+        Route::get('/', [LaporanKomprehensifController::class, 'index']);
+        
+        // Get dropdown options (units & divisions)
+        Route::get('/options', [LaporanKomprehensifController::class, 'getOptions']);
+        
+        // Export to Excel
+        Route::get('/export-excel', [LaporanKomprehensifController::class, 'exportExcel']);
+    });
+
+});
+Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
 Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
 Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
