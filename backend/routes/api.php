@@ -28,10 +28,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
 
     // Kegiatan
-    Route::get('/kegiatan', [KegiatanController::class, 'index']);
-    Route::post('/kegiatan', [KegiatanController::class, 'store']);
-    Route::put('/kegiatan/{id}', [KegiatanController::class, 'update']);
-    Route::delete('/kegiatan/{id}', [KegiatanController::class, 'destroy']);
+    Route::prefix('kegiatan')->group(function () {
+        Route::get('/', [KegiatanController::class, 'index']);
+        Route::post('/', [KegiatanController::class, 'store']);
+        Route::put('/{id}', [KegiatanController::class, 'update']);
+        Route::delete('/{id}', [KegiatanController::class, 'destroy']);
+    });
 
     // Kategori Akun
     Route::prefix('kategori-akun')->group(function () {
@@ -42,10 +44,27 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Sub Kategori Akun
-    Route::get('/sub-kategori-akun', [SubKategoriAkunController::class, 'index']);
-    Route::post('/sub-kategori-akun', [SubKategoriAkunController::class, 'store']);
-    Route::put('/sub-kategori-akun/{id}', [SubKategoriAkunController::class, 'update']);
-    Route::delete('/sub-kategori-akun/{id}', [SubKategoriAkunController::class, 'destroy']);
+    Route::prefix('sub-kategori-akun')->group(function () {
+        Route::get('/', [SubKategoriAkunController::class, 'index']);
+        Route::post('/', [SubKategoriAkunController::class, 'store']);
+        Route::put('/{id}', [SubKategoriAkunController::class, 'update']);
+        Route::delete('/{id}', [SubKategoriAkunController::class, 'destroy']);
+    });
+
+    //Akun
+    Route::prefix('akun')->group(function () {
+        Route::get('/', [AkunController::class, 'index']);
+        Route::post('/', [AkunController::class, 'store']);
+        Route::put('/{id}', [AkunController::class, 'update']);
+        Route::delete('/{id}', [AkunController::class, 'destroy']);
+    });
+
+    // Budget RAPBS Akun
+    Route::prefix('budget-rapbs-akun')->group(function () {
+        Route::get('/', [BudgetRapbsAkunController::class, 'index']);
+        Route::post('/', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
+        Route::post('/import', [BudgetRapbsAkunController::class, 'importExcel']);
+    });
 
     // Akuntan Unit - FIXED: Hapus duplikasi dan tambahkan route units
     Route::prefix('akuntan-unit')->group(function () {
@@ -66,6 +85,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [AuditorController::class, 'destroy']);
     });
 
-});Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
-Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
-Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
+});
+
+// Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
+// Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
+// Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);

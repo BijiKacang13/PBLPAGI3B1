@@ -2,12 +2,12 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 
 type TambahKategoriProps = {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void; // <-- untuk refresh list kategori
+  onSuccess: () => void;
 };
 
 export default function TambahKategori({ open, onClose, onSuccess }: TambahKategoriProps) {
@@ -22,22 +22,18 @@ export default function TambahKategori({ open, onClose, onSuccess }: TambahKateg
     setLoading(true);
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/kategori-akun", {
+      await api.post("/kategori-akun", {
         kode_kategori_akun: kode,
         kategori_akun: kategori,
       });
 
-      console.log("BERHASIL:", res.data);
-
-      onSuccess(); // refresh list
-      onClose(); // tutup modal
-
-      // reset form
+      onSuccess();
+      onClose();
       setKode("");
       setKategori("");
     } catch (error: any) {
       console.error("Gagal tambah kategori:", error);
-      alert("Gagal menambah kategori!");
+      alert(error.message || "Gagal menambah kategori!");
     }
 
     setLoading(false);
@@ -58,7 +54,6 @@ export default function TambahKategori({ open, onClose, onSuccess }: TambahKateg
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
           >
-            {/* Tombol close */}
             <button
               onClick={onClose}
               className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
@@ -66,12 +61,10 @@ export default function TambahKategori({ open, onClose, onSuccess }: TambahKateg
               <X className="w-5 h-5" />
             </button>
 
-            {/* Judul */}
             <h3 className="text-center font-semibold text-gray-800 mb-4 mt-2">
               TAMBAH KATEGORI AKUN
             </h3>
 
-            {/* Form */}
             <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Kode</label>
@@ -97,7 +90,6 @@ export default function TambahKategori({ open, onClose, onSuccess }: TambahKateg
                 />
               </div>
 
-              {/* Tombol aksi */}
               <div className="flex justify-center gap-3 mt-4">
                 <button
                   type="button"

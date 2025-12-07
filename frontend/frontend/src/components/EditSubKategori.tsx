@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient"; // pastikan path benar
 
 type EditSubKategoriProps = {
   open: boolean;
@@ -31,20 +31,35 @@ export default function EditSubKategori({
     { id_kategori_akun: number; kode_kategori_akun: string; kategori_akun: string }[]
   >([]);
 
-  // Ambil daftar kategori
+  // =====================
+  // FETCH KATEGORI
+  // =====================
   useEffect(() => {
     const fetchKategori = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/kategori-akun");
-        setListKategori(res.data.data || []);
+        const raw = await api.get("/kategori-akun");
+
+        const list =
+          Array.isArray(raw)
+            ? raw
+            : Array.isArray(raw.data)
+            ? raw.data
+            : Array.isArray(raw.data?.data)
+            ? raw.data.data
+            : [];
+
+        setListKategori(list);
       } catch (err) {
         console.error("Gagal mengambil kategori", err);
       }
     };
+
     fetchKategori();
   }, []);
 
-  // Set nilai awal form
+  // =====================
+  // SET INITIAL FORM
+  // =====================
   useEffect(() => {
     if (data) {
       setKode(data.kode_sub_kategori_akun);
@@ -60,14 +75,11 @@ export default function EditSubKategori({
     setLoading(true);
 
     try {
-      await axios.put(
-        `http://127.0.0.1:8000/api/sub-kategori-akun/${data.id_sub_kategori_akun}`,
-        {
-          kode_sub_kategori_akun: kode,
-          sub_kategori_akun: nama,
-          id_kategori_akun: Number(kategori), // tetap kirim meski dropdown disabled
-        }
-      );
+      await api.put(`/sub-kategori-akun/${data.id_sub_kategori_akun}`, {
+        kode_sub_kategori_akun: kode,
+        sub_kategori_akun: nama,
+        id_kategori_akun: Number(kategori),
+      });
 
       onSuccess();
       onClose();
@@ -102,8 +114,6 @@ export default function EditSubKategori({
           </h3>
 
           <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-
-            {/* Kategori Akun (DISABLED) */}
             <div>
               <label className="text-sm text-gray-700">Kategori Akun</label>
               <select

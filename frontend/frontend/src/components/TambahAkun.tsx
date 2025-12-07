@@ -1,8 +1,9 @@
 "use client";
-import axios from "axios";
+
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown } from "lucide-react";
+import { api } from "@/lib/api/axiosClient";
 
 type TambahAkunProps = {
   open: boolean;
@@ -11,8 +12,6 @@ type TambahAkunProps = {
 };
 
 export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps) {
-  const API_URL = "http://127.0.0.1:8000/api";
-
   const [subKategoriOptions, setSubKategoriOptions] = useState<any[]>([]);
   const [selectedSubKategori, setSelectedSubKategori] = useState<any>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -30,18 +29,24 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
   const fetchSubKategori = async () => {
     setLoadingSubKategori(true);
     try {
-      const res = await axios.get(`${API_URL}/sub-kategori-akun`);
-      const list = Array.isArray(res.data.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      const res = await api.get("/sub-kategori-akun");
+
+      const list = Array.isArray(res.data.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+        ? res.data
+        : [];
+
       const mapped = list.map((item: any) => ({
         id: item.id_sub_kategori_akun,
         label: `${item.kode_sub_kategori_akun} - ${item.sub_kategori_akun}`,
       }));
+
       setSubKategoriOptions(mapped);
     } catch (err) {
       console.error("Gagal fetch sub kategori:", err);
-    } finally {
-      setLoadingSubKategori(false);
     }
+    setLoadingSubKategori(false);
   };
 
   useEffect(() => {
@@ -54,11 +59,12 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSubKategori) {
-      alert("Pilih Sub Kategori Akun terlebih dahulu!");
+      alert("Pilih Sub Kategori Akun terlebih dahulu.");
       return;
     }
 
     setLoading(true);
+
     const payload = {
       id_sub_kategori_akun: selectedSubKategori.id,
       kode_akun: kodeAkun.trim(),
@@ -67,21 +73,21 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
       saldo_awal_kredit: saldoCredit ? Number(saldoCredit) : 0,
     };
 
-    console.log("Mengirim payload:", payload);
-
     try {
-      await axios.post(`${API_URL}/akun`, payload);
+      await api.post("/akun", payload);
+
       onSuccess();
       onClose();
 
-      // reset form
+      // RESET
       setKodeAkun("");
       setAkun("");
       setSaldoDebit("");
       setSaldoCredit("");
       setSelectedSubKategori(null);
+
     } catch (error: any) {
-      console.error("Gagal tambah akun:", error.response?.data || error);
+      console.error("Gagal tambah akun:", error?.response?.data || error);
       alert("Gagal menambah akun! Periksa input dan coba lagi.");
     }
 
@@ -105,11 +111,7 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-white w-[85%] max-w-md rounded-2xl shadow-lg p-6 relative"
           >
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-            >
+            <button onClick={onClose} className="absolute top-3 right-3 text-gray-600">
               <X className="w-5 h-5" />
             </button>
 
@@ -120,16 +122,18 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               {/* DROPDOWN SUB KATEGORI */}
               <div className="relative">
-                <label className="block text-sm text-gray-700 mb-1">
-                  Sub Kategori Akun
-                </label>
+                <label className="block text-sm text-gray-700 mb-1">Sub Kategori Akun</label>
+
                 <div
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm bg-white cursor-pointer flex justify-between items-center"
                 >
                   <span className={selectedSubKategori ? "text-gray-800" : "text-gray-400"}>
-                    {loadingSubKategori ? "Memuat..." : selectedSubKategori?.label || "Pilih Sub Kategori"}
+                    {loadingSubKategori
+                      ? "Memuat..."
+                      : selectedSubKategori?.label || "Pilih Sub Kategori"}
                   </span>
+
                   <ChevronDown
                     className={`w-4 h-4 text-gray-500 transition ${dropdownOpen ? "rotate-180" : ""}`}
                   />

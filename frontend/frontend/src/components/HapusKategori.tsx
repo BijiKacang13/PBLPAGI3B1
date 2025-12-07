@@ -1,7 +1,7 @@
 "use client";
 import { X, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 import { useState } from "react";
 
 type HapusKategoriProps = {
@@ -22,12 +22,12 @@ export default function HapusKategori({ open, onClose, onSuccess, data }: HapusK
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/kategori-akun/${data.id_kategori_akun}`);
+      await api.delete(`/kategori-akun/${data.id_kategori_akun}`);
+
       onSuccess();
       onClose();
-    } catch (err) {
-      alert("Gagal menghapus kategori!");
-      console.error(err);
+    } catch (err: any) {
+      alert(err.message || "Gagal menghapus kategori!");
     }
     setLoading(false);
   };

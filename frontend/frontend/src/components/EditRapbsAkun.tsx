@@ -1,8 +1,9 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 
 type EditRapbsAkunProps = {
   open: boolean;
@@ -22,8 +23,6 @@ export default function EditRapbsAkun({
   onSuccess,
   data,
 }: EditRapbsAkunProps) {
-  const API_URL = "http://127.0.0.1:8000/api";
-
   const [kode, setKode] = useState("");
   const [akun, setAkun] = useState("");
   const [budget, setBudget] = useState<number>(0);
@@ -34,7 +33,6 @@ export default function EditRapbsAkun({
     if (open && data) {
       setKode(data.kode_akun || "");
       setAkun(data.akun || "");
-
       const initialBudget = Number(data.budget);
       setBudget(Number.isNaN(initialBudget) ? 0 : initialBudget);
     }
@@ -44,7 +42,6 @@ export default function EditRapbsAkun({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const safeBudget = Number.isNaN(budget) ? 0 : budget;
 
     setLoading(true);
@@ -57,13 +54,14 @@ export default function EditRapbsAkun({
 
       console.log("Kirim payload RAPBS:", payload);
 
-      await axios.post(`${API_URL}/budget-rapbs-akun`, payload);
+      // Pakai wrapper api
+      await api.post("/budget-rapbs-akun", payload);
 
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Gagal update RAPBS akun:", err);
-      alert("Gagal mengubah budget RAPBS!");
+      alert(err.message || "Gagal mengubah budget RAPBS!");
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 "use client";
 import { X, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 import { useState } from "react";
 
 type HapusSubKategoriProps = {
@@ -28,14 +28,12 @@ export default function HapusSubKategori({
     setLoading(true);
 
     try {
-      await axios.delete(
-        `http://127.0.0.1:8000/api/sub-kategori-akun/${data.id_sub_kategori_akun}`
-      );
+      await api.delete(`/sub-kategori-akun/${data.id_sub_kategori_akun}`);
 
       onSuccess();
       onClose();
-    } catch (err) {
-      alert("Gagal menghapus sub kategori akun!");
+    } catch (err: any) {
+      alert(err.message || "Gagal menghapus sub kategori akun!");
       console.error(err);
     }
 
@@ -56,7 +54,6 @@ export default function HapusSubKategori({
           exit={{ scale: 0.9, opacity: 0 }}
           className="bg-white w-[85%] max-w-xs rounded-2xl p-6 shadow-lg relative"
         >
-          {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-700"
@@ -64,7 +61,6 @@ export default function HapusSubKategori({
             <X className="w-5 h-5" />
           </button>
 
-          {/* Icon + Text */}
           <div className="text-center">
             <Trash className="w-12 h-12 text-red-600 mx-auto mb-3" />
 
@@ -73,12 +69,10 @@ export default function HapusSubKategori({
             </h3>
 
             <p className="text-sm text-gray-600 mt-1">
-              Yakin ingin menghapus{" "}
-              <b>{data.sub_kategori_akun}</b>?
+              Yakin ingin menghapus <b>{data.sub_kategori_akun}</b>?
             </p>
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-center gap-3 mt-5">
             <button
               onClick={onClose}

@@ -9,6 +9,7 @@ import EditKategori from "@/components/EditKategori";
 import HapusKategori from "@/components/HapusKategori";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
+import { api } from "@/lib/api/axiosClient";
 
 export default function KategoriAkun() {
   const [data, setData] = useState<any[]>([]);
@@ -18,31 +19,31 @@ export default function KategoriAkun() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
 
-  const API_URL = "http://127.0.0.1:8000/api/kategori-akun";
-
   // ======================
   // FETCH DATA
   // ======================
   const fetchKategori = async () => {
     try {
-      const res = await axios.get(API_URL);
-
-      const arr = Array.isArray(res.data)
-        ? res.data
-        : res.data.data ?? [];
-
+      const res = await api.get("/kategori-akun");
+    
+      // res langsung isi JSON dari backend
+      const arr = Array.isArray(res)
+        ? res
+        : res.data ?? [];
+    
       const mapped = arr.map((x: any) => ({
         id_kategori_akun: Number(x.id_kategori_akun),
         kode_kategori_akun: x.kode_kategori_akun,
         kategori_akun: x.kategori_akun
       }));
-
+    
       setData(mapped);
     } catch (err) {
       console.error("Gagal fetch:", err);
       setData([]);
     }
   };
+
 
   useEffect(() => {
     fetchKategori();

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient"; 
 
 type EditKategoriProps = {
   open: boolean;
@@ -34,16 +34,15 @@ export default function EditKategori({ open, onClose, onSuccess, data }: EditKat
     setLoading(true);
 
     try {
-      await axios.put(`http://127.0.0.1:8000/api/kategori-akun/${data.id_kategori_akun}`, {
+      await api.put(`/kategori-akun/${data.id_kategori_akun}`, {
         kode_kategori_akun: kode,
         kategori_akun: kategori,
       });
 
       onSuccess();
       onClose();
-    } catch (err) {
-      alert("Gagal mengedit kategori!");
-      console.error(err);
+    } catch (err: any) {
+      alert(err.message || "Gagal mengedit kategori!");
     }
 
     setLoading(false);
@@ -63,7 +62,6 @@ export default function EditKategori({ open, onClose, onSuccess, data }: EditKat
           exit={{ scale: 0.9, opacity: 0 }}
           className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
         >
-          {/* Close button */}
           <button onClick={onClose} className="absolute top-3 right-3 text-gray-700">
             <X className="w-5 h-5" />
           </button>

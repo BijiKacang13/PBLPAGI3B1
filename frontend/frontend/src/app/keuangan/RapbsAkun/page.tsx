@@ -1,10 +1,11 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 import { ArrowLeft, Pencil, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import NavbarBottom from "@/components/NavbarBottom";
 import EditRapbsAkun from "@/components/EditRapbsAkun";
 
 type RapbsAkun = {
@@ -18,16 +19,50 @@ export default function RapbsAkunPage() {
   const [data, setData] = useState<RapbsAkun[]>([]);
   const [selected, setSelected] = useState<RapbsAkun | null>(null);
 
+  // Search & Pagination
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // Modals
   const [openEdit, setOpenEdit] = useState(false);
 
-  const API_URL = "http://127.0.0.1:8000/api/budget-rapbs-akun";
-
+  // Import Excel
   const [fileName, setFileName] = useState("Tidak ada file");
   const [file, setFile] = useState<File | null>(null);
+
+  // ======================
+  // FETCH DATA
+  // ======================
+  const fetchRapbsAkun = async () => {
+    try {
+      const res = await api.get("/budget-rapbs-akun");
+
+      // res sudah langsung data array karena interceptor otomatis response.data
+      const arr = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+
+      const mapped = arr.map((x: any) => ({
+        id_akun: Number(x.id_akun),
+        kode_akun: x.kode_akun ?? "",
+        akun: x.akun ?? "",
+        budget: Number(x.budget_rapbs) || 0,
+      }));
+
+      setData(mapped);
+    } catch (err: any) {
+      console.error("Gagal fetch RAPBS akun:", err);
+      setData([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchRapbsAkun();
+  }, []);
+
+  // ======================
+  // IMPORT EXCEL
+  // ======================
   const handleImportExcel = async () => {
     if (!file) {
       alert("Pilih file terlebih dahulu");
@@ -38,45 +73,23 @@ export default function RapbsAkunPage() {
     formData.append("file", file);
 
     try {
-      await axios.post(`${API_URL}/import`, formData, {
+      await api.post("/budget-rapbs-akun/import", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert("Import berhasil");
-      fetchData();
-    } catch (err) {
+      fetchRapbsAkun();
+      setFile(null);
+      setFileName("Tidak ada file");
+    } catch (err: any) {
       console.error(err);
-      alert("Gagal import");
+      alert(err.message || "Gagal import");
     }
   };
 
-  // FETCH
-  const fetchData = async () => {
-    try {
-      const res = await axios.get(API_URL);
-
-      const arr = Array.isArray(res.data)
-        ? res.data
-        : res.data.data ?? [];
-
-      const mapped = arr.map((x: any) => ({
-        id_akun: Number(x.id_akun),
-        kode_akun: x.kode_akun ?? "",
-        akun: x.akun ?? "",
-        budget: Number(x.budget_rapbs) || 0,
-      }));
-
-      setData(mapped);
-    } catch (err) {
-      console.error("Gagal fetch rapbs akun:", err);
-      setData([]);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
+  // ======================
+  // SEARCH & PAGINATION
+  // ======================
   const filtered = data.filter(
     (x) =>
       x.kode_akun.toLowerCase().includes(search.toLowerCase()) ||
@@ -96,7 +109,6 @@ export default function RapbsAkunPage() {
       <Navbar />
 
       <div className="mt-4 w-[90%] max-w-md mx-auto bg-white rounded-2xl shadow-md p-5">
-
         {/* TITLE */}
         <div className="flex items-center mb-4">
           <Link href="/keuangan">
@@ -107,6 +119,7 @@ export default function RapbsAkunPage() {
           </h2>
         </div>
 
+        {/* DOWNLOAD TEMPLATE */}
         <a
           href="#"
           className="text-blue-600 text-sm font-semibold underline block text-center mb-3"
@@ -114,6 +127,7 @@ export default function RapbsAkunPage() {
           Download Template Import RAPBS per-Akun
         </a>
 
+        {/* IMPORT */}
         <div className="flex items-center gap-2 mb-4">
           <label
             htmlFor="fileUpload"
@@ -147,8 +161,6 @@ export default function RapbsAkunPage() {
             Import
           </button>
         </div>
-        {/* ========================================================= */}
-
 
         {/* SEARCH */}
         <input
@@ -161,20 +173,14 @@ export default function RapbsAkunPage() {
 
         {/* LIMIT DROPDOWN */}
         <div className="relative text-sm mb-3">
-          <label className="block text-gray-700 mb-1">
-            Tampilkan Data per Halaman
-          </label>
+          <label className="block text-gray-700 mb-1">Tampilkan Data per Halaman</label>
 
           <div
             onClick={() => setShowDropdown(!showDropdown)}
             className="w-32 border border-gray-300 bg-white rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
           >
             <span>{limit}</span>
-            <ChevronDown
-              className={`w-4 h-4 transition ${
-                showDropdown ? "rotate-180" : ""
-              }`}
-            />
+            <ChevronDown className={`w-4 h-4 transition ${showDropdown ? "rotate-180" : ""}`} />
           </div>
 
           {showDropdown && (
@@ -188,9 +194,7 @@ export default function RapbsAkunPage() {
                     setShowDropdown(false);
                   }}
                   className={`px-4 py-2 cursor-pointer ${
-                    limit === value
-                      ? "bg-blue-100 text-blue-700"
-                      : "hover:bg-blue-50"
+                    limit === value ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
                   }`}
                 >
                   {value} Data
@@ -207,32 +211,21 @@ export default function RapbsAkunPage() {
               <tr>
                 <th className="px-4 py-2 text-left w-1/6">Kode</th>
                 <th className="px-4 py-2 text-left w-1/4">Akun</th>
-                <th className="px-4 py-2 text-right w-1/4">
-                  Budget RAPBS
-                </th>
+                <th className="px-4 py-2 text-right w-1/4">Budget RAPBS</th>
                 <th className="px-4 py-2 w-20"></th>
               </tr>
             </thead>
-
             <tbody>
               {paginated.map((item) => (
-                <tr
-                  key={item.id_akun}
-                  className="border-t hover:bg-gray-50"
-                >
-                  <td className="px-4 py-2 font-mono text-gray-600">
-                    {item.kode_akun}
-                  </td>
-
+                <tr key={item.id_akun} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
                   <td className="px-4 py-2">{item.akun}</td>
-
                   <td className="px-4 py-2 text-right">
                     {new Intl.NumberFormat("id-ID", {
                       style: "currency",
                       currency: "IDR",
                     }).format(item.budget)}
                   </td>
-
                   <td className="px-4 py-2 flex justify-end">
                     <button
                       onClick={() => {
@@ -249,10 +242,7 @@ export default function RapbsAkunPage() {
 
               {paginated.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="text-center py-4 text-gray-400"
-                  >
+                  <td colSpan={4} className="text-center py-4 text-gray-400">
                     Tidak ada data
                   </td>
                 </tr>
@@ -296,10 +286,13 @@ export default function RapbsAkunPage() {
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
+      <NavbarBottom />
+
+      {/* MODAL EDIT */}
       <EditRapbsAkun
         open={openEdit}
         onClose={() => setOpenEdit(false)}
-        onSuccess={fetchData}
+        onSuccess={fetchRapbsAkun}
         data={selected}
       />
     </div>
