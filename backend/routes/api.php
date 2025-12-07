@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\KategoriAkunController;
 use App\Http\Controllers\Api\SubKategoriAkunController;
 use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
+use App\Http\Controllers\Api\BudgetRapbsAkunController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -61,3 +62,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/akun/{id}', [AkunController::class, 'update']);
     Route::delete('/akun/{id}', [AkunController::class, 'destroy']);
 
+Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
+Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
+Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
