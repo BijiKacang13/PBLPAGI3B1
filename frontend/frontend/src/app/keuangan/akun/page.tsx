@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import TambahAkun from "@/components/TambahAkun";
 import EditAkun from "@/components/EditAkun";
-// import HapusAkun from "@/components/HapusAkun";
+import HapusAkun from "@/components/HapusAkun";
 
 type Akun = {
   id_akun: number;
@@ -260,12 +260,12 @@ export default function AkunPage() {
         onSuccess={fetchAkun}
         data={selected}
       />
-      {/* <HapusAkun
+      <HapusAkun
         open={openHapus}
         onClose={() => setOpenHapus(false)}
         onSuccess={fetchAkun}
         data={selected}
-      /> */}
+      />
     </div>
   );
 }
