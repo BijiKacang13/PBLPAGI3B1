@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
+use App\Http\Controllers\Api\NeracaSaldoController;
 use App\Http\Controllers\Api\AkuntanUnitController;
 
 // Public Routes
@@ -76,6 +77,16 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Export to Excel
         Route::get('/export-excel', [LaporanKomprehensifController::class, 'exportExcel']);
+    });
+     Route::prefix('neraca-saldo')->group(function () {
+        // Get neraca saldo data with filters
+        Route::get('/', [NeracaSaldoController::class, 'index']);
+        
+        // Get filter options (units & divisions)
+        Route::get('/filter-options', [NeracaSaldoController::class, 'getFilterOptions']);
+        
+        // Export to Excel
+        Route::get('/export', [NeracaSaldoController::class, 'exportExcel']);
     });
 
 });
