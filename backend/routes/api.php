@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\BudgetRapbsAkunController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\NeracaSaldoController;
 use App\Http\Controllers\Api\AkuntanUnitController;
+use App\Http\Controllers\Api\ArusKasController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -87,6 +88,17 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Export to Excel
         Route::get('/export', [NeracaSaldoController::class, 'exportExcel']);
+    });
+
+    Route::prefix('arus-kas')->group(function () {
+        // Get arus kas data with filters
+        Route::get('/', [ArusKasController::class, 'index']);
+        
+        // Get dropdown options (units & divisions)
+        Route::get('/options', [ArusKasController::class, 'getOptions']);
+        
+        // Export to Excel
+        Route::get('/export', [ArusKasController::class, 'exportExcel']);
     });
 
 });
