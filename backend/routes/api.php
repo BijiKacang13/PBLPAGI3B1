@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
 use App\Http\Controllers\Api\AkuntanUnitController;
+use App\Http\Controllers\Api\LogActivityController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -84,5 +85,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [AuditorController::class, 'update']);
         Route::delete('/{id}', [AuditorController::class, 'destroy']);
     });
+
+    //Log Aktivitas
+    Route::get('/log-aktivitas', [LogActivityController::class, 'index']);
 
 });
