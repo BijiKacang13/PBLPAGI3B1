@@ -9,6 +9,7 @@ import {
   Calendar,
   RefreshCw,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
@@ -125,7 +126,7 @@ export default function LaporanKomprehensif() {
     const hasData = Object.keys(data).length > 0;
 
     return (
-      <div className="w-full max-w-sm mt-6">
+      <div className="w-full mt-6">
         <div
           className={`rounded-t-xl ${bgColor} text-white text-center py-2 font-semibold`}
         >
@@ -182,33 +183,29 @@ export default function LaporanKomprehensif() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
 
-      {/* Judul dan Tombol Navigasi */}
-      <div className="flex items-center gap-2 px-4 mt-1">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full hover:bg-gray-200 transition"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h2 className="font-semibold text-lg">LAPORAN KOMPREHENSIF</h2>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="mx-4 mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
-
       {/* Konten Utama */}
-      <main className="flex flex-col items-center mt-4 px-4">
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm">
+      <main className="flex flex-col items-center mt-6 px-4 w-full max-w-4xl mx-auto">
+        {/* Kartu judul + filter */}
+        <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h2 className="font-semibold text-lg flex-1 text-center">
+              LAPORAN KOMPREHENSIF
+            </h2>
+            <div className="w-10" />
+          </div>
+
           {/* Tombol Export dan Print */}
-          <div className="flex bg-gray-100 rounded-lg overflow-hidden mb-5">
+          <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">
             <button
               onClick={handleExportExcel}
               disabled={isExporting || isLoading}
-              className="flex-1 flex items-center justify-center gap-2 bg-white text-gray-800 py-2 font-medium border border-gray-200 rounded-l-lg hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-2 font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isExporting ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -220,69 +217,82 @@ export default function LaporanKomprehensif() {
             <button
               onClick={handlePrint}
               disabled={isLoading}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-100 text-gray-800 py-2 font-medium border border-gray-200 rounded-r-lg hover:bg-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 font-semibold hover:bg-[#a8d5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Printer size={18} /> Print
             </button>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mt-2 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm text-left">
+              {error}
+            </div>
+          )}
+
           {/* Filter */}
-          <div className="flex flex-col gap-3">
+          <div className="text-left space-y-3 mt-4">
             {/* Unit */}
             <div>
-              <label className="text-sm text-gray-700">Unit</label>
-              <select
-                value={filters.id_unit || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "id_unit",
-                    e.target.value ? Number(e.target.value) : null
-                  )
-                }
-                className="w-full mt-1 border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-600 focus:ring focus:ring-blue-200 outline-none"
-              >
-                <option value="">Akumulasi (Semua Unit)</option>
-                {units.map((unit) => (
-                  <option key={unit.id_unit} value={unit.id_unit}>
-                    {unit.nama_unit}
-                  </option>
-                ))}
-              </select>
+              <label className="text-sm font-medium">Unit</label>
+              <div className="relative mt-1">
+                <select
+                  value={filters.id_unit || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "id_unit",
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
+                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 appearance-none cursor-pointer"
+                >
+                  <option value="">Akumulasi (Semua Unit)</option>
+                  {units.map((unit) => (
+                    <option key={unit.id_unit} value={unit.id_unit}>
+                      {unit.nama_unit}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
+              </div>
             </div>
 
             {/* Divisi */}
             <div>
-              <label className="text-sm text-gray-700">Divisi</label>
-              <select
-                value={filters.id_divisi || ""}
-                onChange={(e) =>
-                  handleFilterChange(
-                    "id_divisi",
-                    e.target.value ? Number(e.target.value) : null
-                  )
-                }
-                className="w-full mt-1 border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-600 focus:ring focus:ring-blue-200 outline-none"
-              >
-                <option value="">Akumulasi (Semua Divisi)</option>
-                {divisis.map((divisi) => (
-                  <option key={divisi.id_divisi} value={divisi.id_divisi}>
-                    {divisi.nama_divisi}
-                  </option>
-                ))}
-              </select>
+              <label className="text-sm font-medium">Divisi</label>
+              <div className="relative mt-1">
+                <select
+                  value={filters.id_divisi || ""}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      "id_divisi",
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
+                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 appearance-none cursor-pointer"
+                >
+                  <option value="">Akumulasi (Semua Divisi)</option>
+                  {divisis.map((divisi) => (
+                    <option key={divisi.id_divisi} value={divisi.id_divisi}>
+                      {divisi.nama_divisi}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
+              </div>
             </div>
 
             {/* Dari Tanggal */}
             <div>
-              <label className="text-sm text-gray-700">Dari Tanggal</label>
-              <div className="relative">
+              <label className="text-sm font-medium">Dari Tanggal</label>
+              <div className="relative mt-1">
                 <input
                   type="date"
                   value={filters.tanggal_mulai}
                   onChange={(e) =>
                     handleFilterChange("tanggal_mulai", e.target.value)
                   }
-                  className="w-full mt-1 border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-600 focus:ring focus:ring-blue-200 outline-none"
+                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50"
                 />
                 <Calendar
                   className="absolute right-3 top-3 text-gray-400 pointer-events-none"
@@ -293,15 +303,15 @@ export default function LaporanKomprehensif() {
 
             {/* Sampai Tanggal */}
             <div>
-              <label className="text-sm text-gray-700">Sampai Tanggal</label>
-              <div className="relative">
+              <label className="text-sm font-medium">Sampai Tanggal</label>
+              <div className="relative mt-1">
                 <input
                   type="date"
                   value={filters.tanggal_selesai}
                   onChange={(e) =>
                     handleFilterChange("tanggal_selesai", e.target.value)
                   }
-                  className="w-full mt-1 border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-600 focus:ring focus:ring-blue-200 outline-none"
+                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50"
                 />
                 <Calendar
                   className="absolute right-3 top-3 text-gray-400 pointer-events-none"
@@ -314,28 +324,29 @@ export default function LaporanKomprehensif() {
             <button
               onClick={handleRefresh}
               disabled={isLoading}
-              className="flex items-center justify-center gap-2 mt-2 bg-blue-100 text-gray-800 py-2 rounded-full font-medium hover:bg-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#a8d5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <Loader2 size={18} className="animate-spin" />
               ) : (
                 <RefreshCw size={18} />
               )}
-              Refresh
+              {isLoading ? "Memuat..." : "Refresh"}
             </button>
           </div>
         </div>
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex items-center justify-center mt-8">
-            <Loader2 size={32} className="animate-spin text-blue-500" />
+          <div className="w-full mt-6 text-center py-8">
+            <Loader2 size={32} className="animate-spin mx-auto mb-2 text-blue-500" />
+            <p className="text-gray-500">Memuat data...</p>
           </div>
         )}
 
         {/* Render Data Laporan */}
         {!isLoading && laporanData && (
-          <>
+          <div className="w-full mt-6">
             {/* Pendapatan */}
             {renderAkunSection(
               "Penerimaan dan Sumbangan",
@@ -345,7 +356,7 @@ export default function LaporanKomprehensif() {
 
             {/* Total Pendapatan */}
             {laporanData.data.summary && (
-              <div className="w-full max-w-sm mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="w-full mt-4 bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <div className="grid grid-cols-4 text-sm font-semibold">
                   <span className="col-span-1">Total Pendapatan</span>
                   <span className="text-right">
@@ -374,7 +385,7 @@ export default function LaporanKomprehensif() {
 
             {/* Total Beban */}
             {laporanData.data.summary && (
-              <div className="w-full max-w-sm mt-4 bg-red-50 rounded-lg p-4 border border-red-200">
+              <div className="w-full mt-4 bg-red-50 rounded-lg p-4 border border-red-200">
                 <div className="grid grid-cols-4 text-sm font-semibold">
                   <span className="col-span-1">Total Beban</span>
                   <span className="text-right">
@@ -394,7 +405,7 @@ export default function LaporanKomprehensif() {
 
             {/* Kenaikan/Penurunan Penghasilan Komprehensif */}
             {laporanData.data.summary && (
-              <div className="w-full max-w-sm mt-4 bg-green-50 rounded-lg p-4 border border-green-200">
+              <div className="w-full mt-4 bg-green-50 rounded-lg p-4 border border-green-200">
                 <div className="text-sm font-bold text-center">
                   <div className="mb-2 text-gray-700">
                     KENAIKAN (PENURUNAN) PENGHASILAN KOMPREHENSIF
@@ -415,7 +426,15 @@ export default function LaporanKomprehensif() {
                 </div>
               </div>
             )}
-          </>
+          </div>
+        )}
+
+        {!isLoading && !laporanData && (
+          <div className="w-full mt-6 text-center py-8">
+            <p className="text-gray-500">
+              Tidak ada data. Klik Refresh untuk memuat data.
+            </p>
+          </div>
         )}
 
         <p className="text-gray-400 text-xs italic mt-8 text-center">
