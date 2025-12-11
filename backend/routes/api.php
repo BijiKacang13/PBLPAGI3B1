@@ -13,7 +13,14 @@ use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\NeracaSaldoController;
 use App\Http\Controllers\Api\PerubahanAsetNetoController;
 use App\Http\Controllers\Api\AkuntanUnitController;
+use App\Http\Controllers\Api\LaporanKomprehensifController;
+use App\Http\Controllers\Api\NeracaSaldoController;
+use App\Http\Controllers\Api\PRRAController;
+use App\Http\Controllers\Api\ArusKasController;
+use App\Http\Controllers\Api\PerubahanAsetNetoController;
+use App\Http\Controllers\Api\CalkController;
 use App\Http\Controllers\Api\LogActivityController;
+
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -89,7 +96,59 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [AuditorController::class, 'destroy']);
     });
 
+     Route::prefix('laporan-komprehensif')->group(function () {
+        // Get data laporan
+        Route::get('/', [LaporanKomprehensifController::class, 'index']);
+        // Get dropdown options (units & divisions)
+        Route::get('/options', [LaporanKomprehensifController::class, 'getOptions']);
+        // Export to Excel
+        Route::get('/export-excel', [LaporanKomprehensifController::class, 'exportExcel']);
+    });
+
+     Route::prefix('neraca-saldo')->group(function () {
+        // Get neraca saldo data with filters
+        Route::get('/', [NeracaSaldoController::class, 'index']);    
+        // Get filter options (units & divisions)
+        Route::get('/filter-options', [NeracaSaldoController::class, 'getFilterOptions']);
+        // Export to Excel
+        Route::get('/export', [NeracaSaldoController::class, 'exportExcel']);
+    });
+
+    Route::prefix('prra')->group(function () {
+        Route::get('/', [PRRAController::class, 'index']);
+        Route::get('/filter-options', [PRRAController::class, 'getFilterOptions']);
+        Route::get('/export', [PRRAController::class, 'export']);
+    });
+
+    Route::prefix('arus-kas')->group(function () {
+        // Get arus kas data with filters
+        Route::get('/', [ArusKasController::class, 'index']);
+        // Get dropdown options (units & divisions)
+        Route::get('/options', [ArusKasController::class, 'getOptions']);
+        // Export to Excel
+        Route::get('/export', [ArusKasController::class, 'exportExcel']);
+    });
+    
+     Route::prefix('perubahan-aset-neto')->group(function () {
+        Route::get('/', [PerubahanAsetNetoController::class, 'index']);
+        Route::get('/export-excel', [PerubahanAsetNetoController::class, 'exportExcel']);
+        Route::get('/units', [PerubahanAsetNetoController::class, 'getUnits']);
+        Route::get('/divisi', [PerubahanAsetNetoController::class, 'getDivisi']);
+    });
+
+    Route::prefix('laporan')->group(function () {
+        Route::get('calk', [CalkController::class, 'index']);
+        Route::post('calk', [CalkController::class, 'store']);
+        Route::get('calk/{id}', [CalkController::class, 'show']);
+        Route::put('calk/{id}', [CalkController::class, 'update']);
+        Route::delete('calk/{id}', [CalkController::class, 'destroy']);
+    });
+
     //Log Aktivitas
     Route::get('/log-aktivitas', [LogActivityController::class, 'index']);
-
 });
+Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
+Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
+Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
+
+
