@@ -1,20 +1,24 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
-import { Home, Folder, Users, FileText } from "lucide-react";
+import {
+  House,
+  Users,
+  CreditCard,
+  Activity,
+  FolderPlus,
+  ChartNoAxesColumn,
+} from "lucide-react";
 
+// == SAMA PERSIS KAYAK NAVBARBOTTOM ==
 const menus = [
-  { name: "Beranda", icon: <Home size={20} />, path: "/admin/beranda" },
-  {
-    name: "Akun",
-    icon: <Users size={20} />,
-    children: [
-      { name: "Admin", path: "/akun/admin" },
-      { name: "Petugas", path: "/akun/petugas" },
-    ],
-  },
-  { name: "Pencatatan", icon: <Folder size={20} />, path: "/pencatatan" },
-  { name: "Laporan", icon: <FileText size={20} />, path: "/laporan" },
+  { name: "Beranda", path: "/admin/beranda", icon: <House size={20} /> },
+  { name: "Akun", path: "/akun", icon: <Users size={20} /> },
+  { name: "Keuangan", path: "/keuangan", icon: <CreditCard size={20} /> },
+  { name: "Kegiatan", path: "/kegiatan", icon: <Activity size={20} /> },
+  { name: "Pencatatan", path: "/pencatatan", icon: <FolderPlus size={20} /> },
+  { name: "Laporan", path: "/laporan", icon: <ChartNoAxesColumn size={20} /> },
 ];
 
 export default function SidebarHover() {
@@ -29,31 +33,22 @@ export default function SidebarHover() {
       }`}
     >
       <div className="p-4">
-      <ul className="mt-6 space-y-2">
-        {menus.map((item) => (
-          <li key={item.name}>
-            <div className="group relative flex items-center px-3 py-2 hover:bg-gray-100 rounded-md cursor-pointer">
-              <div className="text-gray-700">{item.icon}</div>
-              {expanded && (
-                <span className="ml-3 text-gray-800">{item.name}</span>
-              )}
-              {!expanded && item.children && (
-                <div className="absolute left-full top-0 ml-2 bg-white border shadow-lg rounded-md p-2 hidden group-hover:block">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.name}
-                      href={child.path}
-                      className="block text-sm text-gray-700 hover:text-blue-600 px-3 py-1"
-                    >
-                      {child.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
+        <ul className="mt-6 space-y-2">
+          {menus.map((item) => (
+            <li key={item.name}>
+              <Link
+                href={item.path}
+                className="flex items-center px-3 py-2 hover:bg-gray-100 rounded-md cursor-pointer"
+              >
+                <div className="text-gray-700">{item.icon}</div>
+
+                {expanded && (
+                  <span className="ml-3 text-gray-800">{item.name}</span>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </aside>
   );

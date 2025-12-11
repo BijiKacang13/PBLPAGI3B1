@@ -31,16 +31,19 @@ export default function AkunPage() {
   const [page, setPage] = useState(1);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Modals
+  // Modal
   const [openTambah, setOpenTambah] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
 
   // ======================
-  // FETCH DATA
+  // FETCH
   // ======================
   const fetchAkun = async () => {
     try {
+      setLoadingData(true);
+
       const res = await api.get("/akun");
 
       const arr = Array.isArray(res.data)
@@ -62,6 +65,8 @@ export default function AkunPage() {
     } catch (err) {
       console.error("Gagal fetch akun:", err);
       setData([]);
+    } finally {
+      setLoadingData(false);
     }
   };
 
@@ -78,9 +83,7 @@ export default function AkunPage() {
       x.akun.toLowerCase().includes(search.toLowerCase())
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [search]);
+  useEffect(() => setPage(1), [search]);
 
   // ======================
   // PAGINATION
@@ -94,6 +97,7 @@ export default function AkunPage() {
       <Navbar />
 
       <div className="mt-4 w-[90%] max-w-md mx-auto bg-white rounded-2xl shadow-md p-5">
+
         {/* TITLE */}
         <div className="flex items-center mb-4">
           <Link href="/keuangan">
@@ -121,7 +125,7 @@ export default function AkunPage() {
           className="w-full border rounded-full px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
         />
 
-        {/* DROPDOWN LIMIT */}
+        {/* DROPDOWN */}
         <div className="relative text-sm mb-3">
           <label className="block text-gray-700 mb-1">
             Tampilkan Data per Halaman
@@ -170,62 +174,68 @@ export default function AkunPage() {
                 <th className="px-4 py-2 text-left w-1/6">Kode</th>
                 <th className="px-4 py-2 text-left w-1/4">Akun</th>
                 <th className="px-4 py-2 text-right w-1/4">Saldo Debit Awal</th>
-                <th className="px-4 py-2 text-right w-1/4">
-                  Saldo Kredit Awal
-                </th>
+                <th className="px-4 py-2 text-right w-1/4">Saldo Kredit Awal</th>
                 <th className="px-4 py-2 w-20"></th>
               </tr>
             </thead>
-            <tbody>
-              {paginated.map((item) => (
-                <tr key={item.id_akun} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 font-mono text-gray-600">
-                    {item.kode_akun}
-                  </td>
-                  <td className="px-4 py-2">{item.akun}</td>
-                  <td className="px-4 py-2 text-right">
-                    {new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(item.saldo_awal_debit)}
-                  </td>
-                  <td className="px-4 py-2 text-right">
-                    {new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(item.saldo_awal_kredit)}
-                  </td>
-                  <td className="px-4 py-2 flex justify-end gap-3">
-                    <button
-                      onClick={() => {
-                        setSelected(item);
-                        setOpenEdit(true);
-                      }}
-                      className="text-yellow-500 hover:text-yellow-600"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelected(item);
-                        setOpenHapus(true);
-                      }}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {paginated.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-400">
-                    Tidak ada data
-                  </td>
-                </tr>
-              )}
-            </tbody>
+              <tbody>
+                {loadingData ? (
+                  <tr>
+                    <td colSpan={5} className="py-10 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-gray-500 text-sm mt-3">Memuat data...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : paginated.length > 0 ? (
+                  paginated.map((item) => (
+                    <tr key={item.id_akun} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
+                      <td className="px-4 py-2">{item.akun}</td>
+                      <td className="px-4 py-2 text-right">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(item.saldo_awal_debit)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(item.saldo_awal_kredit)}
+                      </td>
+                      <td className="px-4 py-2 flex justify-end gap-3">
+                        <button
+                          onClick={() => {
+                          setSelected(item);
+                          setOpenEdit(true);
+                          }}
+                          className="text-yellow-500 hover:text-yellow-600"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setSelected(item);
+                            setOpenHapus(true);
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 text-gray-400">
+                      Tidak ada data
+                    </td>
+                  </tr>
+                )}
+              </tbody>
           </table>
         </div>
 
@@ -264,7 +274,8 @@ export default function AkunPage() {
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
-      <NavbarBottom/>
+
+      <NavbarBottom />
 
       {/* MODALS */}
       <TambahAkun

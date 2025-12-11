@@ -11,7 +11,6 @@ import {
   ChartNoAxesColumn,
 } from "lucide-react";
 
-// Tambahkan prop isModalOpen
 export default function NavbarBottom({ isModalOpen = false }) {
   const pathname = usePathname();
 
@@ -26,7 +25,9 @@ export default function NavbarBottom({ isModalOpen = false }) {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 shadow-sm transition-all duration-300
+      className={`
+        fixed bottom-0 left-0 right-0 z-50 md:hidden
+        border-t border-gray-200 shadow-sm transition-all duration-300
         ${isModalOpen ? "backdrop-blur-lg bg-white/40" : "bg-white/90 backdrop-blur-sm"}
       `}
     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, User, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import TambahKategori from "@/components/TambahKategori";
@@ -18,42 +18,42 @@ export default function KategoriAkun() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   // ======================
   // FETCH DATA
   // ======================
   const fetchKategori = async () => {
+    setLoading(true);
     try {
       const res = await api.get("/kategori-akun");
+
       const arr = Array.isArray(res)
         ? res
         : res.data ?? [];
-    
+
       const mapped = arr.map((x: any) => ({
         id_kategori_akun: Number(x.id_kategori_akun),
         kode_kategori_akun: x.kode_kategori_akun,
-        kategori_akun: x.kategori_akun
+        kategori_akun: x.kategori_akun,
       }));
-    
+
       setData(mapped);
     } catch (err) {
       console.error("Gagal fetch:", err);
       setData([]);
+    } finally {
+      setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchKategori();
   }, []);
 
-  // ======================
-  // RENDER
-  // ======================
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20 relative">
       <Navbar />
-
-     
 
       {/* Content */}
       <div className="mt-6 w-[90%] max-w-md mx-auto bg-white rounded-xl shadow-md p-4 z-[20] relative">
@@ -61,6 +61,7 @@ export default function KategoriAkun() {
           <Link href="/keuangan">
             <ArrowLeft className="text-gray-600 w-5 h-5" />
           </Link>
+
           <h2 className="flex-1 text-center font-semibold text-gray-800">
             KATEGORI AKUN
           </h2>
@@ -85,42 +86,51 @@ export default function KategoriAkun() {
             </thead>
 
             <tbody>
-              {data.map((item) => (
-                <tr
-                  key={item.id_kategori_akun}
-                  className="border-t hover:bg-gray-50"
-                >
-                  <td className="px-4 py-2">{item.kode_kategori_akun}</td>
-
-                  <td className="px-4 py-2 flex items-center justify-between">
-                    {item.kategori_akun}
-
-                    <div className="flex gap-2">
-                      <button
-                        className="text-yellow-500 hover:text-yellow-600"
-                        onClick={() => {
-                          setSelected(item);
-                          setOpenEdit(true);
-                        }}
-                      >
-                        <Pencil size={16} />
-                      </button>
-
-                      <button
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => {
-                          setSelected(item);
-                          setOpenHapus(true);
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={2} className="py-6 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                      <p className="text-sm text-gray-600">Memuat data...</p>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : data.length > 0 ? (
+                data.map((item) => (
+                  <tr
+                    key={item.id_kategori_akun}
+                    className="border-t hover:bg-gray-50"
+                  >
+                    <td className="px-4 py-2">{item.kode_kategori_akun}</td>
 
-              {data.length === 0 && (
+                    <td className="px-4 py-2 flex items-center justify-between">
+                      {item.kategori_akun}
+
+                      <div className="flex gap-2">
+                        <button
+                          className="text-yellow-500 hover:text-yellow-600"
+                          onClick={() => {
+                            setSelected(item);
+                            setOpenEdit(true);
+                          }}
+                        >
+                          <Pencil size={16} />
+                        </button>
+
+                        <button
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => {
+                            setSelected(item);
+                            setOpenHapus(true);
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={2} className="text-center py-4 text-gray-400">
                     Tidak ada data
@@ -132,12 +142,13 @@ export default function KategoriAkun() {
         </div>
       </div>
 
-       {/* Footer Text */}
-        <div className="text-center text-[9px] text-gray-400 italic pt-2 pb-1">
-          Sistem Informasi Akuntansi Yayasan<br/>
-          Darussalam Batam | 2025
-        </div>
-        <NavbarBottom />
+      {/* Footer */}
+      <div className="text-center text-[9px] text-gray-400 italic pt-2 pb-1">
+        Sistem Informasi Akuntansi Yayasan<br />
+        Darussalam Batam | 2025
+      </div>
+
+      <NavbarBottom />
 
       {/* MODALS */}
       <TambahKategori
@@ -145,14 +156,12 @@ export default function KategoriAkun() {
         onClose={() => setOpenTambah(false)}
         onSuccess={fetchKategori}
       />
-
       <EditKategori
         open={openEdit}
         onClose={() => setOpenEdit(false)}
         onSuccess={fetchKategori}
         data={selected}
       />
-
       <HapusKategori
         open={openHapus}
         onClose={() => setOpenHapus(false)}

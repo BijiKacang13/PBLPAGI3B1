@@ -32,14 +32,17 @@ export default function RapbsAkunPage() {
   const [fileName, setFileName] = useState("Tidak ada file");
   const [file, setFile] = useState<File | null>(null);
 
+  // Loading
+  const [loading, setLoading] = useState(true);
+
   // ======================
   // FETCH DATA
   // ======================
   const fetchRapbsAkun = async () => {
+    setLoading(true);
     try {
       const res = await api.get("/budget-rapbs-akun");
 
-      // res sudah langsung data array karena interceptor otomatis response.data
       const arr = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
 
       const mapped = arr.map((x: any) => ({
@@ -50,9 +53,11 @@ export default function RapbsAkunPage() {
       }));
 
       setData(mapped);
-    } catch (err: any) {
-      console.error("Gagal fetch RAPBS akun:", err);
+    } catch (err) {
+      console.error(err);
       setData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -216,31 +221,40 @@ export default function RapbsAkunPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((item) => (
-                <tr key={item.id_akun} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
-                  <td className="px-4 py-2">{item.akun}</td>
-                  <td className="px-4 py-2 text-right">
-                    {new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(item.budget)}
-                  </td>
-                  <td className="px-4 py-2 flex justify-end">
-                    <button
-                      onClick={() => {
-                        setSelected(item);
-                        setOpenEdit(true);
-                      }}
-                      className="text-yellow-500 hover:text-yellow-600"
-                    >
-                      <Pencil size={16} />
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="py-6 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                      <p className="text-sm text-gray-600">Memuat data...</p>
+                    </div>
                   </td>
                 </tr>
-              ))}
-
-              {paginated.length === 0 && (
+              ) : paginated.length > 0 ? (
+                paginated.map((item) => (
+                  <tr key={item.id_akun} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
+                    <td className="px-4 py-2">{item.akun}</td>
+                    <td className="px-4 py-2 text-right">
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      }).format(item.budget)}
+                    </td>
+                    <td className="px-4 py-2 flex justify-end">
+                      <button
+                        onClick={() => {
+                          setSelected(item);
+                          setOpenEdit(true);
+                        }}
+                        className="text-yellow-500 hover:text-yellow-600"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={4} className="text-center py-4 text-gray-400">
                     Tidak ada data
