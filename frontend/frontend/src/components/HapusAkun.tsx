@@ -1,11 +1,8 @@
 "use client";
 import { X, Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 import { useState } from "react";
-
-// Hanya ganti sesuai kebutuhan akun
-// Mirip HapusSubKategori, tapi untuk AKUN
 
 type HapusAkunProps = {
   open: boolean;
@@ -28,11 +25,11 @@ export default function HapusAkun({ open, onClose, onSuccess, data }: HapusAkunP
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/akun/${data.id_akun}`);
+      await api.delete(`/akun/${data.id_akun}`);
       onSuccess();
       onClose();
-    } catch (err) {
-      alert("Gagal menghapus akun!");
+    } catch (err: any) {
+      alert(err.message || "Gagal menghapus akun!");
       console.error(err);
     }
     setLoading(false);
@@ -52,23 +49,25 @@ export default function HapusAkun({ open, onClose, onSuccess, data }: HapusAkunP
           exit={{ scale: 0.9, opacity: 0 }}
           className="bg-white w-[85%] max-w-xs rounded-2xl p-6 shadow-lg relative"
         >
-          {/* TOMBOL CLOSE */}
-          <button onClick={onClose} className="absolute top-3 right-3 text-gray-700">
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-gray-700"
+          >
             <X className="w-5 h-5" />
           </button>
 
-          {/* ICON & TEXT */}
           <div className="text-center">
             <Trash className="w-12 h-12 text-red-600 mx-auto mb-3" />
 
-            <h3 className="text-lg font-semibold text-gray-800">Hapus Akun?</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Hapus Akun?
+            </h3>
 
             <p className="text-sm text-gray-600 mt-1">
               Yakin ingin menghapus akun <b>{data.kode_akun} - {data.akun}</b>?
             </p>
           </div>
 
-          {/* BUTTONS */}
           <div className="flex justify-center gap-3 mt-5">
             <button
               onClick={onClose}

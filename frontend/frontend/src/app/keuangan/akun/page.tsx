@@ -1,10 +1,11 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 import { ArrowLeft, Pencil, Trash2, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import NavbarBottom from "@/components/NavbarBottom";
 import TambahAkun from "@/components/TambahAkun";
 import EditAkun from "@/components/EditAkun";
 import HapusAkun from "@/components/HapusAkun";
@@ -35,17 +36,19 @@ export default function AkunPage() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
 
-  const API_URL = "http://127.0.0.1:8000/api/akun";
-
   // ======================
   // FETCH DATA
   // ======================
   const fetchAkun = async () => {
     try {
-      const res = await axios.get(API_URL);
+      const res = await api.get("/akun");
+
       const arr = Array.isArray(res.data)
         ? res.data
-        : res.data.data ?? res.data.akun ?? [];
+        : Array.isArray(res.data?.data)
+        ? res.data.data
+        : [];
+
       const mapped = arr.map((x: any) => ({
         id_akun: Number(x.id_akun),
         id_sub_kategori_akun: Number(x.id_sub_kategori_akun),
@@ -54,6 +57,7 @@ export default function AkunPage() {
         saldo_awal_debit: Number(x.saldo_awal_debit),
         saldo_awal_kredit: Number(x.saldo_awal_kredit),
       }));
+
       setData(mapped);
     } catch (err) {
       console.error("Gagal fetch akun:", err);
@@ -66,7 +70,7 @@ export default function AkunPage() {
   }, []);
 
   // ======================
-  // SEARCH + FILTER
+  // SEARCH
   // ======================
   const filtered = data.filter(
     (x) =>
@@ -74,13 +78,12 @@ export default function AkunPage() {
       x.akun.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Reset page saat search berubah
   useEffect(() => {
     setPage(1);
   }, [search]);
 
   // ======================
-  // PAGINATION LOGIC
+  // PAGINATION
   // ======================
   const totalPages = Math.ceil(filtered.length / limit);
   const startIndex = (page - 1) * limit;
@@ -159,25 +162,39 @@ export default function AkunPage() {
           )}
         </div>
 
-        {/* TABLE */} 
-        <div className="overflow-x-auto rounded-xl border border-gray-200"> 
-          <table className="w-full text-sm text-gray-700 min-w-[600px]"> 
+        {/* TABLE */}
+        <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <table className="w-full text-sm text-gray-700 min-w-[600px]">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-2 text-left w-1/6">Kode</th> 
-                <th className="px-4 py-2 text-left w-1/4">Akun</th> 
-                <th className="px-4 py-2 text-right w-1/4">Saldo Debit Awal</th> 
-                <th className="px-4 py-2 text-right w-1/4">Saldo Kredit Awal</th>
+                <th className="px-4 py-2 text-left w-1/6">Kode</th>
+                <th className="px-4 py-2 text-left w-1/4">Akun</th>
+                <th className="px-4 py-2 text-right w-1/4">Saldo Debit Awal</th>
+                <th className="px-4 py-2 text-right w-1/4">
+                  Saldo Kredit Awal
+                </th>
                 <th className="px-4 py-2 w-20"></th>
               </tr>
             </thead>
             <tbody>
               {paginated.map((item) => (
                 <tr key={item.id_akun} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
+                  <td className="px-4 py-2 font-mono text-gray-600">
+                    {item.kode_akun}
+                  </td>
                   <td className="px-4 py-2">{item.akun}</td>
-                  <td className="px-4 py-2 text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(item.saldo_awal_debit)}</td>
-                  <td className="px-4 py-2 text-right">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(item.saldo_awal_kredit)}</td>
+                  <td className="px-4 py-2 text-right">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(item.saldo_awal_debit)}
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(item.saldo_awal_kredit)}
+                  </td>
                   <td className="px-4 py-2 flex justify-end gap-3">
                     <button
                       onClick={() => {
@@ -200,9 +217,10 @@ export default function AkunPage() {
                   </td>
                 </tr>
               ))}
+
               {paginated.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-400"> {/* CHANGE: colspan 5 */}
+                  <td colSpan={5} className="text-center py-4 text-gray-400">
                     Tidak ada data
                   </td>
                 </tr>
@@ -210,7 +228,6 @@ export default function AkunPage() {
             </tbody>
           </table>
         </div>
-
 
         {/* PAGINATION */}
         <div className="flex justify-center items-center gap-3 mt-4">
@@ -247,6 +264,7 @@ export default function AkunPage() {
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
+      <NavbarBottom/>
 
       {/* MODALS */}
       <TambahAkun

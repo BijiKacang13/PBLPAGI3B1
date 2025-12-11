@@ -47,7 +47,7 @@ export default function Beranda() {
         </p>
       </main>
 
-      {/* <NavbarBottom /> */}
+      <NavbarBottom />
     </div>
   );
 }

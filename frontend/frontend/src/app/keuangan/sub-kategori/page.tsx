@@ -1,10 +1,11 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import axios from "axios";
-import { ArrowLeft, User, Pencil, Trash2 } from "lucide-react";
+import { api } from "@/lib/api/axiosClient";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import NavbarBottom from "@/components/NavbarBottom";
 import TambahSubKategori from "@/components/TambahSubKategori";
 import EditSubKategori from "@/components/EditSubKategori";
 import HapusSubKategori from "@/components/HapusSubKategori";
@@ -12,26 +13,32 @@ import HapusSubKategori from "@/components/HapusSubKategori";
 export default function SubKategoriAkun() {
   const [data, setData] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
+
   const [openTambah, setOpenTambah] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
 
-  const API_URL = "http://127.0.0.1:8000/api/sub-kategori-akun";
-
-  // ======================
-  // FETCH DATA
-  // ======================
+  // ==========================
+  // FETCH SUB KATEGORI 
+  // ==========================
   const fetchSubKategori = async () => {
     try {
-      const res = await axios.get(API_URL);
-      const arr = Array.isArray(res.data) ? res.data : res.data.data ?? [];
-      const mapped = arr.map((x: any) => ({
-        id_sub_kategori_akun: Number(x.id_sub_kategori_akun),
-        kode_sub_kategori_akun: x.kode_sub_kategori_akun,
-        sub_kategori_akun: x.sub_kategori_akun,
-        id_kategori_akun: x.id_kategori_akun,
-      }));
-      setData(mapped);
+      const res = await api.get("/sub-kategori-akun");
+
+      const list = Array.isArray(res)
+        ? res
+        : Array.isArray(res.data)
+        ? res.data
+        : res.data?.data ?? [];
+
+      setData(
+        list.map((x: any) => ({
+          id_sub_kategori_akun: Number(x.id_sub_kategori_akun),
+          kode_sub_kategori_akun: x.kode_sub_kategori_akun,
+          sub_kategori_akun: x.sub_kategori_akun,
+          id_kategori_akun: x.id_kategori_akun,
+        }))
+      );
     } catch (err) {
       console.error("Gagal fetch sub kategori:", err);
       setData([]);
@@ -42,15 +49,11 @@ export default function SubKategoriAkun() {
     fetchSubKategori();
   }, []);
 
-  // ======================
-  // RENDER
-  // ======================
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
 
       <Navbar />
 
-      {/* Content */}
       <div className="mt-6 w-[90%] max-w-md mx-auto bg-white rounded-xl shadow-md p-4 z-[20] relative">
         <div className="flex items-center mb-4">
           <Link href="/keuangan">
@@ -61,7 +64,7 @@ export default function SubKategoriAkun() {
           </h2>
         </div>
 
-        {/* Tombol tambah */}
+        {/* Button tambah */}
         <button
           onClick={() => setOpenTambah(true)}
           className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold mb-4 shadow hover:bg-blue-700"
@@ -122,6 +125,7 @@ export default function SubKategoriAkun() {
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
+      <NavbarBottom/>
 
       {/* MODALS */}
       <TambahSubKategori

@@ -1,9 +1,9 @@
 "use client";
 
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api/axiosClient";
 
 type TambahSubKategoriProps = {
   open: boolean;
@@ -16,8 +16,6 @@ export default function TambahSubKategori({
   onClose,
   onSuccess,
 }: TambahSubKategoriProps) {
-  const API_URL = "http://127.0.0.1:8000/api";
-
   const [kategoriOptions, setKategoriOptions] = useState<any[]>([]);
   const [selectedKategori, setSelectedKategori] = useState<any>(null);
 
@@ -35,13 +33,13 @@ export default function TambahSubKategori({
     setLoadingKategori(true);
 
     try {
-      const res = await axios.get(`${API_URL}/kategori-akun`);
+      const raw = await api.get("/kategori-akun");
 
-      const list = Array.isArray(res.data.data)
-        ? res.data.data
-        : Array.isArray(res.data)
-        ? res.data
-        : [];
+      const list =
+        Array.isArray(raw) ? raw :
+        Array.isArray(raw.data) ? raw.data :
+        Array.isArray(raw.data?.data) ? raw.data.data :
+        [];
 
       const mapped = list.map((item: any) => ({
         id: item.id_kategori_akun,
@@ -74,7 +72,7 @@ export default function TambahSubKategori({
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/sub-kategori-akun`, {
+      await api.post("/sub-kategori-akun", {
         id_kategori_akun: selectedKategori.id,
         kode_sub_kategori_akun: kode,
         sub_kategori_akun: subKategori,
@@ -83,7 +81,7 @@ export default function TambahSubKategori({
       onSuccess();
       onClose();
 
-      // reset form
+      // reset
       setKode("");
       setSubKategori("");
       setSelectedKategori(null);
@@ -115,7 +113,7 @@ export default function TambahSubKategori({
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
           >
-            {/* Close button */}
+            {/* Close */}
             <button
               onClick={onClose}
               className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
@@ -123,15 +121,13 @@ export default function TambahSubKategori({
               <X className="w-5 h-5" />
             </button>
 
-            {/* Title */}
             <h3 className="text-center font-semibold text-gray-800 mb-4 mt-2">
               TAMBAH SUB KATEGORI AKUN
             </h3>
 
-            {/* FORM */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-              {/* DROPDOWN */}
+              {/* Dropdown */}
               <div className="relative">
                 <label className="block text-sm text-gray-700 mb-1">
                   Kategori Akun
@@ -158,7 +154,6 @@ export default function TambahSubKategori({
                   />
                 </div>
 
-                {/* LIST */}
                 <AnimatePresence>
                   {dropdownOpen && !loadingKategori && (
                     <motion.div
@@ -188,7 +183,6 @@ export default function TambahSubKategori({
                 </AnimatePresence>
               </div>
 
-              {/* INPUT KODE */}
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Kode</label>
                 <input
@@ -201,7 +195,7 @@ export default function TambahSubKategori({
                 />
               </div>
 
-              {/* INPUT SUB KATEGORI */}
+              {/* Input SubKategori */}
               <div>
                 <label className="block text-sm text-gray-700 mb-1">
                   Sub Kategori Akun
@@ -216,7 +210,7 @@ export default function TambahSubKategori({
                 />
               </div>
 
-              {/* BUTTON */}
+              {/* Buttons */}
               <div className="flex justify-center gap-3 mt-4">
                 <button
                   type="button"

@@ -44,7 +44,7 @@ export default function ProfileDropdown() {
           {/* Log Aktivitas */}
           <button
             className="w-full border border-blue-400 text-blue-600 rounded-full py-2 mb-2 hover:bg-blue-50 transition"
-            onClick={() => router.push("/log-aktivitas")}
+            onClick={() => router.push("/logaktivitas")}
           >
             LOG AKTIVITAS
           </button>

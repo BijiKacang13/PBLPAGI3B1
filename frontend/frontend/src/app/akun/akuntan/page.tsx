@@ -198,7 +198,7 @@ const loadAkuntanUnit = async () => {
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6">
         <div className="bg-white shadow-sm rounded-lg p-6">
           
-          {/* Header */}
+      {/* Header */}
           <h5 className="text-xl font-semibold mb-4">Akuntan Unit</h5>
 
           {/* Error Alert */}
@@ -218,40 +218,40 @@ const loadAkuntanUnit = async () => {
               {/* Search Input */}
               <div className="md:col-span-7">
                 <div className="relative">
-                  <Search
+            <Search
                     size={18}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="text"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
                     placeholder="Cari nama akuntan..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         handleFilter();
                       }
                     }}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
-                  />
-                </div>
+            />
+          </div>
               </div>
 
               {/* Unit Dropdown */}
               <div className="md:col-span-3">
-                <select
-                  value={selectedUnit}
-                  onChange={(e) => setSelectedUnit(e.target.value)}
+            <select
+              value={selectedUnit}
+              onChange={(e) => setSelectedUnit(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
                   disabled={loading}
-                >
+            >
                   <option value="">-- Semua Unit --</option>
                   {units.map((unit) => (
                     <option key={unit.id_unit} value={unit.id_unit}>
                       {unit.kode_unit} | {unit.unit}
                     </option>
                   ))}
-                </select>
+            </select>
               </div>
 
               {/* Filter Button */}
@@ -266,9 +266,9 @@ const loadAkuntanUnit = async () => {
                   ) : (
                     <Filter size={18} />
                   )}
-                  Filter
-                </button>
-              </div>
+              Filter
+            </button>
+          </div>
             </div>
 
             {/* Reset Filter Button */}
@@ -292,11 +292,11 @@ const loadAkuntanUnit = async () => {
               </div>
             ) : filteredData.length > 0 ? (
               filteredData.map((data) => (
-                <div
+              <div
                   key={data.id_akuntan_unit}
                   onClick={() => handleCardClick(data.id_akuntan_unit)}
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-                >
+              >
                   <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
                     <div className="text-gray-800">
                       <strong className="text-lg">{data.user.nama}</strong>
@@ -330,7 +330,7 @@ const loadAkuntanUnit = async () => {
         <div className="py-6 text-center">
           <p className="text-gray-400 text-sm">
             Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025
-          </p>
+        </p>
         </div>
       </main>
     </div>
