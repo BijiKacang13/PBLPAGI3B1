@@ -52,8 +52,7 @@ export default function ManajemenKeuangan() {
         </p>
       </main>
 
-      {/* Navbar bawah */}
-     <NavbarBottom/>
+
     </div>
   );
 }
