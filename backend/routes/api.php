@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\SubKategoriAkunController;
 use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
+use App\Http\Controllers\Api\LaporanKomprehensifController;
+use App\Http\Controllers\Api\NeracaSaldoController;
+use App\Http\Controllers\Api\PerubahanAsetNetoController;
 use App\Http\Controllers\Api\AkuntanUnitController;
 use App\Http\Controllers\Api\LogActivityController;
 
