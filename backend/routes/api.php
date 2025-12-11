@@ -11,8 +11,11 @@ use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\NeracaSaldoController;
+use App\Http\Controllers\Api\PerubahanAsetNetoController;
 use App\Http\Controllers\Api\AkuntanUnitController;
 use App\Http\Controllers\Api\ArusKasController;
+use App\Http\Controllers\Api\CalkController;
+use App\Http\Controllers\Api\PRRAController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -90,6 +93,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/export', [NeracaSaldoController::class, 'exportExcel']);
     });
 
+    Route::prefix('prra')->group(function () {
+        Route::get('/', [PRRAController::class, 'index']);
+        Route::get('/filter-options', [PRRAController::class, 'getFilterOptions']);
+        Route::get('/export', [PRRAController::class, 'export']);
+    });
+
     Route::prefix('arus-kas')->group(function () {
         // Get arus kas data with filters
         Route::get('/', [ArusKasController::class, 'index']);
@@ -100,8 +109,23 @@ Route::middleware('auth:sanctum')->group(function () {
         // Export to Excel
         Route::get('/export', [ArusKasController::class, 'exportExcel']);
     });
-
+     Route::prefix('perubahan-aset-neto')->group(function () {
+        Route::get('/', [PerubahanAsetNetoController::class, 'index']);
+        Route::get('/export-excel', [PerubahanAsetNetoController::class, 'exportExcel']);
+        Route::get('/units', [PerubahanAsetNetoController::class, 'getUnits']);
+        Route::get('/divisi', [PerubahanAsetNetoController::class, 'getDivisi']);
+    });
+    Route::prefix('laporan')->group(function () {
+        Route::get('calk', [CalkController::class, 'index']);
+        Route::post('calk', [CalkController::class, 'store']);
+        Route::get('calk/{id}', [CalkController::class, 'show']);
+        Route::put('calk/{id}', [CalkController::class, 'update']);
+        Route::delete('calk/{id}', [CalkController::class, 'destroy']);
+    });
+    
 });
 Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
 Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
 Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
+
+
