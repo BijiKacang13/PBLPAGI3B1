@@ -31,6 +31,14 @@ export default function LaporanPerubahanAsetNeto() {
   const [selectedDivisi, setSelectedDivisi] = useState<string>("");
   const [tanggalMulai, setTanggalMulai] = useState<string>("");
   const [tanggalSelesai, setTanggalSelesai] = useState<string>("");
+
+  // Initial filters (default values)
+  const initialFilters = {
+    unit: "",
+    divisi: "",
+    tanggal_mulai: "",
+    tanggal_selesai: "",
+  };
   const [data, setData] = useState<AsetNetoData | null>(null);
   const [totalSaldoAkhir, setTotalSaldoAkhir] = useState<number>(0);
   const [user, setUser] = useState<{ role: Role; id_unit?: number }>({
@@ -134,17 +142,13 @@ export default function LaporanPerubahanAsetNeto() {
 
   const handlePrint = () => window.print();
 
-  const handleReset = () => {
+  // Reset filters
+  const handleResetFilters = () => {
     const today = new Date().toISOString().split("T")[0];
-    setSelectedUnit("");
-    setSelectedDivisi("");
+    setSelectedUnit(initialFilters.unit);
+    setSelectedDivisi(initialFilters.divisi);
     setTanggalMulai(today);
     setTanggalSelesai(today);
-    // fetchReportData will be called automatically via useEffect
-  };
-
-  const handleRefresh = () => {
-    fetchReportData();
   };
 
   return (
@@ -262,13 +266,12 @@ export default function LaporanPerubahanAsetNeto() {
             </div>
 
             {/* Tombol Refresh */}
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#a8d5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            <button 
+              onClick={handleResetFilters}
+              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : <RefreshCcw size={18} />}
-              {loading ? "Memuat..." : "Refresh"}
+              <RefreshCcw size={18} />
+              Reset Filter
             </button>
           </div>
         </div>

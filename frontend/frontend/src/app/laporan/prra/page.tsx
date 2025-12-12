@@ -63,6 +63,15 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
   const [startDate, setStartDate] = useState(new Date().getFullYear() + "-01-01");
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
 
+  // Initial filters (default values)
+  const initialFilters = {
+    berdasarkan: "akun" as "akun" | "kegiatan",
+    unit: null as number | null,
+    divisi: null as number | null,
+    start_date: new Date().getFullYear() + "-01-01",
+    end_date: new Date().toISOString().split("T")[0],
+  };
+
   // Fetch filter options and user role on mount
   useEffect(() => {
     fetchFilterOptions();
@@ -82,10 +91,11 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
     }
   }, []);
 
-  // Fetch initial data
+  // Auto-fetch data saat filter berubah
   useEffect(() => {
     fetchPRRAData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [berdasarkan, selectedUnit, selectedDivisi, startDate, endDate]);
 
   const fetchFilterOptions = async () => {
     try {
@@ -139,16 +149,13 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
     }
   };
 
-  const handleRefresh = () => {
-    fetchPRRAData();
-  };
-
-  const handleReset = () => {
-    setBerdasarkan("akun");
-    setSelectedUnit(userRole.role === "akuntan_unit" ? userRole.id_unit || null : null);
-    setSelectedDivisi(null);
-    setStartDate(new Date().getFullYear() + "-01-01");
-    setEndDate(new Date().toISOString().split("T")[0]);
+  // Reset filters
+  const handleResetFilters = () => {
+    setBerdasarkan(initialFilters.berdasarkan);
+    setSelectedUnit(userRole.role === "akuntan_unit" ? userRole.id_unit || null : initialFilters.unit);
+    setSelectedDivisi(initialFilters.divisi);
+    setStartDate(initialFilters.start_date);
+    setEndDate(initialFilters.end_date);
   };
 
   const handleExportExcel = async () => {
@@ -326,24 +333,14 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
               </div>
             </div>
 
-            {/* Tombol Refresh dan Reset */}
-            <div className="flex gap-2">
-              <button
-                onClick={handleReset}
-                className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-800 py-2 rounded-full font-semibold hover:bg-gray-200 transition-colors"
-              >
-                <RefreshCcw size={18} />
-                Reset
-              </button>
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold hover:bg-[#a8d5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <RefreshCcw size={18} />}
-                {loading ? "Memuat..." : "Refresh"}
-              </button>
-            </div>
+            {/* Tombol Refresh */}
+            <button 
+              onClick={handleResetFilters}
+              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
+            >
+              <RefreshCcw size={18} />
+              Reset Filter
+            </button>
           </div>
         </div>
 

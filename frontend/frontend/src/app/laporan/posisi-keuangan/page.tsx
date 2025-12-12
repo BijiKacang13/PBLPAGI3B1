@@ -58,15 +58,24 @@ export default function PosisiKeuangan() {
   const [startDate, setStartDate] = useState(new Date().getFullYear() + "-01-01");
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
 
+  // Initial filters (default values)
+  const initialFilters = {
+    unit: null as number | null,
+    divisi: null as number | null,
+    start_date: new Date().getFullYear() + "-01-01",
+    end_date: new Date().toISOString().split("T")[0],
+  };
+
   // Fetch filter options on mount
   useEffect(() => {
     fetchFilterOptions();
   }, []);
 
-  // Fetch initial data
+  // Auto-fetch data saat filter berubah
   useEffect(() => {
     fetchNeracaData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUnit, selectedDivisi, startDate, endDate]);
 
   const fetchFilterOptions = async () => {
     try {
@@ -119,8 +128,12 @@ export default function PosisiKeuangan() {
     }
   };
 
-  const handleRefresh = () => {
-    fetchNeracaData();
+  // Reset filters
+  const handleResetFilters = () => {
+    setSelectedUnit(initialFilters.unit);
+    setSelectedDivisi(initialFilters.divisi);
+    setStartDate(initialFilters.start_date);
+    setEndDate(initialFilters.end_date);
   };
 
   const handleExportExcel = async () => {
@@ -260,12 +273,11 @@ export default function PosisiKeuangan() {
 
             {/* Tombol Refresh */}
             <button 
-              onClick={handleRefresh}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#a8d5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleResetFilters}
+              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >
-              {loading ? <Loader2 className="animate-spin" size={18} /> : <RefreshCcw size={18} />}
-              {loading ? "Memuat..." : "Refresh"}
+              <RefreshCcw size={18} />
+              Reset Filter
             </button>
           </div>
         </div>

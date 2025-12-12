@@ -7,7 +7,7 @@ import {
   FileSpreadsheet,
   Printer,
   Calendar,
-  RefreshCw,
+  RefreshCcw,
   Loader2,
   ChevronDown,
 } from "lucide-react";
@@ -36,6 +36,14 @@ export default function LaporanKomprehensif() {
     tanggal_selesai: new Date().toISOString().split("T")[0],
   });
 
+  // Initial filters (default values)
+  const initialFilters = {
+    id_unit: null as number | null,
+    id_divisi: null as number | null,
+    tanggal_mulai: new Date().getFullYear() + "-01-01",
+    tanggal_selesai: new Date().toISOString().split("T")[0],
+  };
+
   // State untuk loading
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -46,10 +54,11 @@ export default function LaporanKomprehensif() {
     fetchOptions();
   }, []);
 
-  // Fetch laporan saat komponen mount
+  // Auto-fetch laporan saat filter berubah
   useEffect(() => {
     fetchLaporan();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.id_unit, filters.id_divisi, filters.tanggal_mulai, filters.tanggal_selesai]);
 
   const fetchOptions = async () => {
     try {
@@ -91,8 +100,9 @@ export default function LaporanKomprehensif() {
     }));
   };
 
-  const handleRefresh = () => {
-    fetchLaporan();
+  // Reset filters
+  const handleResetFilters = () => {
+    setFilters(initialFilters);
   };
 
   const handleExportExcel = async () => {
@@ -294,10 +304,7 @@ export default function LaporanKomprehensif() {
                   }
                   className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50"
                 />
-                <Calendar
-                  className="absolute right-3 top-3 text-gray-400 pointer-events-none"
-                  size={18}
-                />
+                
               </div>
             </div>
 
@@ -313,25 +320,17 @@ export default function LaporanKomprehensif() {
                   }
                   className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50"
                 />
-                <Calendar
-                  className="absolute right-3 top-3 text-gray-400 pointer-events-none"
-                  size={18}
-                />
+               
               </div>
             </div>
 
             {/* Tombol Refresh */}
-            <button
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#a8d5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            <button 
+              onClick={handleResetFilters}
+              className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >
-              {isLoading ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : (
-                <RefreshCw size={18} />
-              )}
-              {isLoading ? "Memuat..." : "Refresh"}
+              <RefreshCcw size={18} />
+              Reset Filter
             </button>
           </div>
         </div>
