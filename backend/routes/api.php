@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SubKategoriAkunController;
 use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
+use App\Http\Controllers\API\JurnalUmumController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\NeracaSaldoController;
 use App\Http\Controllers\Api\PerubahanAsetNetoController;
@@ -82,6 +83,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [AkuntanUnitController::class, 'show']);
         Route::put('/{id}', [AkuntanUnitController::class, 'update']);
         Route::delete('/{id}', [AkuntanUnitController::class, 'destroy']);
+    });
+
+    // Jurnal Umum
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/jurnal-umum', [JurnalUmumController::class, 'index']);
+        Route::post('/jurnal-umum', [JurnalUmumController::class, 'store']);
+        Route::get('/jurnal-umum/{id}', [JurnalUmumController::class, 'show']);
+        Route::put('/jurnal-umum/{id}', [JurnalUmumController::class, 'update']);
+        Route::delete('/jurnal-umum/{id}', [JurnalUmumController::class, 'destroy']);
     });
 
     // Auditor

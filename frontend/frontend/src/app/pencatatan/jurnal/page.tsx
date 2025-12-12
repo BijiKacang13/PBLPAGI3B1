@@ -1,12 +1,13 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import { useState } from "react";
-import { Calendar, Search, RefreshCcw, Printer, FileSpreadsheet, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Calendar, Search, RefreshCcw, Printer, FileSpreadsheet } from "lucide-react";
 import CustomCalendar from "@/components/CustomCalendar";
-import NavbarBottom from "@/components/NavbarBottom";
+import { useRouter } from "next/navigation";
 
 export default function JurnalUmum() {
+  const router = useRouter();
   const [unit, setUnit] = useState("Akumulasi (Semua Unit)");
   const [divisi, setDivisi] = useState("Akumulasi (Semua Divisi)");
   const [fromDate, setFromDate] = useState("");
@@ -15,17 +16,73 @@ export default function JurnalUmum() {
   const [showFromCalendar, setShowFromCalendar] = useState(false);
   const [showToCalendar, setShowToCalendar] = useState(false);
 
+  // ⬅ diubah: data sekarang object, bukan array
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // ==========================
+  // FETCH API
+  // ==========================
+  const fetchJurnal = async (paginationUrl?: string) => {
+    try {
+      setLoading(true);
+
+      const baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/jurnal-umum`;
+
+      const url = paginationUrl
+        ? paginationUrl // utk next/prev
+        : `${baseUrl}?unit=${unit}&divisi=${divisi}&from=${fromDate}&to=${toDate}&search=${search}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      const json = await res.json();
+
+      // ⬅ API mengembalikan { success: true, data: {...pagination} }
+      setData(json.data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // LOAD AWAL
+  useEffect(() => {
+    fetchJurnal();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100 pb-20">
 
       <Navbar />
 
-      {/* CARD */}
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-full mb-6">
-          <h2 className="text-gray-900 text-center font-semibold text-lg mb-4">JURNAL UMUM</h2>
+          <div className="flex items-center justify-center gap-3 mb-6 relative">
+            <button
+              onClick={() => router.back()}
+              className="absolute left-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="text-gray-900 text-center font-semibold text-lg mb-1">JURNAL UMUM</h1>
+          </div>
 
-          {/* Tombol Export dan Print */}
+          {/* Tombol Export & Print */}
           <div className="flex gap-2 mb-5">
             <button className="flex-1 flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 rounded-full py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
               <FileSpreadsheet className="w-4 h-4" /> Export Excel
@@ -35,8 +92,9 @@ export default function JurnalUmum() {
             </button>
           </div>
 
-          {/* FILTER FORM */}
+          {/* Filter */}
           <div className="space-y-3">
+
             {/* Unit */}
             <div>
               <label className="block text-sm text-gray-600 mb-1">Unit</label>
@@ -73,7 +131,7 @@ export default function JurnalUmum() {
               </div>
             </div>
 
-            {/* Dari Tanggal */}
+            {/* Dari tanggal */}
             <div>
               <label className="block text-sm text-gray-600 mb-1">Dari Tanggal</label>
               <div className="relative">
@@ -83,15 +141,17 @@ export default function JurnalUmum() {
                   onChange={(e) => setFromDate(e.target.value)}
                   className="w-full border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700"
                 />
+
                 <button
                   onClick={() => {
-                  setShowFromCalendar(!showFromCalendar);
-                  setShowToCalendar(false);
-                }}
+                    setShowFromCalendar(!showFromCalendar);
+                    setShowToCalendar(false);
+                  }}
                   className="absolute right-4 top-2.5 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-gray-400 hover:text-blue-600" />
                 </button>
+
                 {showFromCalendar && (
                   <CustomCalendar
                     selectedDate={fromDate}
@@ -101,8 +161,8 @@ export default function JurnalUmum() {
                 )}
               </div>
             </div>
-            
-            {/* Sampai Tanggal */}
+
+            {/* Sampai tanggal */}
             <div>
               <label className="block text-sm text-gray-600 mb-1">Sampai Tanggal</label>
               <div className="relative">
@@ -112,15 +172,17 @@ export default function JurnalUmum() {
                   onChange={(e) => setToDate(e.target.value)}
                   className="w-full border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700"
                 />
+
                 <button
                   onClick={() => {
-                  setShowToCalendar(!showToCalendar);
-                  setShowFromCalendar(false);
-                }}
+                    setShowToCalendar(!showToCalendar);
+                    setShowFromCalendar(false);
+                  }}
                   className="absolute right-4 top-2.5 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-gray-400 hover:text-blue-600" />
                 </button>
+
                 {showToCalendar && (
                   <CustomCalendar
                     selectedDate={toDate}
@@ -131,7 +193,7 @@ export default function JurnalUmum() {
               </div>
             </div>
 
-            {/* Pencarian */}
+            {/* SEARCH */}
             <div className="flex items-center gap-2">
               <input
                 type="text"
@@ -140,9 +202,14 @@ export default function JurnalUmum() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700"
               />
-              <button className="bg-blue-100 p-2 rounded-full">
+
+              <button
+                className="bg-blue-100 p-2 rounded-full"
+                onClick={() => fetchJurnal()}
+              >
                 <Search className="w-4 h-4 text-blue-600" />
               </button>
+
               <button
                 className="bg-blue-500 p-2 rounded-full hover:bg-blue-600"
                 onClick={() => {
@@ -151,6 +218,7 @@ export default function JurnalUmum() {
                   setDivisi("Akumulasi (Semua Divisi)");
                   setFromDate("");
                   setToDate("");
+                  fetchJurnal();
                 }}
               >
                 <RefreshCcw className="w-4 h-4 text-white" />
@@ -158,33 +226,73 @@ export default function JurnalUmum() {
             </div>
           </div>
 
-          {/* TABEL */}
-          <div className="mt-6">
-            <div className="flex justify-between text-sm font-semibold border-b border-blue-300 pb-1 text-gray-700">
-              <span>Tgl</span>
-              <span>No. Bukti</span>
-              <span>Keterangan</span>
-            </div>
+          {/* =============================== */}
+          {/*              TABEL              */}
+          {/* =============================== */}
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full text-sm text-gray-700">
+              <thead>
+                <tr className="border-b border-blue-300 text-gray-700 text-xs">
+                  <th className="py-2 text-left">Tgl</th>
+                  <th className="py-2 text-left">No. Bukti</th>
+                  <th className="py-2 text-left">Keterangan</th>
+                  <th className="py-2 text-left">Unit</th>
+                  <th className="py-2 text-left">Divisi</th>
+                </tr>
+              </thead>
 
-            <div className="text-sm text-gray-700 mt-2 space-y-2">
-              <div className="flex justify-between">
-                <span>04-001</span>
-                <span>SUMBANGAN SPP</span>
-              </div>
-              <div className="flex justify-between">
-                <span>04-002</span>
-                <span>SUMBANGAN KOMITEE</span>
-              </div>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 text-gray-500">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : !data || data?.data?.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 text-gray-400 text-xs">
+                      Tidak ada data
+                    </td>
+                  </tr>
+                ) : (
+                  data?.data?.map((item: any, index: number) => (
+                    <tr key={index} className="border-b last:border-none">
+                      <td className="py-2">{item.tanggal}</td>
+                      <td>{item.no_bukti}</td>
+                      <td>{item.keterangan}</td>
+                      <td>{item.unit?.nama_unit || "-"}</td>
+                      <td>{item.divisi?.nama_divisi || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+
+            {/* PAGINATION */}
+            <div className="flex justify-center mt-4 gap-3 text-sm">
+              <button
+                disabled={!data?.prev_page_url}
+                onClick={() => fetchJurnal(data.prev_page_url)}
+                className="px-3 py-1 rounded-full border disabled:opacity-40"
+              >
+                Prev
+              </button>
+
+              <button
+                disabled={!data?.next_page_url}
+                onClick={() => fetchJurnal(data.next_page_url)}
+                className="px-3 py-1 rounded-full border disabled:opacity-40"
+              >
+                Next
+              </button>
             </div>
           </div>
         </div>
       </main>
 
-      {/* FOOTER */}
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
-
 
     </div>
   );
