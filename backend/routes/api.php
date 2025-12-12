@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
 use App\Http\Controllers\API\JurnalUmumController;
+use App\Http\Controllers\Api\BukuBesarController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\NeracaSaldoController;
 use App\Http\Controllers\Api\PerubahanAsetNetoController;
@@ -92,6 +93,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/jurnal-umum/{id}', [JurnalUmumController::class, 'show']);
         Route::put('/jurnal-umum/{id}', [JurnalUmumController::class, 'update']);
         Route::delete('/jurnal-umum/{id}', [JurnalUmumController::class, 'destroy']);
+    });
+
+    // Buku Besar
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/buku-besar', [BukuBesarController::class, 'index']);
+        Route::get('/buku-besar/akun-list', [BukuBesarController::class, 'getAkunList']);
+        Route::get('/buku-besar/export', [BukuBesarController::class, 'exportExcel']);
+        Route::post('/buku-besar/posting', [BukuBesarController::class, 'store']);
+        Route::post('/buku-besar/posting-semua', [BukuBesarController::class, 'postingSemua']);
     });
 
     // Auditor
