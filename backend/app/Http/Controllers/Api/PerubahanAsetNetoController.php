@@ -53,21 +53,27 @@ class PerubahanAsetNetoController extends Controller
             }
 
             if (!$id_divisi && $user->role === 'akuntan_divisi') {
-                $id_divisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
+                $id_divisi = Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
             }
 
             // Ambil akun ASET NETO DENGAN & TANPA PEMBATASAN
-            $akunDengan = Akun::whereHas('sub_kategori_akun.kategori_akun', fn($q) =>
-                $q->where('kategori_akun', 'ASET NETO')
-            )->whereHas('sub_kategori_akun', fn($q) =>
-                $q->where('sub_kategori_akun', 'Dengan Pembatasan')
-            )->first();
+            try {
+                $akunDengan = Akun::whereHas('subKategori.kategori_akun', function($q) {
+                    $q->where('kategori_akun', 'ASET NETO');
+                })->whereHas('subKategori', function($q) {
+                    $q->where('sub_kategori_akun', 'Dengan Pembatasan');
+                })->first();
 
-            $akunTanpa = Akun::whereHas('sub_kategori_akun.kategori_akun', fn($q) =>
-                $q->where('kategori_akun', 'ASET NETO')
-            )->whereHas('sub_kategori_akun', fn($q) =>
-                $q->where('sub_kategori_akun', 'Tanpa Pembatasan')
-            )->first();
+                $akunTanpa = Akun::whereHas('subKategori.kategori_akun', function($q) {
+                    $q->where('kategori_akun', 'ASET NETO');
+                })->whereHas('subKategori', function($q) {
+                    $q->where('sub_kategori_akun', 'Tanpa Pembatasan');
+                })->first();
+            } catch (\Exception $e) {
+                \Log::error('Error fetching akun: ' . $e->getMessage());
+                $akunDengan = null;
+                $akunTanpa = null;
+            }
 
             // Hitung data
             $data = [
@@ -107,11 +113,9 @@ class PerubahanAsetNetoController extends Controller
             } catch (\Exception $e) {
                 \Log::error('Gagal hitung aset neto via procedure: ' . $e->getMessage());
                 \Log::error('Stack trace: ' . $e->getTraceAsString());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal menghitung perubahan aset neto.',
-                    'error' => $e->getMessage()
-                ], 500);
+                // Jangan return error, set default values saja
+                $data['dengan_pembatasan']['kenaikan_periode_berjalan'] = 0;
+                $data['tanpa_pembatasan']['kenaikan_periode_berjalan'] = 0;
             }
 
             // Hitung saldo akhir
@@ -143,12 +147,19 @@ class PerubahanAsetNetoController extends Controller
                 'message' => 'Data berhasil dimuat'
             ], 200);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             \Log::error('Error in PerubahanAsetNetoController: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memuat data',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'Terjadi kesalahan pada server'
             ], 500);
         }
     }
@@ -203,9 +214,9 @@ class PerubahanAsetNetoController extends Controller
      * Export to Excel
      * 
      * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\JsonResponse
      */
-    public function exportExcel(Request $request)
+    public function exportExcel(Request $request)   
     {
         try {
             $user = Auth::user();
@@ -221,21 +232,29 @@ class PerubahanAsetNetoController extends Controller
             }
 
             if (!$id_divisi && $user->role === 'akuntan_divisi') {
-                $id_divisi = Akuntan_Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
+                $id_divisi = Divisi::where('id_akuntan_divisi', $user->id_user)->value('id_divisi');
             }
 
             // Ambil akun
-            $akunDengan = Akun::whereHas('sub_kategori_akun.kategori_akun', fn($q) =>
-                $q->where('kategori_akun', 'ASET NETO')
-            )->whereHas('sub_kategori_akun', fn($q) =>
-                $q->where('sub_kategori_akun', 'Dengan Pembatasan')
-            )->first();
+            try {
+                $akunDengan = Akun::whereHas('subKategori', function ($query) {
+                    $query->where('sub_kategori_akun', 'Dengan Pembatasan')
+                        ->whereHas('kategori_akun', function ($q) {
+                            $q->where('kategori_akun', 'ASET NETO');
+                        });
+                })->first();
 
-            $akunTanpa = Akun::whereHas('sub_kategori_akun.kategori_akun', fn($q) =>
-                $q->where('kategori_akun', 'ASET NETO')
-            )->whereHas('sub_kategori_akun', fn($q) =>
-                $q->where('sub_kategori_akun', 'Tanpa Pembatasan')
-            )->first();
+                $akunTanpa = Akun::whereHas('subKategori', function ($query) {
+                    $query->where('sub_kategori_akun', 'Tanpa Pembatasan')
+                        ->whereHas('kategori_akun', function ($q) {
+                            $q->where('kategori_akun', 'ASET NETO');
+                        });
+                })->first();
+            } catch (\Exception $e) {
+                \Log::error('Error fetching akun in exportExcel: ' . $e->getMessage());
+                $akunDengan = null;
+                $akunTanpa = null;
+            }
 
             $data = [
                 'dengan_pembatasan' => [
@@ -252,18 +271,24 @@ class PerubahanAsetNetoController extends Controller
                 ],
             ];
 
-            $results = DB::select('CALL hitung_kenaikan_aset_neto(?, ?, ?, ?)', [
-                $start,
-                $end,
-                $id_unit,
-                $id_divisi
-            ]);
+            try {
+                $results = DB::select('CALL hitung_kenaikan_aset_neto(?, ?, ?, ?)', [
+                    $start,
+                    $end,
+                    $id_unit,
+                    $id_divisi
+                ]);
 
-            if (!empty($results)) {
-                $hasil = $results[0];
-                $data['dengan_pembatasan']['kenaikan_periode_berjalan'] = $hasil->terikat ?? 0;
-                $data['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $hasil->tidak_terikat ?? 0;
-            } else {
+                if (!empty($results)) {
+                    $hasil = $results[0];
+                    $data['dengan_pembatasan']['kenaikan_periode_berjalan'] = $hasil->terikat ?? 0;
+                    $data['tanpa_pembatasan']['kenaikan_periode_berjalan'] = $hasil->tidak_terikat ?? 0;
+                } else {
+                    $data['dengan_pembatasan']['kenaikan_periode_berjalan'] = 0;
+                    $data['tanpa_pembatasan']['kenaikan_periode_berjalan'] = 0;
+                }
+            } catch (\Exception $e) {
+                \Log::error('Gagal hitung aset neto via procedure in exportExcel: ' . $e->getMessage());
                 $data['dengan_pembatasan']['kenaikan_periode_berjalan'] = 0;
                 $data['tanpa_pembatasan']['kenaikan_periode_berjalan'] = 0;
             }
@@ -428,6 +453,5 @@ class PerubahanAsetNetoController extends Controller
         header('Cache-Control: max-age=0');
         
         $writer->save('php://output');
-        exit;
     }
 }

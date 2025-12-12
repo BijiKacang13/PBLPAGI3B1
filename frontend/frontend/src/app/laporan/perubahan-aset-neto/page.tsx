@@ -1,20 +1,11 @@
 // pages/laporan-perubahan-aset-neto.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FileSpreadsheet, Printer, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
-
-interface Unit {
-  id_unit: number;
-  unit: string;
-}
-
-interface Divisi {
-  id_divisi: number;
-  divisi: string;
-}
+import { perubahanAsetNetoApi, Unit, Divisi } from "@/lib/api/perubahan-aset-neto";
 
 interface AsetNetoData {
   dengan_pembatasan: {
@@ -31,7 +22,7 @@ interface AsetNetoData {
   };
 }
 
-type Role = "admin" | "auditor" | "akuntan_unit";
+type Role = "admin" | "auditor" | "akuntan_unit" | "akuntan_divisi";
 
 export default function LaporanPerubahanAsetNeto() {
   const [units, setUnits] = useState<Unit[]>([]);
@@ -46,46 +37,77 @@ export default function LaporanPerubahanAsetNeto() {
     role: "admin",
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  // Mock fetch initial (ganti dengan API calls bila siap)
+  // Fetch report data function
+  const fetchReportData = useCallback(async () => {
+    if (!tanggalMulai || !tanggalSelesai) return;
+    
+    setLoading(true);
+    setError("");
+    try {
+      const params = {
+        tanggal_mulai: tanggalMulai || undefined,
+        tanggal_selesai: tanggalSelesai || undefined,
+        unit: selectedUnit ? parseInt(selectedUnit) : null,
+        divisi: selectedDivisi ? parseInt(selectedDivisi) : null,
+      };
+
+      const response = await perubahanAsetNetoApi.getData(params);
+      
+      if (response.success && response.data) {
+        setData(response.data.report_data);
+        setTotalSaldoAkhir(response.data.total_saldo_akhir);
+        
+        // Update user info from response
+        if (response.data.user) {
+          setUser({
+            role: response.data.user.role as Role,
+            id_unit: response.data.user.id_unit || undefined,
+          });
+        }
+      } else {
+        setError(response.message || "Gagal memuat data");
+      }
+    } catch (err: any) {
+      console.error("Error fetching report data:", err);
+      setError(err.message || "Terjadi kesalahan saat memuat data");
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [tanggalMulai, tanggalSelesai, selectedUnit, selectedDivisi]);
+
+  // Fetch units and divisi on mount
   useEffect(() => {
+    const fetchUnitsAndDivisi = async () => {
+      try {
+        const [unitsData, divisiData] = await Promise.all([
+          perubahanAsetNetoApi.getUnits(),
+          perubahanAsetNetoApi.getDivisi(),
+        ]);
+        setUnits(unitsData);
+        setDivisis(divisiData);
+      } catch (err: any) {
+        console.error("Error fetching units/divisi:", err);
+        setError("Gagal memuat data unit/divisi");
+      }
+    };
+
+    fetchUnitsAndDivisi();
+
+    // Set default dates
     const today = new Date().toISOString().split("T")[0];
     setTanggalMulai(today);
     setTanggalSelesai(today);
-
-    // contoh data dropdown
-    setUnits([
-      { id_unit: 1, unit: "Unit Pusat" },
-      { id_unit: 2, unit: "Unit Cabang A" },
-      { id_unit: 3, unit: "Unit Cabang B" },
-    ]);
-    setDivisis([
-      { id_divisi: 1, divisi: "Divisi Pendidikan" },
-      { id_divisi: 2, divisi: "Divisi Keuangan" },
-      { id_divisi: 3, divisi: "Divisi Operasional" },
-    ]);
-
-    // contoh data laporan
-    const mockData: AsetNetoData = {
-      dengan_pembatasan: {
-        saldo_awal: 150000000,
-        kenaikan_periode_lalu: 25000000,
-        kenaikan_periode_berjalan: 30000000,
-        saldo_akhir: 205000000,
-      },
-      tanpa_pembatasan: {
-        saldo_awal: -50000000,
-        kenaikan_periode_lalu: 15000000,
-        kenaikan_periode_berjalan: -20000000,
-        saldo_akhir: -55000000,
-      },
-    };
-    setData(mockData);
-    setTotalSaldoAkhir(
-      mockData.dengan_pembatasan.saldo_akhir +
-        mockData.tanpa_pembatasan.saldo_akhir
-    );
   }, []);
+
+  // Fetch report data when filters change
+  useEffect(() => {
+    if (tanggalMulai && tanggalSelesai) {
+      fetchReportData();
+    }
+  }, [fetchReportData]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -95,15 +117,19 @@ export default function LaporanPerubahanAsetNeto() {
     }).format(value);
   };
 
-  const handleExportExcel = () => {
-    // TODO: ganti dengan pemanggilan API export
-    const query = new URLSearchParams({
-      unit: selectedUnit || "",
-      divisi: selectedDivisi || "",
-      tanggal_mulai: tanggalMulai || "",
-      tanggal_selesai: tanggalSelesai || "",
-    });
-    window.open(`/api/perubahan-aset-neto/export?${query.toString()}`, "_blank");
+  const handleExportExcel = async () => {
+    try {
+      const params = {
+        tanggal_mulai: tanggalMulai || undefined,
+        tanggal_selesai: tanggalSelesai || undefined,
+        unit: selectedUnit ? parseInt(selectedUnit) : null,
+        divisi: selectedDivisi ? parseInt(selectedDivisi) : null,
+      };
+      await perubahanAsetNetoApi.exportExcel(params);
+    } catch (err: any) {
+      console.error("Error exporting Excel:", err);
+      setError("Gagal export Excel");
+    }
   };
 
   const handlePrint = () => window.print();
@@ -114,11 +140,11 @@ export default function LaporanPerubahanAsetNeto() {
     setSelectedDivisi("");
     setTanggalMulai(today);
     setTanggalSelesai(today);
+    // fetchReportData will be called automatically via useEffect
   };
 
   const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 300); // simulasi loading singkat
+    fetchReportData();
   };
 
   return (
@@ -246,6 +272,13 @@ export default function LaporanPerubahanAsetNeto() {
             </button>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="w-full mt-6 bg-red-50 border border-red-200 rounded-md p-4">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Data Section */}
         {loading ? (

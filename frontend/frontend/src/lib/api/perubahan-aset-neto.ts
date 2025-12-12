@@ -1,45 +1,32 @@
 // File: lib/api/perubahan-aset-neto.ts
 
-import axios from 'axios';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const authFetch = async (url: string, options?: RequestInit) => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
-// Create axios instance with default config
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  withCredentials: true, // Untuk mengirim cookies (sanctum)
-});
+  const res = await fetch(`${API_BASE_URL}${url}`, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    credentials: "include",
+    ...options,
+  });
 
-// Add token to requests if available
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  // Handle unauthorized globally
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth_token");
+      window.location.href = "/login";
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+    throw new Error("Unauthorized");
   }
-);
 
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized - redirect to login
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+  return res;
+};
 
 export interface PerubahanAsetNetoParams {
   tanggal_mulai?: string;
@@ -91,34 +78,73 @@ export interface Divisi {
 export const perubahanAsetNetoApi = {
   // Get report data
   getData: async (params: PerubahanAsetNetoParams): Promise<ApiResponse> => {
-    const response = await apiClient.get('/perubahan-aset-neto', { params });
-    return response.data;
+    const query = new URLSearchParams();
+    if (params.tanggal_mulai) query.append("tanggal_mulai", params.tanggal_mulai);
+    if (params.tanggal_selesai) query.append("tanggal_selesai", params.tanggal_selesai);
+    if (params.unit !== undefined && params.unit !== null) query.append("unit", params.unit.toString());
+    if (params.divisi !== undefined && params.divisi !== null) query.append("divisi", params.divisi.toString());
+
+    const res = await authFetch(`/perubahan-aset-neto?${query.toString()}`);
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || "Gagal memuat data laporan");
+    }
+    return res.json();
   },
 
   // Get units list
   getUnits: async (): Promise<Unit[]> => {
-    const response = await apiClient.get('/perubahan-aset-neto/units');
-    return response.data.data;
+    const res = await authFetch("/perubahan-aset-neto/units");
+    if (!res.ok) throw new Error("Gagal memuat data unit");
+    const body = await res.json();
+    return body.data;
   },
 
   // Get divisi list
   getDivisi: async (): Promise<Divisi[]> => {
-    const response = await apiClient.get('/perubahan-aset-neto/divisi');
-    return response.data.data;
+    const res = await authFetch("/perubahan-aset-neto/divisi");
+    if (!res.ok) throw new Error("Gagal memuat data divisi");
+    const body = await res.json();
+    return body.data;
   },
 
   // Export to Excel
-  exportExcel: (params: PerubahanAsetNetoParams): void => {
+  exportExcel: async (params: PerubahanAsetNetoParams): Promise<void> => {
     const queryParams = new URLSearchParams();
     
     if (params.tanggal_mulai) queryParams.append('tanggal_mulai', params.tanggal_mulai);
     if (params.tanggal_selesai) queryParams.append('tanggal_selesai', params.tanggal_selesai);
-    if (params.unit) queryParams.append('unit', params.unit.toString());
-    if (params.divisi) queryParams.append('divisi', params.divisi.toString());
+    if (params.unit !== undefined && params.unit !== null) queryParams.append('unit', params.unit.toString());
+    if (params.divisi !== undefined && params.divisi !== null) queryParams.append('divisi', params.divisi.toString());
 
     const token = localStorage.getItem('auth_token');
-    const url = `${API_BASE_URL}/perubahan-aset-neto/export-excel?${queryParams.toString()}&token=${token}`;
+    const url = `${API_BASE_URL}/perubahan-aset-neto/export-excel?${queryParams.toString()}`;
     
-    window.open(url, '_blank');
+    try {
+      // Use fetch to download with authorization header
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Perubahan_Aset_Neto_${params.tanggal_mulai || ''}_${params.tanggal_selesai || ''}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Export error:', error);
+      throw error;
+    }
   },
 };
