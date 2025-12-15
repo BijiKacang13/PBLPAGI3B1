@@ -7,6 +7,13 @@ export default function ProfileDropdown() {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [userRole, setUserRole] = useState<string>("admin");
+
+  // Ambil role dari localStorage
+  useEffect(() => {
+    const role = localStorage.getItem("user_role") || "admin";
+    setUserRole(role);
+  }, []);
 
   // Biar bisa klik di luar → tertutup
   useEffect(() => {
@@ -18,6 +25,9 @@ export default function ProfileDropdown() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Tentukan apakah Log Aktivitas harus ditampilkan (tidak untuk akuntan_unit)
+  const showLogAktivitas = userRole !== "akuntan_unit";
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -41,13 +51,15 @@ export default function ProfileDropdown() {
             SOP
           </button>
 
-          {/* Log Aktivitas */}
-          <button
-            className="w-full border border-blue-400 text-blue-600 rounded-full py-2 mb-2 hover:bg-blue-50 transition"
-            onClick={() => router.push("/logaktivitas")}
-          >
-            LOG AKTIVITAS
-          </button>
+          {/* Log Aktivitas - hanya untuk admin dan auditor */}
+          {showLogAktivitas && (
+            <button
+              className="w-full border border-blue-400 text-blue-600 rounded-full py-2 mb-2 hover:bg-blue-50 transition"
+              onClick={() => router.push("/logaktivitas")}
+            >
+              LOG AKTIVITAS
+            </button>
+          )}
 
           {/* Logout */}
           <button

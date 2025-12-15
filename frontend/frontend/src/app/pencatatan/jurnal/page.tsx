@@ -1,6 +1,7 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
+import NavbarBottom from "@/components/NavbarBottom";
 import { useEffect, useState } from "react";
 import { Calendar, Search, RefreshCcw, Printer, FileSpreadsheet } from "lucide-react";
 import CustomCalendar from "@/components/CustomCalendar";
@@ -294,6 +295,7 @@ export default function JurnalUmum() {
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
 
+      <NavbarBottom />
     </div>
   );
 }

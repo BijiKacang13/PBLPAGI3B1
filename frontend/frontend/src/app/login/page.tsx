@@ -50,17 +50,23 @@ export default function LoginScreen() {
 
       if (response.ok) {
         const data = await response.json();
+        // Simpan role ke localStorage
+        if (data.data?.role) {
+          localStorage.setItem("user_role", data.data.role);
+        }
         // Token valid, arahkan ke dashboard sesuai role
         redirectToDashboard(data.data.role);
       } else {
         // Token tidak valid, hapus dari storage
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
       }
     } catch (error) {
       console.error("Error verifying token:", error);
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_data");
+      localStorage.removeItem("user_role");
     }
   };
 
@@ -118,6 +124,7 @@ const handleLogin = async (e: React.FormEvent) => {
     if (response.ok && data.success) {
       localStorage.setItem("auth_token", data.data.token);
       localStorage.setItem("user_data", JSON.stringify(data.data.user));
+      localStorage.setItem("user_role", data.data.user.role);
 
       setShowSuccess(true);
 

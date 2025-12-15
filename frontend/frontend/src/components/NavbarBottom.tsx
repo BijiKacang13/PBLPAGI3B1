@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   House,
   Users,
@@ -9,19 +10,60 @@ import {
   Activity,
   FolderPlus,
   ChartNoAxesColumn,
+  FileText,
 } from "lucide-react";
 
 export default function NavbarBottom({ isModalOpen = false }) {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<string>("admin");
 
-  const menus = [
-    { name: "Beranda", href: "/admin/beranda", icon: <House size={20} /> },
-    { name: "Akun", href: "/akun", icon: <Users size={20} /> },
-    { name: "Keuangan", href: "/keuangan", icon: <CreditCard size={20} /> },
-    { name: "Kegiatan", href: "/kegiatan", icon: <Activity size={20} /> },
-    { name: "Pencatatan", href: "/pencatatan", icon: <FolderPlus size={20} /> },
-    { name: "Laporan", href: "/laporan", icon: <ChartNoAxesColumn size={20} /> },
-  ];
+  useEffect(() => {
+    // Ambil role dari localStorage
+    const role = localStorage.getItem("user_role") || "admin";
+    setUserRole(role);
+  }, []);
+
+  // Tentukan href beranda berdasarkan role
+  const getBerandaHref = () => {
+    switch (userRole) {
+      case "akuntan_unit":
+        return "/akuntan/beranda";
+      case "auditor":
+        return "/auditor/beranda";
+      default:
+        return "/admin/beranda";
+    }
+  };
+
+  // Tentukan menu berdasarkan role
+  const getMenus = () => {
+    if (userRole === "akuntan_unit") {
+      return [
+        { name: "Beranda", href: getBerandaHref(), icon: <House size={20} /> },
+        { name: "RAPBS", href: "/akuntan/rapbs", icon: <FileText size={20} /> },
+        { name: "Pencatatan", href: "/pencatatan", icon: <FolderPlus size={20} /> },
+        { name: "Laporan", href: "/laporan", icon: <ChartNoAxesColumn size={20} /> },
+      ];
+    } else if (userRole === "auditor") {
+      return [
+        { name: "Beranda", href: getBerandaHref(), icon: <House size={20} /> },
+        { name: "Pencatatan", href: "/pencatatan", icon: <FolderPlus size={20} /> },
+        { name: "Laporan", href: "/laporan", icon: <ChartNoAxesColumn size={20} /> },
+      ];
+    } else {
+      // Admin - menu default
+      return [
+        { name: "Beranda", href: getBerandaHref(), icon: <House size={20} /> },
+        { name: "Akun", href: "/akun", icon: <Users size={20} /> },
+        { name: "Keuangan", href: "/keuangan", icon: <CreditCard size={20} /> },
+        { name: "Kegiatan", href: "/kegiatan", icon: <Activity size={20} /> },
+        { name: "Pencatatan", href: "/pencatatan", icon: <FolderPlus size={20} /> },
+        { name: "Laporan", href: "/laporan", icon: <ChartNoAxesColumn size={20} /> },
+      ];
+    }
+  };
+
+  const menus = getMenus();
 
   return (
     <nav
@@ -33,7 +75,7 @@ export default function NavbarBottom({ isModalOpen = false }) {
     >
       <ul className="flex justify-around items-center py-2">
         {menus.map((menu, index) => {
-          const isActive = pathname === menu.href;
+          const isActive = pathname === menu.href || pathname.startsWith(menu.href + "/");
           return (
             <li key={index}>
               <Link
