@@ -1,39 +1,88 @@
 "use client";
 
 import Navbar from "@/components/Navbar";
-import {
-  User,
-  ChevronDown,
-} from "lucide-react";
+import { api } from "@/lib/api/axiosClient";
+import { ChevronDown, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import TambahAkun from "@/components/TambahAkun";
+import { useState, useEffect } from "react";
+import EditRapbsKegiatan from "@/components/EditRapbsKegiatan";
 
-export default function Akun() {
-  const [openModal, setOpenModal] = useState(false);
-  const [data] = useState([
-    { kode: "04-001", kegiatan: "Sumbangan SPP" },
-    { kode: "04-002", kegiatan: "Sumbangan Komite" },
-  ]);
+type RapbsKegiatan = {
+  id_budget_rapbs_kegiatan: number;
+  id_kegiatan: string;
+  id_unit: string;
+  kode_kegiatan: string;
+  kegiatan: string;
+  budget_rapbs_kegiatan: number;
+  items?: any[];
+};
+
+export default function RapbsKegiatanPage() {
+  const [data, setData] = useState<RapbsKegiatan[]>([]);
+  const [selected, setSelected] = useState<RapbsKegiatan | null>(null);
+  const [openEdit, setOpenEdit] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [unitDropdown, setUnitDropdown] = useState(false);
-  const [limit, setLimit] = useState(2);
+
+  const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
+
   const [fileName, setFileName] = useState("Tidak ada file");
+  const [loading, setLoading] = useState(true);
+
+  // ======================
+  // FETCH DATA
+  // ======================
+  const fetchRapbsKegiatan = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/budget-rapbs-kegiatan");
+
+      const arr = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+
+      setData(arr);
+    } catch (error) {
+      console.error("Fetch gagal:", error);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRapbsKegiatan();
+  }, []);
+
+  // ======================
+  // FILTER & PAGINATION
+  // ======================
+  const filtered = data.filter(
+    (item) =>
+      item.kegiatan.toLowerCase().includes(search.toLowerCase()) ||
+      item.kode_kegiatan.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filtered.length / limit);
+  const startIndex = (page - 1) * limit;
+  const paginated = filtered.slice(startIndex, startIndex + limit);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
-
       <Navbar />
 
-      {/* MAIN CARD */}
       <div className="mt-4 w-[90%] max-w-md mx-auto bg-white rounded-2xl shadow-md p-5">
-        {/* Judul */}
         <h2 className="text-center font-semibold text-gray-800 mb-4">
-          RAPBS PER-KEGIATAN    </h2>
+          RAPBS PER-KEGIATAN
+        </h2>
 
-        {/* Link Download */}
+        {/* Download Template */}
         <a
-          href="#"
+          href="/assets/templates/Template_Rapbs_Kegiatan.xlsx"
           className="text-blue-600 text-sm font-semibold underline block text-center mb-3"
         >
           Download Template Import RAPBS per-Kegiatan
@@ -59,33 +108,24 @@ export default function Akun() {
             type="text"
             value={fileName}
             readOnly
-            className="flex-1 border border-gray-300 rounded-full px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
+            className="flex-1 border border-gray-300 rounded-full px-3 py-2 text-xs text-gray-500 bg-gray-50"
           />
           <button className="bg-blue-500 text-white px-3 py-2 rounded-full text-xs font-semibold hover:bg-blue-600 transition">
             Import Excel
           </button>
         </div>
 
-        {/* Tombol Tambah Akun
-        <button
-          onClick={() => setOpenModal(true)}
-          className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold text-sm mb-3 shadow hover:bg-blue-700 transition"
-        >
-          Tambah Akun
-        </button> */}
-
         {/* Dropdown Unit */}
         <div className="relative text-sm mb-3">
           <label className="block text-gray-700 mb-1">Unit</label>
           <div
             onClick={() => setUnitDropdown(!unitDropdown)}
-            className="w-full border border-gray-300 bg-white rounded-full px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm hover:border-blue-400 transition"
+            className="w-full border rounded-full px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm"
           >
-            <span className="text-gray-800">Akumulasi (Semua Unit)</span>
+            <span>Akumulasi (Semua Unit)</span>
             <ChevronDown
-              className={`w-4 h-4 text-gray-500 transition-transform ${
-                unitDropdown ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition ${unitDropdown ? "rotate-180" : ""
+                }`}
             />
           </div>
 
@@ -95,47 +135,40 @@ export default function Akun() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="absolute w-full bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-10"
+                className="absolute w-full bg-white border shadow-xl rounded-xl mt-2 py-2 z-10"
               >
-                {["Akumulasi (Semua Unit)", "Unit SD IT", "Unit SMP IT", "Unit SMK IT"].map(
-                  (value) => (
-                    <div
-                      key={value}
-                      onClick={() => setUnitDropdown(false)}
-                      className="px-4 py-2 cursor-pointer hover:bg-blue-50 text-gray-700 transition"
-                    >
-                      {value}
-                    </div>
-                  )
-                )}
+                {[
+                  "Akumulasi (Semua Unit)",
+                  "Unit SD IT",
+                  "Unit SMP IT",
+                  "Unit SMK IT",
+                ].map((value) => (
+                  <div
+                    key={value}
+                    onClick={() => setUnitDropdown(false)}
+                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                  >
+                    {value}
+                  </div>
+                ))}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Pencarian */}
-        <input
-          type="text"
-          placeholder="Cari Kegiatan..."
-          className="w-full border rounded-full px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
-        />
-
-        {/* Dropdown tampilkan data */}
+        {/* Dropdown Limit */}
         <div className="relative text-sm mb-3">
           <label className="block text-gray-700 mb-1">
             Tampilkan Data per Halaman
           </label>
-
           <div
             onClick={() => setShowDropdown(!showDropdown)}
-            className="w-32 border border-gray-300 bg-white/60 backdrop-blur-md rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm hover:border-blue-400 transition"
+            className="w-32 border rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
           >
-            <span className="text-gray-800">{limit}</span>
+            <span>{limit}</span>
             <ChevronDown
-              className={`w-4 h-4 text-gray-500 transition-transform ${
-                showDropdown ? "rotate-180" : ""
-              }`}
+              className={`w-4 h-4 transition ${showDropdown ? "rotate-180" : ""
+                }`}
             />
           </div>
 
@@ -145,23 +178,19 @@ export default function Akun() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="absolute w-32 bg-white border border-gray-200 shadow-xl rounded-2xl mt-2 py-2 z-10"
+                className="absolute w-32 bg-white border shadow-xl rounded-xl mt-2 py-2 z-10"
               >
-                {[2, 5, 10].map((value) => (
+                {[2, 5, 10].map((v) => (
                   <div
-                    key={value}
+                    key={v}
                     onClick={() => {
-                      setLimit(value);
+                      setLimit(v);
                       setShowDropdown(false);
                     }}
-                    className={`px-4 py-2 cursor-pointer rounded-lg transition ${
-                      limit === value
-                        ? "bg-blue-100 text-blue-700"
-                        : "hover:bg-blue-50 text-gray-700"
-                    }`}
+                    className={`px-4 py-2 cursor-pointer ${limit === v ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
+                      }`}
                   >
-                    {value} Data
+                    {v} Data
                   </div>
                 ))}
               </motion.div>
@@ -169,39 +198,100 @@ export default function Akun() {
           </AnimatePresence>
         </div>
 
-        {/* Tabel kegiatan */}
-        <div className="overflow-hidden rounded-xl border border-gray-200">
-          <table className="w-full text-sm text-gray-700">
+        {/* TABLE */}
+        <div className="overflow-hidden rounded-xl border">
+          <table className="w-full text-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="text-left px-4 py-2 w-1/3">Kode</th>
-                <th className="text-left px-4 py-2">Akun</th>
+                <th className="px-4 py-2 text-left">Kode</th>
+                <th className="px-4 py-2 text-left">Kegiatan</th>
+                <th className="px-4 py-2 text-right">Budget</th>
+                <th className="px-4 py-2"></th>
               </tr>
             </thead>
             <tbody>
-              {data.map((item, index) => (
-                <tr
-                  key={index}
-                  className="border-t hover:bg-gray-50 transition-all"
-                >
-                  <td className="px-4 py-2 text-gray-600 font-mono">
-                    {item.kode}
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="py-6 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                      <p className="text-sm text-gray-600">Memuat data...</p>
+                    </div>
                   </td>
-                  <td className="px-4 py-2">{item.kegiatan}</td>
                 </tr>
-              ))}
+              ) : paginated.length > 0 ? (
+                paginated.map((item) => (
+                  <tr key={item.id_kegiatan} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-2 font-mono text-gray-600">{item.kode_kegiatan}</td>
+                    <td className="px-4 py-2">{item.kegiatan}</td>
+                    <td className="px-4 py-2 text-right">
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      }).format(item.budget_rapbs_kegiatan)}
+                    </td>
+                    <td className="px-4 py-2 flex justify-end">
+                      <button
+                        onClick={() => {
+                          setSelected(item);
+                          setOpenEdit(true);
+                        }}
+                        className="text-yellow-500 hover:text-yellow-600"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center py-4 text-gray-400">
+                    Tidak ada data
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
+        <div className="flex justify-center items-center gap-3 mt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1}
+            className={`px-3 py-1 rounded-lg text-sm ${page === 1
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+          >
+            Sebelumnya
+          </button>
+
+          <span className="text-gray-700 text-sm font-semibold">
+            Page {page} / {totalPages}
+          </span>
+
+          <button
+            onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
+            disabled={page === totalPages}
+            className={`px-3 py-1 rounded-lg text-sm ${page === totalPages
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+          >
+            Selanjutnya
+          </button>
+        </div>
       </div>
 
-      {/* FOOTER INFO */}
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
 
-      {/* ✅ Modal Tambah Akun */}
-      <TambahAkun open={openModal} onClose={() => setOpenModal(false)} />
+      <EditRapbsKegiatan
+        open={openEdit}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={fetchRapbsKegiatan}
+        data={selected}
+      />
     </div>
   );
 }

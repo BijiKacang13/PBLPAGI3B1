@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\PRRAController;
 use App\Http\Controllers\Api\ArusKasController;
 use App\Http\Controllers\Api\CalkController;
 use App\Http\Controllers\Api\LogActivityController;
-
+use App\Http\Controllers\Api\BudgetRapbsKegiatanController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -169,3 +169,10 @@ Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpd
 Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
 
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('budget-rapbs-kegiatan')->group(function () {
+        Route::get('/', [BudgetRapbsKegiatanController::class, 'index']);
+        Route::put('/{id}', [BudgetRapbsKegiatanController::class, 'update']);
+    });
+
+});
