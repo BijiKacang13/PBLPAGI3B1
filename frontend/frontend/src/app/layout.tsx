@@ -31,7 +31,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col md:flex-row bg-gray-50 text-gray-800">
         {/* Sidebar hanya di layar besar dan bukan halaman auth */}
         {!isAuthPage && (
-          <aside className="hidden md:block w-64 bg-white border-r shadow-sm">
+          <aside className="hidden md:block w-64 bg-gray-50 border-lr shadow-sm">
             <Sidebar />
           </aside>
         )}
