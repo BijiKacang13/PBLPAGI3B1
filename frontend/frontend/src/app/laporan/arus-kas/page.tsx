@@ -197,13 +197,71 @@ export default function ArusKas() {
     return isNegative ? `(${formatted})` : formatted;
   };
 
+  // Mapping label untuk aktivitas operasional
+  const getOperasionalLabel = (key: string): string => {
+    const labels: Record<string, string> = {
+      'persediaan_perlengkapan_kantor': 'Persediaan Perlengkapan Kantor',
+      'persediaan_perlengkapan_asrama': 'Persediaan Perlengkapan Asrama',
+      'persediaan_atk': 'Persediaan ATK',
+      'persediaan_lainnya': 'Persediaan Lainnya',
+      'piutang_rekanan': 'Piutang Rekanan',
+      'piutang_kegiatan': 'Piutang Kegiatan',
+      'piutang_karyawan': 'Piutang Karyawan',
+      'piutang_sumbangan': 'Piutang Sumbangan',
+      'piutang_lainnya': 'Piutang Lainnya',
+      'sewa_dibayar_dimuka': 'Sewa Dibayar Dimuka',
+      'tabungan_pensiun_karyawan': 'Tabungan Pensiun Karyawan',
+      'pajak_dibayar_dimuka': 'Pajak Dibayar Dimuka',
+      'hutang_jangka_pendek': 'Hutang Jangka Pendek',
+    };
+    return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  // Urutan item aktivitas operasional sesuai backend
+  const operasionalOrder = [
+    'persediaan_perlengkapan_kantor',
+    'persediaan_perlengkapan_asrama',
+    'persediaan_atk',
+    'persediaan_lainnya',
+    'piutang_rekanan',
+    'piutang_kegiatan',
+    'piutang_karyawan',
+    'piutang_sumbangan',
+    'piutang_lainnya',
+    'sewa_dibayar_dimuka',
+    'tabungan_pensiun_karyawan',
+    'pajak_dibayar_dimuka',
+    'hutang_jangka_pendek',
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
-      <Navbar />
+      <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+
+          #print-area,
+          #print-area * {
+            visibility: visible;
+          }
+
+          #print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+        }
+      `}} />
+      <div className="print:hidden">
+        <Navbar />
+      </div>
 
       <main className="flex flex-col items-center mt-6 px-4 w-full">
          {/* Filter Card */}
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-4xl text-center">
+        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-4xl text-center print:hidden">
           <h2 className="font-semibold text-lg mb-5">ARUS KAS</h2>
 
           {/* Export & Print Buttons */}
@@ -288,7 +346,7 @@ export default function ArusKas() {
 
                 {/* Data Display */}
         {data && (
-          <div className="w-full max-w-4xl mt-6 bg-white shadow-md rounded-xl p-6">
+          <div className="w-full max-w-4xl mt-6 bg-white shadow-md rounded-xl p-6" id="print-area">
             <h3 className="text-center font-bold text-lg mb-4">
               LAPORAN ARUS KAS
             </h3>
@@ -296,125 +354,188 @@ export default function ArusKas() {
               Periode {data.periode.start_date} s.d. {data.periode.end_date}
             </p>
 
-            {/* Aktivitas Operasional */}
-            <div className="mb-6">
-              <h4 className="font-bold text-md mb-3 bg-blue-100 p-2 rounded">
-                1. Aktivitas Operasional
-              </h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[300px]">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-2 pl-4 pr-2">Kenaikan/Penurunan Aset Bersih</td>
-                      <td className="py-2 pr-4 text-right font-semibold whitespace-nowrap">
-                        {formatRupiah(data.laba_bersih)}
-                      </td>
-                    </tr>
-                    
-                    {Object.entries(data.aktivitas_operasional.items).map(([key, value]) => {
-                      const selisih = value.tahun_lalu - value.tahun_ini;
-                      const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                      return (
-                        <tr key={key} className="border-b">
-                          <td className="py-2 pl-4 pr-2">{label}</td>
-                          <td className="py-2 pr-4 text-right whitespace-nowrap">{formatRupiah(selisih)}</td>
-                        </tr>
-                      );
-                    })}
-                    
-                    <tr className="font-bold bg-gray-50">
-                      <td className="py-2 pl-4 pr-2">Kas Bersih dari Aktivitas Operasional</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.aktivitas_operasional.total)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse border border-gray-300">
+                <thead className="bg-gray-800 text-white">
+                  <tr>
+                    <th className="border border-gray-300 px-4 py-2 text-center w-16">No</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Komponen Laporan Arus Kas</th>
+                    <th className="border border-gray-300 px-4 py-2 text-right">Jumlah</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* AKTIVITAS OPERASIONAL */}
+                  <tr className="bg-blue-100 font-bold">
+                    <td className="border border-gray-300 px-4 py-2 text-center">1</td>
+                    <td className="border border-gray-300 px-4 py-2" colSpan={2}>Aktivitas Operasional</td>
+                  </tr>
 
-            {/* Aktivitas Investasi */}
-            <div className="mb-6">
-              <h4 className="font-bold text-md mb-3 bg-blue-100 p-2 rounded">
-                2. Aktivitas Investasi
-              </h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[300px]">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-2 pl-4 pr-2">Penambahan/Pengurangan Aset Tetap</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.aktivitas_investasi.selisih)}
-                      </td>
-                    </tr>
-                    <tr className="font-bold bg-gray-50">
-                      <td className="py-2 pl-4 pr-2">Kas Bersih dari Aktivitas Investasi</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.aktivitas_investasi.total)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Kenaikan/Penurunan Aset Bersih</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.laba_bersih)}
+                    </td>
+                  </tr>
 
-            {/* Aktivitas Pendanaan */}
-            <div className="mb-6">
-              <h4 className="font-bold text-md mb-3 bg-blue-100 p-2 rounded">
-                3. Aktivitas Pendanaan
-              </h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[300px]">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-2 pl-4 pr-2">Kewajiban Jangka Panjang</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.aktivitas_pendanaan.selisih_kewajiban)}
-                      </td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-2 pl-4 pr-2">Aset Neto</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.aktivitas_pendanaan.selisih_aset_neto)}
-                      </td>
-                    </tr>
-                    <tr className="font-bold bg-gray-50">
-                      <td className="py-2 pl-4 pr-2">Kas Bersih dari Aktivitas Pendanaan</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.aktivitas_pendanaan.total)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  <tr className="font-bold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2" colSpan={2}>Penurunan (Kenaikan) Aset Lancar :</td>
+                  </tr>
 
-            {/* Ringkasan */}
-            <div className="border-t-2 pt-4">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[300px]">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-2 pl-4 pr-2 font-semibold">Kenaikan (Penurunan) Kas</td>
-                      <td className="py-2 pr-4 text-right font-semibold whitespace-nowrap">
-                        {formatRupiah(data.ringkasan.kenaikan_kas)}
-                      </td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-2 pl-4 pr-2">Saldo Kas Awal</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.ringkasan.saldo_kas_awal)}
-                      </td>
-                    </tr>
-                    <tr className="font-bold bg-blue-50">
-                      <td className="py-2 pl-4 pr-2">Saldo Kas Akhir</td>
-                      <td className="py-2 pr-4 text-right whitespace-nowrap">
-                        {formatRupiah(data.ringkasan.saldo_kas_akhir)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                  {/* Item-item persediaan dan piutang (9 item pertama) */}
+                  {operasionalOrder.slice(0, 9).map((key) => {
+                    const item = data.aktivitas_operasional.items[key];
+                    if (!item) return null;
+                    const selisih = item.tahun_lalu - item.tahun_ini;
+                    return (
+                      <tr key={key}>
+                        <td className="border border-gray-300 px-4 py-2"></td>
+                        <td className="border border-gray-300 px-4 py-2">{getOperasionalLabel(key)}</td>
+                        <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                          {formatRupiah(selisih)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {/* Cadangan Kerugian Piutang tak tertagih */}
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Cadangan Kerugian Piutang tak tertagih</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right">-</td>
+                  </tr>
+
+                  {/* Item-item lainnya (sebelum hutang jangka pendek) */}
+                  {operasionalOrder.slice(9, 12).map((key) => {
+                    const item = data.aktivitas_operasional.items[key];
+                    if (!item) return null;
+                    const selisih = item.tahun_lalu - item.tahun_ini;
+                    return (
+                      <tr key={key}>
+                        <td className="border border-gray-300 px-4 py-2"></td>
+                        <td className="border border-gray-300 px-4 py-2">{getOperasionalLabel(key)}</td>
+                        <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                          {formatRupiah(selisih)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  <tr className="font-bold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2" colSpan={2}>Kenaikan (Penurunan) Kewajiban Jangka Pendek :</td>
+                  </tr>
+
+                  {/* Hutang Jangka Pendek */}
+                  {(() => {
+                    const key = 'hutang_jangka_pendek';
+                    const item = data.aktivitas_operasional.items[key];
+                    if (!item) return null;
+                    const selisih = item.tahun_lalu - item.tahun_ini;
+                    return (
+                      <tr key={key}>
+                        <td className="border border-gray-300 px-4 py-2"></td>
+                        <td className="border border-gray-300 px-4 py-2">{getOperasionalLabel(key)}</td>
+                        <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                          {formatRupiah(selisih)}
+                        </td>
+                      </tr>
+                    );
+                  })()}
+
+                  <tr className="bg-gray-100 font-semibold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Kas Bersih yang diperoleh dari Aktivitas Operasional</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.aktivitas_operasional.total)}
+                    </td>
+                  </tr>
+
+                  {/* AKTIVITAS INVESTASI */}
+                  <tr className="bg-blue-100 font-bold">
+                    <td className="border border-gray-300 px-4 py-2 text-center">2</td>
+                    <td className="border border-gray-300 px-4 py-2" colSpan={2}>Aktivitas Investasi</td>
+                  </tr>
+
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">(Penambahan) Pengurangan Investasi</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right">-</td>
+                  </tr>
+
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">(Penambahan) Pengurangan Aset Tetap</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.aktivitas_investasi.selisih)}
+                    </td>
+                  </tr>
+
+                  <tr className="bg-gray-100 font-semibold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Kas Bersih yang diperoleh dari Aktivitas Investasi</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.aktivitas_investasi.total)}
+                    </td>
+                  </tr>
+
+                  {/* AKTIVITAS PENDANAAN */}
+                  <tr className="bg-blue-100 font-bold">
+                    <td className="border border-gray-300 px-4 py-2 text-center">3</td>
+                    <td className="border border-gray-300 px-4 py-2" colSpan={2}>Aktivitas Pendanaan</td>
+                  </tr>
+
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Penambahan (Penurunan) Kewajiban Jangka Panjang</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.aktivitas_pendanaan.selisih_kewajiban)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Aset Neto</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.aktivitas_pendanaan.selisih_aset_neto)}
+                    </td>
+                  </tr>
+
+                  <tr className="bg-gray-100 font-semibold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Kas Bersih yang diperoleh dari Aktivitas Pendanaan</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.aktivitas_pendanaan.total)}
+                    </td>
+                  </tr>
+
+                  {/* RINGKASAN */}
+                  <tr className="bg-yellow-100 font-semibold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Kenaikan (Penurunan) Kas</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.ringkasan.kenaikan_kas)}
+                    </td>
+                  </tr>
+
+                  <tr className="bg-yellow-100 font-semibold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Saldo Kas Awal</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.ringkasan.saldo_kas_awal)}
+                    </td>
+                  </tr>
+
+                  <tr className="bg-yellow-100 font-semibold">
+                    <td className="border border-gray-300 px-4 py-2"></td>
+                    <td className="border border-gray-300 px-4 py-2">Saldo Kas Akhir</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right whitespace-nowrap">
+                      {formatRupiah(data.ringkasan.saldo_kas_akhir)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -428,12 +549,14 @@ export default function ArusKas() {
           </div>
         )}
 
-        <p className="text-gray-400 text-xs italic mt-8 text-center">
+        <p className="text-gray-400 text-xs italic mt-8 text-center print:hidden">
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
       </main>
       
-      <NavbarBottom />
+      <div className="print:hidden">
+        <NavbarBottom />
+      </div>
     </div>
   );
 }
