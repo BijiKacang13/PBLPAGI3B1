@@ -196,7 +196,7 @@ const loadAkuntanUnit = async () => {
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6">
-        <div className="bg-white shadow-sm rounded-lg p-6">
+        <div className="bg-white shadow-lg rounded-lg p-6">
           
       {/* Header */}
           <h5 className="text-xl font-semibold mb-4">Akuntan Unit</h5>

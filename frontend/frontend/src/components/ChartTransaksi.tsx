@@ -45,6 +45,23 @@ const getWeekLabel = (index: number) => {
 export default function ChartTransaksi() {
   const [activeBar, setActiveBar] = useState<number | null>(null);
   const transactionData = generateData();
+  const [barSize, setBarSize] = useState(8);
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setBarSize(25); // desktop
+      } else if (window.innerWidth >= 640) {
+        setBarSize(10); // tablet
+      } else {
+        setBarSize(6); // mobile
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="w-full h-48 -mx-2">
@@ -85,7 +102,7 @@ export default function ChartTransaksi() {
           <Bar 
             dataKey="jumlah" 
             radius={[2, 2, 0, 0]}
-            maxBarSize={8}
+            maxBarSize={barSize}
           >
             {transactionData.map((entry, index) => (
               <Cell 
