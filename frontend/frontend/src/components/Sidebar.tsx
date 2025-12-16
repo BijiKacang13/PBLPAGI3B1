@@ -11,10 +11,13 @@ import {
   FolderPlus,
   ChartNoAxesColumn,
   FileText,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
 
 export default function SidebarHover() {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const pathname = usePathname();
   const [userRole, setUserRole] = useState<string>("admin");
 
@@ -66,38 +69,109 @@ export default function SidebarHover() {
 
   const menus = getMenus();
 
+  const getRoleBadgeColor = () => {
+    switch (userRole) {
+      case "akuntan_unit":
+        return "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 ring-1 ring-purple-200";
+      case "auditor":
+        return "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 ring-1 ring-amber-200";
+      default:
+        return "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 ring-1 ring-blue-200";
+    }
+  };
+
+  const getRoleName = () => {
+    switch (userRole) {
+      case "akuntan_unit":
+        return "Akuntan";
+      case "auditor":
+        return "Auditor";
+      default:
+        return "Admin";
+    }
+  };
+
   return (
     <aside
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
-      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-white border-r transition-all duration-300 ${
+      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm transition-all duration-300 ease-out ${
         expanded ? "w-64" : "w-20"
-      }`}
+      } flex flex-col`}
     >
-      <div className="p-4">
-        <ul className="mt-6 space-y-2">
+
+
+      {/* Navigation */}
+      <div className="px-3 py-5 flex-1 overflow-y-auto">
+        {expanded && (
+          <div className="px-3 mb-4 flex items-center gap-2">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+            <p className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+              Menu
+            </p>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+          </div>
+        )}
+        <ul className="space-y-2">
           {menus.map((item) => {
-            const isActive = pathname === item.path || pathname.startsWith(item.path + "/");
+            const isActive =
+              pathname === item.path || pathname.startsWith(item.path + "/");
             return (
-              <li key={item.name}>
+              <li key={item.name} className="relative">
                 <Link
                   href={item.path}
-                  className={`flex items-center px-3 py-2 rounded-md cursor-pointer transition ${
-                    isActive 
-                      ? "bg-blue-100 text-blue-700" 
-                      : "hover:bg-gray-100 text-gray-700"
+                  className={`group relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-100 text-blue-800 shadow-lg shadow-blue-500/30"
+                      : "text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-md"
                   }`}
                 >
-                  <div>{item.icon}</div>
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-xl bg-white opacity-10" />
+                  )}
+                  
+                  <div
+                    className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
+                      isActive
+                        ? "bg-white/20 text-blue-700"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600"
+                    }`}
+                  >
+                    {item.icon}
+                  </div>
 
                   {expanded && (
-                    <span className="ml-3">{item.name}</span>
+                    <span className="whitespace-nowrap relative z-10">{item.name}</span>
+                  )}
+
+                  {isActive && expanded && (
+                    <div className="absolute right-3 h-2 w-2 " />
                   )}
                 </Link>
               </li>
             );
           })}
         </ul>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 pb-4 pt-3 border-t border-slate-200/60 bg-white/50">
+        <div className="flex items-center justify-between gap-2">
+          {expanded && (
+            <div className="flex-1">
+              <p className="text-[10px] font-semibold text-slate-400 leading-relaxed">
+                SIA Yayasan<br />Darussalam Batam
+              </p>
+              <p className="text-[10px] font-bold text-slate-500 mt-0.5">© 2025</p>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setExpanded((prev) => !prev)}
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:border-blue-500 bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+            aria-label={expanded ? "Kecilkan sidebar" : "Besarkan sidebar"}
+          >
+            {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
+        </div>
       </div>
     </aside>
   );
