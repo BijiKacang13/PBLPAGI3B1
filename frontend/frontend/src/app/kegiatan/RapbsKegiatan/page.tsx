@@ -6,6 +6,7 @@ import { ChevronDown, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import EditRapbsKegiatan from "@/components/EditRapbsKegiatan";
+import { useRouter } from "next/navigation";
 
 type RapbsKegiatan = {
   id_budget_rapbs_kegiatan: number;
@@ -30,6 +31,7 @@ export default function RapbsKegiatanPage() {
 
   const [fileName, setFileName] = useState("Tidak ada file");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // ======================
   // FETCH DATA
@@ -78,14 +80,33 @@ export default function RapbsKegiatanPage() {
       {/* Content */}
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
-          <h2 className="text-center font-semibold text-gray-800 mb-4">
-            RAPBS PER-KEGIATAN
-          </h2>
+          <div className="flex items-center gap-3 mb-2">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
+              RAPBS KEGIATAN
+            </h1>
+            <div className="w-10 h-10" />
+          </div>
 
           {/* Download Template */}
           <a
             href="/assets/templates/Template_Rapbs_Kegiatan.xlsx"
-            className="text-blue-600 text-sm font-semibold underline block text-center md:text-left mb-3"
+            className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
           >
             Download Template Import RAPBS per-Kegiatan
           </a>
@@ -94,7 +115,7 @@ export default function RapbsKegiatanPage() {
           <div className="flex items-center gap-2 mb-3">
             <label
               htmlFor="fileUpload"
-              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
+              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
             >
               Pilih File
             </label>
@@ -110,9 +131,9 @@ export default function RapbsKegiatanPage() {
               type="text"
               value={fileName}
               readOnly
-              className="flex-1 border border-gray-300 rounded-full px-3 py-2 text-xs text-gray-500 bg-gray-50"
+              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 bg-gray-50"
             />
-            <button className="bg-blue-500 text-white px-3 py-2 rounded-full text-xs font-semibold hover:bg-blue-600 transition">
+            <button className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition">
               Import Excel
             </button>
           </div>
@@ -122,7 +143,7 @@ export default function RapbsKegiatanPage() {
             <label className="block text-gray-700 mb-1">Unit</label>
             <div
               onClick={() => setUnitDropdown(!unitDropdown)}
-              className="w-full border rounded-full px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm"
+              className="w-full border border-gray-200 rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm"
             >
               <span>Akumulasi (Semua Unit)</span>
               <ChevronDown
@@ -137,7 +158,7 @@ export default function RapbsKegiatanPage() {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="absolute w-full bg-white border shadow-xl rounded-xl mt-2 py-2 z-10"
+                  className="absolute w-full bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-10"
                 >
                   {[
                     "Akumulasi (Semua Unit)",
@@ -165,7 +186,7 @@ export default function RapbsKegiatanPage() {
             </label>
             <div
               onClick={() => setShowDropdown(!showDropdown)}
-              className="w-32 border rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
+              className="w-32 border border-gray-200 rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
             >
               <span>{limit}</span>
               <ChevronDown
@@ -180,7 +201,7 @@ export default function RapbsKegiatanPage() {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
-                  className="absolute w-32 bg-white border shadow-xl rounded-xl mt-2 py-2 z-10"
+                  className="absolute w-32 bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-10"
                 >
                   {[2, 5, 10].map((v) => (
                     <div
@@ -201,7 +222,7 @@ export default function RapbsKegiatanPage() {
           </div>
 
           {/* TABLE */}
-          <div className="overflow-hidden rounded-xl border">
+          <div className="overflow-hidden rounded-xl border border-gray-300">
             <table className="w-full text-sm">
               <thead className="bg-gray-100">
                 <tr>
@@ -261,7 +282,7 @@ export default function RapbsKegiatanPage() {
               disabled={page === 1}
               className={`px-3 py-1 rounded-lg text-sm ${page === 1
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-blue-200 text-gray-800 hover:bg-blue-400"
                 }`}
             >
               Sebelumnya
@@ -276,7 +297,7 @@ export default function RapbsKegiatanPage() {
               disabled={page === totalPages}
               className={`px-3 py-1 rounded-lg text-sm ${page === totalPages
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-blue-200 text-gray-800 hover:bg-blue-400"
                 }`}
             >
               Selanjutnya

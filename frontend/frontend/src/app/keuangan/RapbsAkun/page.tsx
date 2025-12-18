@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import NavbarBottom from "@/components/NavbarBottom";
 import EditRapbsAkun from "@/components/EditRapbsAkun";
+import { useRouter } from "next/navigation";
 
 type RapbsAkun = {
   id_akun: number;
@@ -18,6 +19,7 @@ type RapbsAkun = {
 export default function RapbsAkunPage() {
   const [data, setData] = useState<RapbsAkun[]>([]);
   const [selected, setSelected] = useState<RapbsAkun | null>(null);
+  const router = useRouter();
 
   // Search & Pagination
   const [search, setSearch] = useState("");
@@ -116,19 +118,33 @@ export default function RapbsAkunPage() {
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
           {/* TITLE */}
-          <div className="flex items-center mb-4">
-            <Link href="/keuangan">
-              <ArrowLeft className="text-gray-700 w-5 h-5" />
-            </Link>
-            <h2 className="flex-1 text-center font-semibold text-gray-800">
-              BUDGET RAPBS PER AKUN
-            </h2>
+          <div className="flex items-center gap-3 mb-2">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
+              RAPBS AKUN
+            </h1>
+            <div className="w-10 h-10" />
           </div>
 
           {/* DOWNLOAD TEMPLATE */}
           <a
             href="#"
-            className="text-blue-600 text-sm font-semibold underline block text-center md:text-left mb-3"
+            className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
           >
             Download Template Import RAPBS per-Akun
           </a>
@@ -137,7 +153,7 @@ export default function RapbsAkunPage() {
           <div className="flex items-center gap-2 mb-4">
             <label
               htmlFor="fileUpload"
-              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
+              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
             >
               Pilih File
             </label>
@@ -157,12 +173,12 @@ export default function RapbsAkunPage() {
               type="text"
               value={fileName}
               readOnly
-              className="flex-1 border border-gray-300 rounded-full px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
+              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
             />
 
             <button
               onClick={handleImportExcel}
-              className="bg-blue-500 text-white px-3 py-2 rounded-full text-xs font-semibold hover:bg-blue-600 transition"
+              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-300 transition"
             >
               Import
             </button>
@@ -174,7 +190,7 @@ export default function RapbsAkunPage() {
             placeholder="Cari akun..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border rounded-full px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
           />
 
           {/* LIMIT DROPDOWN */}
@@ -274,7 +290,7 @@ export default function RapbsAkunPage() {
               className={`px-3 py-1 rounded-lg text-sm ${
                 page === 1
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
               }`}
             >
               Sebelumnya
@@ -290,7 +306,7 @@ export default function RapbsAkunPage() {
               className={`px-3 py-1 rounded-lg text-sm ${
                 page === totalPages
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
               }`}
             >
               Selanjutnya

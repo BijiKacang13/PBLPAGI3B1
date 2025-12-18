@@ -9,6 +9,7 @@ import NavbarBottom from "@/components/NavbarBottom";
 import TambahAkun from "@/components/TambahAkun";
 import EditAkun from "@/components/EditAkun";
 import HapusAkun from "@/components/HapusAkun";
+import { useRouter } from "next/navigation";
 
 type Akun = {
   id_akun: number;
@@ -22,6 +23,7 @@ type Akun = {
 export default function AkunPage() {
   const [data, setData] = useState<Akun[]>([]);
   const [selected, setSelected] = useState<Akun | null>(null);
+  const router = useRouter();
 
   // Search
   const [search, setSearch] = useState("");
@@ -100,19 +102,33 @@ export default function AkunPage() {
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
 
           {/* TITLE */}
-          <div className="flex items-center mb-4">
-            <Link href="/keuangan">
-              <ArrowLeft className="text-gray-700 w-5 h-5" />
-            </Link>
-            <h2 className="flex-1 text-center font-semibold text-gray-800">
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
               AKUN
-            </h2>
+            </h1>
+            <div className="w-10 h-10" />
           </div>
 
           {/* BUTTON TAMBAH */}
           <button
             onClick={() => setOpenTambah(true)}
-            className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold text-sm mb-3 shadow hover:bg-blue-700 transition"
+            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm mb-3 shadow hover:bg-blue-400 transition"
           >
             Tambah Akun
           </button>
@@ -123,7 +139,7 @@ export default function AkunPage() {
             placeholder="Cari akun..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border rounded-full px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
           />
 
           {/* DROPDOWN */}
@@ -248,7 +264,7 @@ export default function AkunPage() {
               className={`px-3 py-1 rounded-lg text-sm ${
                 page === 1
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
               }`}
             >
               Sebelumnya
@@ -264,7 +280,7 @@ export default function AkunPage() {
               className={`px-3 py-1 rounded-lg text-sm ${
                 page === totalPages
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
               }`}
             >
               Selanjutnya

@@ -4,8 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Home, User, FileText, Activity, PlusSquare, BarChart3, ChevronLeft } from 'lucide-react';
 import NavbarBottom from '@/components/NavbarBottom';
 import Navbar from "@/components/Navbar";
+import { useRouter } from 'next/navigation';
+
 
 const AnalisisData = () => {
+  const router = useRouter();
   // Data dummy
   const [summaryData] = useState({
     pengeluaran: 15750000,
@@ -58,11 +61,33 @@ const AnalisisData = () => {
       
 
  {/* Main Content */}
-      <div className="px-3 py-3 space-y-3 max-w-2xl mx-auto w-full">
+    <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
+      <div className="px-3 py-3 space-y-3 max-w-7xl mx-auto w-full">
         {/* Summary Cards */}
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
+        <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 border border-gray-100">
           {/* Title */}
-          <h1 className="text-sm font-bold text-gray-900 text-center mb-4 tracking-wide uppercase">ANALISIS DATA</h1>
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
+              ANALISIS DATA
+            </h1>
+            <div className="w-10 h-10" />
+          </div>
           
           <div className="grid grid-cols-3 gap-2 mb-2.5">
             <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
@@ -92,7 +117,7 @@ const AnalisisData = () => {
         </div>
 
         {/* Chart Section */}
-        <div className="bg-white rounded-xl p-3 border border-gray-100">
+        <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-md">
           <h2 className="text-xs font-bold text-gray-900 mb-3 leading-tight">Pengeluaran<br/>Setiap Kategori</h2>
           
           {/* Bar Chart */}
@@ -165,8 +190,9 @@ const AnalisisData = () => {
           Darussalam Batam | 2025
         </div>
       </div>
-
-        <NavbarBottom />
+    </main>
+        <NavbarBottom /> 
+       
     </div>
   );
 };

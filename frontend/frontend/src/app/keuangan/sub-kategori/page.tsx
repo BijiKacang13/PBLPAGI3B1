@@ -9,6 +9,7 @@ import NavbarBottom from "@/components/NavbarBottom";
 import TambahSubKategori from "@/components/TambahSubKategori";
 import EditSubKategori from "@/components/EditSubKategori";
 import HapusSubKategori from "@/components/HapusSubKategori";
+import { useRouter } from "next/navigation";
 
 export default function SubKategoriAkun() {
   const [data, setData] = useState<any[]>([]);
@@ -19,6 +20,7 @@ export default function SubKategoriAkun() {
   const [openHapus, setOpenHapus] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // ==========================
   // FETCH SUB KATEGORI 
@@ -63,21 +65,35 @@ export default function SubKategoriAkun() {
       {/* Content */}
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
-          <div className="flex items-center mb-4">
-            <Link href="/keuangan">
-              <ArrowLeft className="text-gray-600 w-5 h-5" />
-            </Link>
-            <h2 className="flex-1 text-center font-semibold text-gray-800">
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
               SUB KATEGORI AKUN
-            </h2>
+            </h1>
+            <div className="w-10 h-10" />
           </div>
 
           {/* Button tambah */}
           <button
             onClick={() => setOpenTambah(true)}
-            className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold mb-4 shadow hover:bg-blue-700"
+            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold mb-4 shadow hover:bg-blue-400"
           >
-            Tambah Sub Kategori Akun
+            Tambah Sub-Kategori Akun
           </button>
 
           {/* Table */}
