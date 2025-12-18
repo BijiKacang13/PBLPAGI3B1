@@ -72,7 +72,7 @@ export default function SOPPage() {
       <Navbar />
       
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-full mb-6">
+        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-7xl mx-auto mb-6">
           {/* Title */}
           <div className="flex items-center gap-3 mb-6">
             <button
@@ -91,7 +91,7 @@ export default function SOPPage() {
                 <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
               </svg>
             </button>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+            <h1 className="text-lg md:text-xl font-bold text-gray-800">
               SOP
             </h1>
           </div>

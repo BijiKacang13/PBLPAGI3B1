@@ -201,32 +201,32 @@ useEffect(() => {
 
       <main className="flex-1 w-full pb-20 sm:pb-6">
         <div className="max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
-          {/* Back Button - Desktop */}
-          <button
-            onClick={handleBack}
-            className="hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition"
-            disabled={isLoading}
-          >
-            <ArrowLeft size={20} />
-            <span className="text-sm font-medium">Kembali</span>
-          </button>
-
+          
           <div className="bg-white shadow-lg rounded-xl overflow-hidden">
             {/* Header */}
             <div className="bg-white p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={handleBack}
-                    className="sm:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition"
-                    disabled={isLoading}
+                    onClick={() => router.back()}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
                   >
-                    <ArrowLeft size={20} />
+                    <svg
+                      className="w-5 h-5 text-gray-600"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                    </svg>
                   </button>
-                  <div className="flex items-center gap-2">
-                    <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
-                    <h5 className="text-lg sm:text-xl font-semibold text-black">Tambah User</h5>
-                  </div>
+                  <h1 className="flex-1 text-center text-lg md:text-lg font-bold text-gray-800">
+                    TAMBAH PENGGUNA
+                  </h1>
+                  <div className="w-10 h-10" />
                 </div>
                 
                 <select
