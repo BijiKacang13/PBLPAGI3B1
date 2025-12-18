@@ -63,10 +63,10 @@ export default function JurnalUmum() {
 
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-full mb-6">
-          <div className="flex items-center justify-center gap-3 mb-6 relative">
+          <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
-              className="absolute left-0 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
             >
               <svg
                 className="w-5 h-5 text-gray-600"
@@ -80,7 +80,10 @@ export default function JurnalUmum() {
                 <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
               </svg>
             </button>
-            <h1 className="text-gray-900 text-center font-semibold text-lg mb-1">JURNAL UMUM</h1>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
+              JURNAL UMUM
+            </h1>
+            <div className="w-10 h-10" />
           </div>
 
           {/* Tombol Export & Print */}

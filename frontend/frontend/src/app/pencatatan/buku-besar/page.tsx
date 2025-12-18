@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Calendar, Search, RefreshCcw, Printer, FileSpreadsheet, Loader2 } from "lucide-react";
 import CustomCalendar from "@/components/CustomCalendar";
 import NavbarBottom from "@/components/NavbarBottom";
+import { useRouter } from "next/navigation";
 
 // ===== TYPE DEFINITIONS =====
 interface BukuBesarItem {
@@ -69,6 +70,7 @@ export default function BukuBesar() {
   const [search, setSearch] = useState("");
   const [showFromCalendar, setShowFromCalendar] = useState(false);
   const [showToCalendar, setShowToCalendar] = useState(false);
+  const router = useRouter();
 
   // API Data States
   const [bukuBesarData, setBukuBesarData] = useState<BukuBesarItem[]>([]);
@@ -221,7 +223,28 @@ export default function BukuBesar() {
       {/* CARD */}
       <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-full mb-6">
-          <h2 className="text-gray-900 text-center font-semibold text-lg mb-4">BUKU BESAR</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
+              BUKU BESAR
+            </h1>
+            <div className="w-10 h-10" />
+          </div>
 
           {/* INFO AKUN TERPILIH */}
           {selectedAkunInfo && (

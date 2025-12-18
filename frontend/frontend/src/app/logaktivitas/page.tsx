@@ -6,6 +6,7 @@ import { api } from "@/lib/api/axiosClient";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type LogItem = {
   id: number;
@@ -27,6 +28,7 @@ export default function LogAktivitasPage() {
   const [openDropdown, setOpenDropdown] =
     useState<null | "user" | "date" | "limit">(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // ============================
   // FORMATTER WAKTU 
@@ -133,22 +135,33 @@ export default function LogAktivitasPage() {
   // RENDER
   // ============================
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
+    <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-24">
       <Navbar />
 
-      <div
-        className="mt-4 w-[90%] max-w-md mx-auto bg-white rounded-2xl shadow-md p-5"
-        ref={dropdownRef}
-      >
-        {/* HEADER */}
-        <div className="flex items-center mb-4">
-          <Link href="/keuangan">
-            <ArrowLeft className="text-gray-700 w-5 h-5" />
-          </Link>
-          <h2 className="flex-1 text-center font-semibold text-gray-800">
-            LOG AKTIVITAS
-          </h2>
-        </div>
+      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
+        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-full mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <h1 className="flex-1 text-lg md:text-lg font-bold text-gray-800 text-center sm:text-start">
+              LOG AKTIVITAS
+            </h1>
+            <div className="w-10 h-10" />
+          </div>
 
         {/* SEARCH */}
         <input
@@ -156,24 +169,26 @@ export default function LogAktivitasPage() {
           placeholder="Cari aktivitas..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border rounded-full px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
+          className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm mb-4 shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
         />
 
         {/* FILTER BUTTONS */}
-        <div className="flex gap-3 mb-3 text-sm">
-          <button
-            onClick={() => setOpenDropdown(openDropdown === "user" ? null : "user")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-xl"
-          >
-            {selectedUser}
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-sm">
+          <div className="grid grid-cols-2 gap-3 text-sm w-full">
+            <button
+              onClick={() => setOpenDropdown(openDropdown === "user" ? null : "user")}
+              className="w-full px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition"
+            >
+              {selectedUser}
+            </button>
 
-          <button
-            onClick={() => setOpenDropdown(openDropdown === "date" ? null : "date")}
-            className="px-4 py-2 bg-green-600 text-white rounded-xl"
-          >
-            {dateStart && dateEnd ? `${dateStart} → ${dateEnd}` : "Filter Tanggal"}
-          </button>
+            <button
+              onClick={() => setOpenDropdown(openDropdown === "date" ? null : "date")}
+              className="w-full px-5 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition"
+            >
+              {dateStart && dateEnd ? `${dateStart} → ${dateEnd}` : "Filter Tanggal"}
+            </button>
+          </div>
 
           <button
             onClick={() => {
@@ -181,15 +196,16 @@ export default function LogAktivitasPage() {
               setDateStart("");
               setDateEnd("");
             }}
-            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-xl"
+            className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition sm:ml-auto"
           >
             Reset
           </button>
         </div>
 
+
         {/* USER DROPDOWN */}
         {openDropdown === "user" && (
-          <div className="bg-white border rounded-xl shadow-md p-3 mb-3">
+          <div className="bg-white border border-blue-200 rounded-xl shadow-md p-3 mb-4">
             <p className="text-gray-700 text-sm mb-2">Pilih User:</p>
 
             <div
@@ -227,33 +243,47 @@ export default function LogAktivitasPage() {
 
         {/* DATE DROPDOWN */}
         {openDropdown === "date" && (
-          <div className="bg-white border rounded-xl shadow-md p-4 mb-3">
-            <p className="text-gray-700 text-sm mb-3">Pilih Rentang Tanggal:</p>
+          <div className="bg-white border border-green-300 rounded-xl shadow-md p-4 mb-3">
+            <p className="text-gray-700 text-sm mb-3 font-medium">
+              Pilih Rentang Tanggal
+            </p>
 
-            <div className="flex gap-3">
-              <input
-                type="date"
-                value={dateStart}
-                onChange={(e) => setDateStart(e.target.value)}
-                className="border px-3 py-2 rounded-xl"
-              />
-              <input
-                type="date"
-                value={dateEnd}
-                onChange={(e) => setDateEnd(e.target.value)}
-                className="border px-3 py-2 rounded-xl"
-              />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="w-full">
+                <label className="block text-xs text-gray-500 mb-1">
+                  Dari Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={dateStart}
+                  onChange={(e) => setDateStart(e.target.value)}
+                  className="w-full border px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="w-full">
+                <label className="block text-xs text-gray-500 mb-1">
+                  Sampai Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={dateEnd}
+                  onChange={(e) => setDateEnd(e.target.value)}
+                  className="w-full border px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
             </div>
           </div>
         )}
 
+
         {/* LIMIT DROPDOWN */}
-        <div className="relative text-sm mb-3">
+        <div className="relative text-sm mb-4">
           <label className="block text-gray-700 mb-1">Tampilkan Data</label>
 
           <div
             onClick={() => setOpenDropdown(openDropdown === "limit" ? null : "limit")}
-            className="w-36 border bg-white rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
+            className="w-36 bg-white border border-gray-200 rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
           >
             <span>{limit}</span>
             <ChevronDown
@@ -264,7 +294,7 @@ export default function LogAktivitasPage() {
           </div>
 
           {openDropdown === "limit" && (
-            <div className="absolute w-36 bg-white border rounded-xl shadow-xl mt-2 py-2 z-10">
+            <div className="absolute w-36 bg-white border border-gray-200 rounded-xl shadow-sm mt-2 py-2 z-10">
               {[2, 5, 10].map((v) => (
                 <div
                   key={v}
@@ -344,6 +374,7 @@ export default function LogAktivitasPage() {
           </button>
         </div>
       </div>
+    </main>
 
       <NavbarBottom />
     </div>
