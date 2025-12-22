@@ -2,160 +2,76 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\Divisi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     /**
-     * Constructor - Exclude getFormData dari auth middleware
-     */
-    public function __construct()
-    {
-        // Jika ada auth middleware, exclude method getFormData
-        // $this->middleware('auth:sanctum')->except(['getFormData']);
-    }
-
-    /**
-     * Get data untuk form create user (divisi & unit)
-     * Method ini PUBLIC - tidak perlu authentication
+     * Get form data (units and divisions)
+     * GET /api/users/form-data
      */
     public function getFormData()
     {
         try {
-            Log::info('=== getFormData START ===');
-            
-            // Cek koneksi database
-            try {
-                \DB::connection()->getPdo();
-                Log::info('Database connection: OK');
-            } catch (\Exception $e) {
-                Log::error('Database connection failed: ' . $e->getMessage());
-                throw new \Exception('Database connection failed');
-            }
-            
-            // Cek apakah tabel divisi ada
-            if (!\Schema::hasTable('divisi')) {
-                Log::error('Table divisi does not exist');
-                throw new \Exception('Table divisi tidak ditemukan. Jalankan migration terlebih dahulu.');
-            }
-            
-            // Cek apakah tabel unit ada
-            if (!\Schema::hasTable('unit')) {
-                Log::error('Table unit does not exist');
-                throw new \Exception('Table unit tidak ditemukan. Jalankan migration terlebih dahulu.');
-            }
-            
-            Log::info('Tables exist: divisi, unit');
-            
-            // Mengambil data divisi dengan select spesifik kolom
-            try {
-                $divisi = Divisi::select('id_divisi as id', 'divisi as name')->get();
-                Log::info('Divisi fetched: ' . $divisi->count() . ' records');
-            } catch (\Exception $e) {
-                Log::error('Error fetching divisi: ' . $e->getMessage());
-                throw new \Exception('Gagal mengambil data divisi: ' . $e->getMessage());
-            }
-            
-            // Mengambil data unit dengan select spesifik kolom
-            try {
-                $unit = Unit::select('id_unit as id', 'kode_unit', 'unit as name')->get();
-                Log::info('Unit fetched: ' . $unit->count() . ' records');
-            } catch (\Exception $e) {
-                Log::error('Error fetching unit: ' . $e->getMessage());
-                throw new \Exception('Gagal mengambil data unit: ' . $e->getMessage());
-            }
+            $units = Unit::select('id_unit as id', 'unit as name', 'kode_unit')
+                ->orderBy('unit')
+                ->get();
 
-            Log::info('=== getFormData SUCCESS ===', [
-                'divisi_count' => $divisi->count(),
-                'unit_count' => $unit->count()
-            ]);
+            $divisi = Divisi::select('id_divisi as id', 'divisi as name')
+                ->orderBy('divisi')
+                ->get();
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'divisi' => $divisi,
-                    'unit' => $unit
+                    'unit' => $units,
+                    'divisi' => $divisi
                 ]
             ], 200);
-            
-        } catch (\Exception $e) {
-            Log::error('=== getFormData ERROR ===');
-            Log::error('Error message: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil data form: ' . $e->getMessage(),
-                'error' => $e->getMessage(),
-                'trace' => config('app.debug') ? $e->getTraceAsString() : null
-            ], 500);
-        }
-    }
-
-    /**
-     * Get all users
-     */
-    public function index()
-    {
-        try {
-            $users = User::with(['divisi', 'unit'])->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => $users
-            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data user',
+                'message' => 'Gagal memuat data form',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Get single user
-     */
-    public function show($id)
-    {
-        try {
-            $user = User::with(['divisi', 'unit'])->findOrFail($id);
-
-            return response()->json([
-                'success' => true,
-                'data' => $user
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User tidak ditemukan',
-                'error' => $e->getMessage()
-            ], 404);
-        }
-    }
-
-    /**
-     * Create new user
+     * Create new user (user / auditor / admin ONLY)
+     * POST /api/users
      */
     public function store(Request $request)
     {
+        // 🚫 Blokir jika mencoba membuat akuntan unit
+        if ($request->role === 'akuntan_unit') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gunakan endpoint Akuntan Unit untuk membuat akun ini'
+            ], 400);
+        }
+
         $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
-            'username' => 'required|string|unique:users,username|max:255',
-            'email' => 'required|email|unique:users,email',
-            'telp' => 'required|string|max:20',
+            'username' => 'required|string|unique:user,username|max:255',
             'password' => 'required|string|min:8|confirmed',
-            'id_divisi' => 'nullable|exists:divisi,id_divisi',
-            'id_unit' => 'nullable|exists:unit,id_unit',
-            'role' => 'required|in:admin,user,manager,auditor',
-            'permissions' => 'nullable|array'
+            'role' => 'required|in:user,auditor,admin',
+        ], [
+            'nama.required' => 'Nama lengkap wajib diisi',
+            'username.required' => 'Username wajib diisi',
+            'username.unique' => 'Username sudah terdaftar',
+            'password.required' => 'Password wajib diisi',
+            'password.min' => 'Password minimal 8 karakter',
+            'password.confirmed' => 'Konfirmasi password tidak cocok',
+            'role.required' => 'Role wajib dipilih',
+            'role.in' => 'Role tidak valid',
         ]);
 
         if ($validator->fails()) {
@@ -166,36 +82,34 @@ class UserController extends Controller
             ], 422);
         }
 
+        DB::beginTransaction();
+
         try {
-            $userData = [
+            $user = User::create([
                 'nama' => $request->nama,
                 'username' => $request->username,
-                'email' => $request->email,
-                'telp' => $request->telp,
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
-                'permissions' => $request->permissions ?? []
-            ];
+            ]);
 
-            // Tambahkan id_unit atau id_divisi jika ada
-            if ($request->has('id_unit') && $request->id_unit) {
-                $userData['id_unit'] = $request->id_unit;
-            }
-
-            if ($request->has('id_divisi') && $request->id_divisi) {
-                $userData['id_divisi'] = $request->id_divisi;
-            }
-
-            $user = User::create($userData);
+            DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'User berhasil dibuat',
-                'data' => $user->load(['divisi', 'unit'])
+                'data' => [
+                    'user' => [
+                        'id_user' => $user->id_user,
+                        'nama' => $user->nama,
+                        'username' => $user->username,
+                        'role' => $user->role,
+                    ]
+                ]
             ], 201);
+
         } catch (\Exception $e) {
-            Log::error('Error creating user: ' . $e->getMessage());
-            
+            DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal membuat user',
@@ -205,50 +119,106 @@ class UserController extends Controller
     }
 
     /**
-     * Update user
+     * Get all users
+     * GET /api/users
+     */
+    public function index(Request $request)
+    {
+        try {
+            $query = User::query();
+
+            if ($request->filled('role')) {
+                $query->where('role', $request->role);
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                      ->orWhere('username', 'like', "%{$search}%");
+                });
+            }
+
+            $users = $query->select('id_user', 'nama', 'username', 'role', 'created_at', 'updated_at')
+                ->latest()
+                ->paginate($request->per_page ?? 10);
+
+            return response()->json([
+                'success' => true,
+                'data' => $users
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update user (TIDAK BOLEH jadi akuntan_unit)
+     * PUT /api/users/{id}
      */
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'sometimes|string|max:255',
-            'username' => 'sometimes|string|unique:users,username,' . $id . '|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
-            'telp' => 'sometimes|string|max:20',
-            'password' => 'sometimes|string|min:8|confirmed',
-            'id_divisi' => 'nullable|exists:divisi,id_divisi',
-            'id_unit' => 'nullable|exists:unit,id_unit',
-            'role' => 'sometimes|in:admin,user,manager,auditor',
-            'permissions' => 'nullable|array'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         try {
-            $user = User::findOrFail($id);
+            $user = User::where('id_user', $id)->firstOrFail();
 
-            $data = $request->only(['nama', 'username', 'email', 'telp', 'id_divisi', 'id_unit', 'role', 'permissions']);
-            
-            if ($request->has('password') && $request->password) {
+            if ($request->role === 'akuntan_unit') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Role akuntan unit tidak bisa diubah melalui endpoint ini'
+                ], 400);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'nama' => 'sometimes|required|string|max:255',
+                'username' => 'sometimes|required|string|max:255|unique:user,username,' . $id . ',id_user',
+                'password' => 'nullable|string|min:8|confirmed',
+                'role' => 'sometimes|required|in:user,auditor,admin',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $data = $request->only(['nama', 'username', 'role']);
+
+            if ($request->filled('password')) {
                 $data['password'] = Hash::make($request->password);
             }
 
             $user->update($data);
 
+            DB::commit();
+
             return response()->json([
                 'success' => true,
-                'message' => 'User berhasil diupdate',
-                'data' => $user->load(['divisi', 'unit'])
+                'message' => 'User berhasil diperbarui',
+                'data' => [
+                    'user' => [
+                        'id_user' => $user->id_user,
+                        'nama' => $user->nama,
+                        'username' => $user->username,
+                        'role' => $user->role,
+                    ]
+                ]
             ], 200);
+
         } catch (\Exception $e) {
+            DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengupdate user',
+                'message' => 'Gagal memperbarui user',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -256,17 +226,19 @@ class UserController extends Controller
 
     /**
      * Delete user
+     * DELETE /api/users/{id}
      */
     public function destroy($id)
     {
         try {
-            $user = User::findOrFail($id);
+            $user = User::where('id_user', $id)->firstOrFail();
             $user->delete();
 
             return response()->json([
                 'success' => true,
                 'message' => 'User berhasil dihapus'
             ], 200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

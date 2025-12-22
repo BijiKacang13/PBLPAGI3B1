@@ -7,6 +7,8 @@ const API_BASE_URL =
 // Types
 // =============================
 
+export type Role = "admin" | "user" | "auditor" | "akuntan_unit";
+
 export interface Unit {
   id: number;
   name: string;
@@ -23,28 +25,28 @@ export interface User {
   id_unit?: number;
   id_divisi?: number;
   nama: string;
-  email: string;
+  email?: string;
   username: string;
-  telp: string;
-  role: "admin" | "user" | "auditor";
-  permissions?: string[];
-  unit?: Unit;
-  divisi?: Divisi;
+  telp?: string;
+  role: Role;
   created_at: string;
   updated_at: string;
 }
 
+/**
+ * =============================
+ * USER (admin / user / auditor)
+ * =============================
+ */
 export interface CreateUserData {
   nama: string;
-  email: string;
+  email?: string;
   username: string;
   password: string;
   password_confirmation: string;
-  telp: string;
-  role: string;
-  id_unit?: number;
+  telp?: string;
+  role: "admin" | "user" | "auditor";
   id_divisi?: number;
-  permissions?: string[];
 }
 
 export interface UpdateUserData {
@@ -54,12 +56,61 @@ export interface UpdateUserData {
   password?: string;
   password_confirmation?: string;
   telp?: string;
-  role?: string;
-  id_unit?: number;
+  role?: "admin" | "user" | "auditor";
   id_divisi?: number;
-  permissions?: string[];
 }
 
+/**
+ * =============================
+ * AKUNTAN UNIT
+ * =============================
+ */
+export interface AkuntanUnit {
+  id_akuntan_unit: number;
+  id_unit: number;
+  email: string;
+  telp: string;
+  user: User;
+  unit: Unit;
+  hakAkses: Record<string, boolean>;
+}
+
+export interface CreateAkuntanUnitData {
+  nama: string;
+  username: string;
+  password: string;
+  password_confirmation: string;
+  id_unit: number;
+  email: string;
+  telp: string;
+
+  // hak akses
+  view_rapbs_akun?: boolean;
+  create_rapbs_akun?: boolean;
+  update_rapbs_akun?: boolean;
+  view_rapbs_kegiatan?: boolean;
+  create_rapbs_kegiatan?: boolean;
+  update_rapbs_kegiatan?: boolean;
+  view_jurnal_umum?: boolean;
+  create_jurnal_umum?: boolean;
+  update_jurnal_umum?: boolean;
+  delete_jurnal_umum?: boolean;
+  view_buku_besar?: boolean;
+  create_buku_besar?: boolean;
+  delete_buku_besar?: boolean;
+  view_laporan_komprehensif?: boolean;
+  view_laporan_posisi_keuangan?: boolean;
+  view_laporan_arus_kas?: boolean;
+  view_laporan_perubahan_aset_neto?: boolean;
+  view_laporan_catatan_atas_laporan_keuangan?: boolean;
+  view_laporan_proyeksi_rencana_dan_realisasi_anggaran?: boolean;
+}
+
+/**
+ * =============================
+ * API RESPONSE
+ * =============================
+ */
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -73,15 +124,8 @@ export interface PaginatedResponse<T> {
   data: {
     current_page: number;
     data: T[];
-    first_page_url: string;
-    from: number;
     last_page: number;
-    last_page_url: string;
-    next_page_url: string | null;
-    path: string;
     per_page: number;
-    prev_page_url: string | null;
-    to: number;
     total: number;
   };
 }
@@ -114,28 +158,22 @@ async function handleResponse<T>(response: Response): Promise<T> {
   try {
     const data = JSON.parse(raw);
 
-    // Error handling
     if (!response.ok) {
       if (response.status === 422 && data.errors) {
-        const errorMessages = Object.values(data.errors)
-          .flat()
-          .join(", ");
-        throw new Error(errorMessages);
+        throw new Error(Object.values(data.errors).flat().join(", "));
       }
 
       if (response.status === 401) {
-        throw new Error("Unauthenticated: Token tidak valid atau sudah expired");
+        throw new Error("Unauthenticated: Token tidak valid atau expired");
       }
 
-      throw new Error(data.message || "Terjadi kesalahan pada server");
+      throw new Error(data.message || "Terjadi kesalahan server");
     }
 
     return data;
   } catch {
-    console.error("SERVER RESPONSE (RAW):", raw);
-    throw new Error(
-      "Server membalas HTML, bukan JSON. Cek API, route, atau token autentikasi."
-    );
+    console.error("RAW RESPONSE:", raw);
+    throw new Error("Response bukan JSON. Cek API / token.");
   }
 }
 
@@ -144,10 +182,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
 // =============================
 
 export const userService = {
-  // Get unit + divisi
+  /**
+   * FORM DATA
+   */
   async getFormData() {
     const res = await fetch(`${API_BASE_URL}/users/form-data`, {
-      method: "GET",
       headers: getHeaders(false),
     });
 
@@ -158,23 +197,23 @@ export const userService = {
     return result.data;
   },
 
-  // Get all users
+  /**
+   * USER (admin / user / auditor)
+   */
   async getUsers(params?: any) {
     const q = new URLSearchParams(
       Object.entries(params || {})
         .filter(([_, v]) => v !== undefined && v !== null)
-        .map(([key, value]) => [key, String(value)])
+        .map(([k, v]) => [k, String(v)])
     ).toString();
 
     const res = await fetch(`${API_BASE_URL}/users?${q}`, {
-      method: "GET",
       headers: getHeaders(false),
     });
 
     return handleResponse<PaginatedResponse<User>>(res);
   },
 
-  // Create user
   async createUser(data: CreateUserData) {
     const res = await fetch(`${API_BASE_URL}/users`, {
       method: "POST",
@@ -186,10 +225,8 @@ export const userService = {
     return result.data;
   },
 
-  // Get detail user
   async getUser(id: number) {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
-      method: "GET",
       headers: getHeaders(false),
     });
 
@@ -197,7 +234,6 @@ export const userService = {
     return result.data;
   },
 
-  // Update user
   async updateUser(id: number, data: UpdateUserData) {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: "PUT",
@@ -209,9 +245,66 @@ export const userService = {
     return result.data;
   },
 
-  // Delete
   async deleteUser(id: number) {
     const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+
+    await handleResponse<ApiResponse<null>>(res);
+  },
+
+  /**
+   * AKUNTAN UNIT
+   */
+  async createAkuntanUnit(data: CreateAkuntanUnitData) {
+    const res = await fetch(`${API_BASE_URL}/akuntan-unit`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const result = await handleResponse<ApiResponse<AkuntanUnit>>(res);
+    return result.data;
+  },
+
+  async getAkuntanUnits(params?: any) {
+    const q = new URLSearchParams(
+      Object.entries(params || {})
+        .filter(([_, v]) => v !== undefined && v !== null)
+        .map(([k, v]) => [k, String(v)])
+    ).toString();
+
+    const res = await fetch(`${API_BASE_URL}/akuntan-unit?${q}`, {
+      headers: getHeaders(false),
+    });
+
+    const result = await handleResponse<ApiResponse<AkuntanUnit[]>>(res);
+    return result.data;
+  },
+
+  async getAkuntanUnit(id: number) {
+    const res = await fetch(`${API_BASE_URL}/akuntan-unit/${id}`, {
+      headers: getHeaders(false),
+    });
+
+    const result = await handleResponse<ApiResponse<AkuntanUnit>>(res);
+    return result.data;
+  },
+
+  async updateAkuntanUnit(id: number, data: Partial<CreateAkuntanUnitData>) {
+    const res = await fetch(`${API_BASE_URL}/akuntan-unit/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const result = await handleResponse<ApiResponse<AkuntanUnit>>(res);
+    return result.data;
+  },
+
+  async deleteAkuntanUnit(id: number) {
+    const res = await fetch(`${API_BASE_URL}/akuntan-unit/${id}`, {
       method: "DELETE",
       headers: getHeaders(),
     });

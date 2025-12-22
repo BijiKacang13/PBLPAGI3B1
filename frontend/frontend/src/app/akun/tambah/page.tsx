@@ -1,24 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { UserPlus, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
+
+import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
 import { userService, type Unit, type Divisi } from "@/lib/api/userService";
+
+/* ===============================
+   TYPES
+================================ */
+type TipeAkun = "unit" | "auditor";
+
+type PermissionKey =
+  | "view_rapbs_akun"
+  | "create_rapbs_akun"
+  | "update_rapbs_akun"
+  | "view_rapbs_kegiatan"
+  | "create_rapbs_kegiatan"
+  | "update_rapbs_kegiatan"
+  | "view_jurnal_umum"
+  | "create_jurnal_umum"
+  | "update_jurnal_umum"
+  | "delete_jurnal_umum"
+  | "view_buku_besar"
+  | "create_buku_besar"
+  | "delete_buku_besar"
+  | "view_laporan_komprehensif"
+  | "view_laporan_posisi_keuangan"
+  | "view_laporan_arus_kas"
+  | "view_laporan_perubahan_aset_neto"
+  | "view_laporan_catatan_atas_laporan_keuangan"
+  | "view_laporan_proyeksi_rencana_dan_realisasi_anggaran";
+
 export default function TambahUser() {
   const router = useRouter();
-  const [showSuccess, setShowSuccess] = useState(false);
+
+  /* ===============================
+     STATE
+  ================================ */
+  const [tipeAkun, setTipeAkun] = useState<TipeAkun>("unit");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [tipeAkun, setTipeAkun] = useState("unit");
   const [checkAllAccess, setCheckAllAccess] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // Data dari API
   const [units, setUnits] = useState<Unit[]>([]);
   const [divisiList, setDivisiList] = useState<Divisi[]>([]);
 
@@ -31,10 +63,9 @@ export default function TambahUser() {
     username: "",
     password: "",
     password_confirmation: "",
-    role: "user",
   });
 
-  const [permissions, setPermissions] = useState({
+  const [permissions, setPermissions] = useState<Record<PermissionKey, boolean>>({
     view_rapbs_akun: false,
     create_rapbs_akun: false,
     update_rapbs_akun: false,
@@ -56,183 +87,151 @@ export default function TambahUser() {
     view_laporan_proyeksi_rencana_dan_realisasi_anggaran: false,
   });
 
-  const accessModules = [
-    { name: "RAPBS Akun", permissions: ["view_rapbs_akun", "create_rapbs_akun", "update_rapbs_akun"] },
-    { name: "RAPBS Kegiatan", permissions: ["view_rapbs_kegiatan", "create_rapbs_kegiatan", "update_rapbs_kegiatan"] },
-    { name: "Jurnal Umum", permissions: ["view_jurnal_umum", "create_jurnal_umum", "update_jurnal_umum", "delete_jurnal_umum"] },
-    { name: "Buku Besar", permissions: ["view_buku_besar", "create_buku_besar", null, "delete_buku_besar"] },
-    { name: "Laporan Komprehensif", permissions: ["view_laporan_komprehensif"] },
-    { name: "Laporan Posisi Keuangan", permissions: ["view_laporan_posisi_keuangan"] },
-    { name: "Laporan Arus Kas", permissions: ["view_laporan_arus_kas"] },
-    { name: "Laporan Perubahan Aset Neto", permissions: ["view_laporan_perubahan_aset_neto"] },
-    { name: "Laporan CALK", permissions: ["view_laporan_catatan_atas_laporan_keuangan"] },
-    { name: "Laporan Proyeksi", permissions: ["view_laporan_proyeksi_rencana_dan_realisasi_anggaran"] },
+  const accessModules: { name: string; keys: (PermissionKey | null)[] }[] = [
+    { name: "RAPBS Akun", keys: ["view_rapbs_akun", "create_rapbs_akun", "update_rapbs_akun"] },
+    { name: "RAPBS Kegiatan", keys: ["view_rapbs_kegiatan", "create_rapbs_kegiatan", "update_rapbs_kegiatan"] },
+    { name: "Jurnal Umum", keys: ["view_jurnal_umum", "create_jurnal_umum", "update_jurnal_umum", "delete_jurnal_umum"] },
+    { name: "Buku Besar", keys: ["view_buku_besar", "create_buku_besar", null, "delete_buku_besar"] },
+    { name: "Laporan Komprehensif", keys: ["view_laporan_komprehensif"] },
+    { name: "Laporan Posisi Keuangan", keys: ["view_laporan_posisi_keuangan"] },
+    { name: "Laporan Arus Kas", keys: ["view_laporan_arus_kas"] },
+    { name: "Laporan Perubahan Aset Neto", keys: ["view_laporan_perubahan_aset_neto"] },
+    { name: "Laporan CALK", keys: ["view_laporan_catatan_atas_laporan_keuangan"] },
+    { name: "Laporan Proyeksi", keys: ["view_laporan_proyeksi_rencana_dan_realisasi_anggaran"] },
   ];
 
-// Fetch data Unit dan Divisi dari API
-useEffect(() => {
-  const fetchFormData = async () => {
-    try {
-      setIsLoadingData(true);
-      setError("");
-      
-      const data = await userService.getFormData();
-      
-      console.log('Form data loaded:', data);
-      setUnits(data.unit || []);
-      setDivisiList(data.divisi || []);
-      
-    } catch (err: any) {
-      console.error("Error fetching form data:", err);
-      setError(err.message || "Gagal memuat data form. Silakan refresh halaman.");
-      
-      // Set empty arrays sebagai fallback
-      setUnits([]);
-      setDivisiList([]);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
+  /* ===============================
+     EFFECT
+  ================================ */
+  useEffect(() => {
+    const fetchFormData = async () => {
+      try {
+        const data = await userService.getFormData();
+        setUnits(data.unit);
+        setDivisiList(data.divisi);
+      } catch (e: any) {
+        setError(e.message || "Gagal memuat data");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
 
-  fetchFormData();
-}, []);
+    fetchFormData();
+  }, []);
+
+  /* ===============================
+     HANDLERS
+  ================================ */
+  const handleBack = () => router.push("/akun");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(""); // Clear error saat user mengetik
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setError("");
   };
 
-  const handlePermissionChange = (permission: string) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [permission]: !prev[permission as keyof typeof permissions],
-    }));
+  const handlePermissionChange = (key: PermissionKey) => {
+    setPermissions((p) => ({ ...p, [key]: !p[key] }));
   };
 
   const handleCheckAll = () => {
-    const newValue = !checkAllAccess;
-    setCheckAllAccess(newValue);
-    
-    const updatedPermissions = { ...permissions };
-    Object.keys(updatedPermissions).forEach((key) => {
-      updatedPermissions[key as keyof typeof permissions] = newValue;
-    });
-    setPermissions(updatedPermissions);
+    const value = !checkAllAccess;
+    setCheckAllAccess(value);
+
+    const updated = {} as Record<PermissionKey, boolean>;
+    (Object.keys(permissions) as PermissionKey[]).forEach((k) => (updated[k] = value));
+    setPermissions(updated);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
-    // Validasi password
-    if (formData.password !== formData.password_confirmation) {
-      setError("Password dan Konfirmasi Password tidak cocok!");
-      return;
-    }
 
-    // Validasi minimal 8 karakter
-    if (formData.password.length < 8) {
-      setError("Password minimal 8 karakter!");
+    if (formData.password !== formData.password_confirmation) {
+      setError("Password dan konfirmasi tidak sama");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Siapkan data sesuai dengan yang dibutuhkan API
-      const selectedPermissions = Object.entries(permissions)
-        .filter(([_, value]) => value)
-        .map(([key, _]) => key);
+      if (tipeAkun === "unit") {
+        if (!formData.id_unit) throw new Error("Unit wajib dipilih");
 
-      const userData = {
-        nama: formData.nama,
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
-        password_confirmation: formData.password_confirmation,
-        telp: formData.telp,
-        role: tipeAkun === "unit" ? "user" : "auditor",
-        permissions: selectedPermissions,
-      };
+        await userService.createAkuntanUnit({
+          nama: formData.nama,
+          username: formData.username,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation,
+          email: formData.email,
+          telp: formData.telp,
+          id_unit: Number(formData.id_unit),
+          ...permissions,
+        });
+      } else {
+        if (!formData.id_divisi) throw new Error("Divisi wajib dipilih");
 
-      // Tambahkan id_unit atau id_divisi sesuai tipe akun
-      if (tipeAkun === "unit" && formData.id_unit) {
-        Object.assign(userData, { id_unit: parseInt(formData.id_unit) });
-      } else if (tipeAkun === "auditor" && formData.id_divisi) {
-        Object.assign(userData, { id_divisi: parseInt(formData.id_divisi) });
+        await userService.createUser({
+          nama: formData.nama,
+          username: formData.username,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation,
+          email: formData.email,
+          telp: formData.telp,
+          id_divisi: Number(formData.id_divisi),
+          role: "auditor",
+        });
       }
 
-      // Kirim data ke API
-      await userService.createUser(userData);
-
-      // Tampilkan success alert
       setShowSuccess(true);
-      
-      // Redirect setelah 2 detik
-      setTimeout(() => {
-        router.push("/akun");
-      }, 2000);
-
-    } catch (err: any) {
-      console.error("Error creating user:", err);
-      setError(err.message || "Gagal membuat user. Silakan coba lagi.");
+      setTimeout(() => router.push("/akun"), 1500);
+    } catch (e: any) {
+      setError(e.message || "Gagal menyimpan data");
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleBack = () => {
-    router.push("/akun");
-  };
-
-  if (isLoadingData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#004CDF] mx-auto mb-3" />
-          <p className="text-gray-600">Memuat data...</p>
-        </div>
-      </div>
-    );
-  }
-
+  /* ===============================
+     RENDER
+  ================================ */
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-
+   
       <main className="flex-1 w-full pb-20 sm:pb-6">
         <div className="max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
-          
+          {/* Back Button - Desktop */}
+          <button
+            onClick={handleBack}
+            className="hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition"
+            disabled={isLoading}
+          >
+            <ArrowLeft size={20} />
+            <span className="text-sm font-medium">Kembali</span>
+          </button>
+
           <div className="bg-white shadow-lg rounded-xl overflow-hidden">
             {/* Header */}
             <div className="bg-white p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => router.back()}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                    onClick={handleBack}
+                    className="sm:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition"
+                    disabled={isLoading}
                   >
-                    <svg
-                      className="w-5 h-5 text-gray-600"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-                    </svg>
+                    <ArrowLeft size={20} />
                   </button>
-                  <h1 className="flex-1 text-center text-lg md:text-lg font-bold text-gray-800">
-                    TAMBAH PENGGUNA
-                  </h1>
-                  <div className="w-10 h-10" />
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
+                    <h5 className="text-lg sm:text-xl font-semibold text-black">Tambah User</h5>
+                  </div>
                 </div>
                 
                 <select
                   name="tipe_akun"
                   value={tipeAkun}
-                  onChange={(e) => setTipeAkun(e.target.value)}
+                  onChange={(e) => setTipeAkun(e.target.value as any)}
                   disabled={isLoading}
                   className="px-3 sm:px-4 py-2 sm:py-2.5 border border-black/25 bg-white text-gray-700 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent text-sm sm:text-base font-medium w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -251,6 +250,15 @@ useEffect(() => {
 
             {/* Form Content */}
             <div className="p-4 sm:p-6 lg:p-8">
+              {isLoadingData && (
+                <div className="w-full max-w-2xl mx-auto text-center py-8">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm text-gray-600">Memuat data...</p>
+                  </div>
+                </div>
+              )}
+              {!isLoadingData && (
               <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
                 
                 {/* Profil Section */}
@@ -269,8 +277,8 @@ useEffect(() => {
                         name="id_unit"
                         value={formData.id_unit}
                         onChange={handleChange}
-                        disabled={isLoading}
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isLoading || isLoadingData}
+                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       >
                         <option value="">Pilih Unit</option>
@@ -292,8 +300,8 @@ useEffect(() => {
                         name="id_divisi"
                         value={formData.id_divisi}
                         onChange={handleChange}
-                        disabled={isLoading}
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isLoading || isLoadingData}
+                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       >
                         <option value="">Pilih Divisi</option>
@@ -318,7 +326,7 @@ useEffect(() => {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="Masukkan nama lengkap"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -334,7 +342,7 @@ useEffect(() => {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="contoh@email.com"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -350,7 +358,7 @@ useEffect(() => {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="08xxxxxxxxxx"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -378,7 +386,7 @@ useEffect(() => {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="Username untuk login"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -395,7 +403,7 @@ useEffect(() => {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Minimal 8 karakter"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                           required
                           minLength={8}
                         />
@@ -422,7 +430,7 @@ useEffect(() => {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Ulangi password"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                           required
                           minLength={8}
                         />
@@ -451,13 +459,13 @@ useEffect(() => {
                           Hak Akses
                         </h6>
                         <label className="flex items-center gap-2 cursor-pointer bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2.5 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition border border-blue-200">
-                          <input
-                            type="checkbox"
-                            checked={checkAllAccess}
-                            onChange={handleCheckAll}
-                            disabled={isLoading}
-                            className="w-4 h-4 text-[#004CDF] border-gray-300 rounded focus:ring-[#004CDF] disabled:opacity-50 disabled:cursor-not-allowed"
-                          />
+                  <input
+                    type="checkbox"
+                    checked={checkAllAccess}
+                    onChange={handleCheckAll}
+                    disabled={isLoading || isLoadingData}
+                    className="w-4 h-4 text-[#004CDF] border-gray-300 rounded focus:ring-[#004CDF] disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
                           <span className="text-sm font-medium text-gray-700">Pilih Semua Akses</span>
                         </label>
                       </div>
@@ -479,15 +487,15 @@ useEffect(() => {
                               <tr key={idx} className="hover:bg-blue-50 transition">
                                 <td className="border-b border-gray-300 px-3 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm text-gray-800 font-medium">{module.name}</td>
                                 {[0, 1, 2, 3].map((colIdx) => {
-                                  const permission = module.permissions[colIdx];
+                                  const permission = module.keys[colIdx];
                                   return (
                                     <td key={colIdx} className="border-b border-l border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">
                                       {permission ? (
                                         <input
                                           type="checkbox"
-                                          checked={permissions[permission as keyof typeof permissions]}
+                                          checked={permissions[permission]}
                                           onChange={() => handlePermissionChange(permission)}
-                                          disabled={isLoading}
+                                          disabled={isLoading || isLoadingData}
                                           className="w-4 h-4 sm:w-5 sm:h-5 text-[#004CDF] border-gray-300 rounded focus:ring-[#004CDF] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
                                       ) : (
@@ -509,7 +517,7 @@ useEffect(() => {
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || isLoadingData}
                     className="w-full sm:flex-1 bg-gradient-to-r from-[#004CDF] to-[#0066FF] text-white font-semibold py-3 rounded-lg hover:from-[#003BB8] hover:to-[#0052CC] active:from-[#002E99] active:to-[#0047B3] transition shadow-md hover:shadow-lg text-sm sm:text-base order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
@@ -523,6 +531,7 @@ useEffect(() => {
                   </button>
                 </div>
               </form>
+              )}
             </div>
           </div>
 
