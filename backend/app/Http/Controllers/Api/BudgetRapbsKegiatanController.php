@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use App\Models\Budget_Rapbs_Kegiatan;
 
 class BudgetRapbsKegiatanController extends Controller
 {
@@ -37,46 +39,26 @@ class BudgetRapbsKegiatanController extends Controller
     }
     
     // =========================
-    // UPDATE BUDGET
+    // CREATE/UPDATE BUDGET
     // =========================
-    public function update(Request $request, $id)
+    public function storeOrUpdate(Request $request)
     {
-        // =========================
-        // VALIDASI INPUT
-        // =========================
         $validated = $request->validate([
-            'budget_rapbs_kegiatan' => 'required|numeric|min:0',
+            'id_kegiatan' => 'required|integer',
+            'id_unit' => 'required|integer',
+            'budget_rapbs_kegiatan' => 'required|numeric',
         ]);
 
-        // =========================
-        // CEK DATA ADA / TIDAK
-        // =========================
-        $exists = DB::table('budget_rapbs_kegiatan')
-            ->where('id_budget_rapbs_kegiatan', $id)
-            ->exists();
-
-        if (! $exists) {
-            return response()->json([
-                'message' => 'Data RAPBS kegiatan tidak ditemukan'
-            ], 404);
-        }
-
-        // =========================
-        // UPDATE DATA
-        // =========================
-        DB::table('budget_rapbs_kegiatan')
-            ->where('id_budget_rapbs_kegiatan', $id)
-            ->update([
+        Budget_Rapbs_Kegiatan::updateOrCreate(
+            [
+                'id_kegiatan' => $validated['id_kegiatan'],
+                'id_unit' => $validated['id_unit'],
+            ],
+            [
                 'budget_rapbs_kegiatan' => $validated['budget_rapbs_kegiatan'],
-                'updated_at' => now(),
-            ]);
+            ]
+        );
 
-        // =========================
-        // RESPONSE
-        // =========================
-        return response()->json([
-            'message' => 'Budget RAPBS kegiatan berhasil diperbarui',
-        ]);
+        return response()->json(['message' => 'Berhasil disimpan']);
     }
 }
-

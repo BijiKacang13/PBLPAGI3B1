@@ -172,7 +172,8 @@ Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'imp
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('budget-rapbs-kegiatan')->group(function () {
         Route::get('/', [BudgetRapbsKegiatanController::class, 'index']);
+        Route::post('/', [BudgetRapbsKegiatanController::class, 'storeOrUpdate']);
         Route::put('/{id}', [BudgetRapbsKegiatanController::class, 'update']);
     });
-
 });
+

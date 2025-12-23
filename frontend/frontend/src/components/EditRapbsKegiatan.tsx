@@ -45,21 +45,26 @@ export default function EditRapbsKegiatan({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const safeBudget = Number.isNaN(budgetRapbs) ? 0 : budgetRapbs;
 
     setLoading(true);
     try {
-      await api.put(
-        `/budget-rapbs-kegiatan/${data.id_budget_rapbs_kegiatan}`,
-        {
-          budget_rapbs_kegiatan: budgetRapbs,
-        }
-      );
+      const payload = {
+        id_kegiatan: data.id_kegiatan,
+        id_unit: 1,
+        budget_rapbs_kegiatan: safeBudget,
+      };
+
+      console.log("Kirim payload RAPBS:", payload);
+
+      // Pakai wrapper api
+      await api.post("/budget-rapbs-kegiatan", payload);
 
       onSuccess();
       onClose();
     } catch (err: any) {
       console.error("Gagal update RAPBS kegiatan:", err);
-      alert("Gagal mengubah budget RAPBS!");
+      alert(err.message || "Gagal mengubah budget RAPBS!");
     } finally {
       setLoading(false);
     }
