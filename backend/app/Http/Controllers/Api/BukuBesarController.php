@@ -204,12 +204,6 @@ class BukuBesarController extends Controller
                         'from' => $paginatedData->firstItem(),
                         'to' => $paginatedData->lastItem(),
                     ],
-                    'summary' => [
-                        'total_debit' => $total_debit,
-                        'total_kredit' => $total_kredit,
-                        'saldo_awal' => $saldo_awal,
-                        'saldo_akhir' => $saldo_akhir,
-                    ],
                     'filters' => [
                         'akun_id' => $akun_id,
                         'start_date' => $start_date,
@@ -248,16 +242,20 @@ class BukuBesarController extends Controller
     public function getAkunList()
     {
         try {
-            $akunList = Akun::with(['sub_kategori_akun.kategori_akun'])
+            $akunList = Akun::with(['subKategori.kategori_akun'])
                 ->orderBy('kode_akun')
                 ->get()
                 ->map(function ($akun) {
+
+                    $subKategori = $akun->subKategori;
+                    $kategori = $subKategori?->kategori_akun;
+
                     return [
                         'id_akun' => $akun->id_akun,
                         'kode_akun' => $akun->kode_akun,
                         'akun' => $akun->akun,
-                        'kategori' => $akun->sub_kategori_akun->kategori_akun->kategori_akun ?? null,
-                        'sub_kategori' => $akun->sub_kategori_akun->sub_kategori_akun ?? null,
+                        'kategori' => $kategori?->kategori_akun,
+                        'sub_kategori' => $subKategori?->sub_kategori_akun,
                     ];
                 });
 

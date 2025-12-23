@@ -36,7 +36,7 @@ export default function JurnalUmum() {
 
       const res = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
       });
 
@@ -48,6 +48,51 @@ export default function JurnalUmum() {
       console.error("Fetch error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // EXPORT DATA (Excel & Print)
+  const fetchExportData = async () => {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/jurnal-umum/export` +
+      `?unit=${unit}&divisi=${divisi}&from=${fromDate}&to=${toDate}&search=${search}`;
+
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+      },
+    });
+
+    const json = await res.json();
+    return json.data; // ⬅ array langsung
+  };
+  
+  const handleExportExcel = async () => {
+    try {
+      const rows = await fetchExportData();
+      if (!rows?.length) {
+        alert("Tidak ada data untuk diexport");
+        return;
+      }
+      console.log("EXPORT EXCEL DATA:", rows);
+      // lanjutkan ke XLSX
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengambil data export");
+    }
+  };
+
+  const handlePrint = async () => {
+    try {
+      const rows = await fetchExportData();
+      if (!rows?.length) {
+        alert("Tidak ada data untuk dicetak");
+        return;
+      }
+      console.log("PRINT DATA:", rows);
+      // lanjutkan ke layout print
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengambil data print");
     }
   };
 
@@ -88,13 +133,23 @@ export default function JurnalUmum() {
 
           {/* Tombol Export & Print */}
           <div className="flex gap-2 mb-5">
-            <button className="flex-1 flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 rounded-full py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            <button
+              onClick={handleExportExcel}
+              disabled={loading || !(data?.data?.length > 0)}
+              className="flex-1 flex items-center justify-center gap-2 bg-gray-50 border border-gray-200 rounded-full py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <FileSpreadsheet className="w-4 h-4" /> Export Excel
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 bg-blue-100 text-blue-700 font-medium py-2 rounded-full hover:bg-blue-200">
+
+            <button
+              onClick={handlePrint}
+              disabled={loading || !(data?.data?.length > 0)}
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-100 text-blue-700 font-medium py-2 rounded-full hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Printer className="w-4 h-4" /> Print
             </button>
           </div>
+
 
           {/* Filter */}
           <div className="space-y-3">

@@ -87,21 +87,22 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Jurnal Umum
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/jurnal-umum', [JurnalUmumController::class, 'index']);
-        Route::post('/jurnal-umum', [JurnalUmumController::class, 'store']);
-        Route::get('/jurnal-umum/{id}', [JurnalUmumController::class, 'show']);
-        Route::put('/jurnal-umum/{id}', [JurnalUmumController::class, 'update']);
-        Route::delete('/jurnal-umum/{id}', [JurnalUmumController::class, 'destroy']);
+    Route::prefix('jurnal-umum')->group(function () {
+        Route::get('/', [JurnalUmumController::class, 'index']);
+        Route::post('/', [JurnalUmumController::class, 'store']);
+        Route::get('/{id}', [JurnalUmumController::class, 'show']);
+        Route::put('/{id}', [JurnalUmumController::class, 'update']);
+        Route::delete('/{id}', [JurnalUmumController::class, 'destroy']);
+        Route::get('/export', [JurnalUmumController::class, 'export']);
     });
 
     // Buku Besar
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/buku-besar', [BukuBesarController::class, 'index']);
-        Route::get('/buku-besar/akun-list', [BukuBesarController::class, 'getAkunList']);
-        Route::get('/buku-besar/export', [BukuBesarController::class, 'exportExcel']);
-        Route::post('/buku-besar/posting', [BukuBesarController::class, 'store']);
-        Route::post('/buku-besar/posting-semua', [BukuBesarController::class, 'postingSemua']);
+    Route::prefix('buku-besar')->group(function () {
+        Route::get('/', [BukuBesarController::class, 'index']);
+        Route::get('/akun-list', [BukuBesarController::class, 'getAkunList']);
+        Route::get('/export', [BukuBesarController::class, 'exportExcel']);
+        Route::post('/posting', [BukuBesarController::class, 'store']);
+        Route::post('/posting-semua', [BukuBesarController::class, 'postingSemua']);
     });
 
     // Auditor

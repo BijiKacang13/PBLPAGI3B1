@@ -53,7 +53,7 @@ export default function Akun() {
         <div className="w-full flex items-center gap-3 mb-4">
 
           {/* PILIH FILE BTN */}
-          <label className="w-28 bg-gray-200 text-gray-700 px-3 py-2 rounded-full 
+          <label className="w-28 bg-gray-200 text-gray-700 px-3 py-2 rounded-xl 
             text-sm font-medium cursor-pointer hover:bg-gray-300 transition text-center whitespace-nowrap">
             Pilih File
             <input type="file" className="hidden" />
@@ -64,12 +64,12 @@ export default function Akun() {
             type="text"
             value="Tidak ada file"
             readOnly
-            className="flex-1 border border-gray-300 rounded-full px-3 py-2 
+            className="flex-1 border border-gray-300 rounded-xl px-3 py-2 
               text-xs text-gray-500 outline-none bg-gray-50"
           />
 
           {/* IMPORT BUTTON */}
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-full text-xs md:text-sm font-medium hover:bg-blue-600 transition w-full md:w-auto">
+          <button className="bg-blue-200 text-gray-800 px-4 py-2 rounded-xl text-xs md:text-sm font-medium hover:bg-blue-400 transition w-full md:w-auto">
             Import Excel
           </button>
         </div>
@@ -77,7 +77,7 @@ export default function Akun() {
         {/* Tombol Tambah Transaksi */}
         <button
           onClick={() => setOpenModal(true)}
-          className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold text-sm md:text-base shadow hover:bg-blue-700 transition"
+          className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm md:text-base shadow hover:bg-blue-400 transition"
         >
           Tambah Transaksi
         </button>

@@ -102,6 +102,82 @@ class JurnalUmumController extends Controller
         ]);
     }
 
+    /**
+     * GET /api/jurnal-umum/export
+     * Khusus Export Excel & Print
+     */
+    public function export(Request $request)
+    {
+        $user = Auth::user();
+
+        // ==========================
+        // 1. Decode filter
+        // ==========================
+        $unitFilter   = $request->unit;
+        $divisiFilter = $request->divisi;
+
+        if ($unitFilter === "Akumulasi (Semua Unit)" || !$unitFilter) {
+            $unitFilter = null;
+        }
+
+        if ($divisiFilter === "Akumulasi (Semua Divisi)" || !$divisiFilter) {
+            $divisiFilter = null;
+        }
+
+        // ==========================
+        // 2. Role override
+        // ==========================
+        if ($user->role === 'akuntan_unit') {
+            $akunUnit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
+            $unitFilter = $akunUnit?->id_unit;
+        }
+
+        if ($user->role === 'akuntan_divisi') {
+            $divisiFilter = $user->id_divisi;
+        }
+
+        // ==========================
+        // 3. Query tanpa paginate
+        // ==========================
+        $query = Jurnal_Umum::with(['unit', 'divisi'])
+            ->orderBy('tanggal')
+            ->orderBy('no_bukti');
+
+        // Tanggal
+        $from = $request->from ?: date('Y-01-01');
+        $to   = $request->to   ?: date('Y-m-d');
+        $query->whereBetween('tanggal', [$from, $to]);
+
+        // Search
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('no_bukti', 'LIKE', "%{$request->search}%")
+                ->orWhere('keterangan', 'LIKE', "%{$request->search}%");
+            });
+        }
+
+        // Unit & Divisi
+        if ($unitFilter)   $query->where('id_unit', $unitFilter);
+        if ($divisiFilter) $query->where('id_divisi', $divisiFilter);
+
+        $data = $query->get();
+
+        // ==========================
+        // 4. Response KHUSUS
+        // ==========================
+        return response()->json([
+            'success' => true,
+            'meta' => [
+                'from' => $from,
+                'to' => $to,
+                'unit' => $unitFilter,
+                'divisi' => $divisiFilter,
+                'total' => $data->count()
+            ],
+            'data' => $data
+        ]);
+    }
+
     
     /**
      * POST /api/jurnal-umum

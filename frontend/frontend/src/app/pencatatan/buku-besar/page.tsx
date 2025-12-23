@@ -28,13 +28,6 @@ interface PaginationInfo {
   to: number | null;
 }
 
-interface Summary {
-  total_debit: number;
-  total_kredit: number;
-  saldo_awal: number;
-  saldo_akhir: number;
-}
-
 interface AkunOption {
   id_akun: number;
   kode_akun: string;
@@ -49,7 +42,6 @@ interface BukuBesarResponse {
   data: {
     items: BukuBesarItem[];
     pagination: PaginationInfo;
-    summary: Summary;
     filters: any;
     akun: {
       id_akun: number;
@@ -76,7 +68,6 @@ export default function BukuBesar() {
   const [bukuBesarData, setBukuBesarData] = useState<BukuBesarItem[]>([]);
   const [akunList, setAkunList] = useState<AkunOption[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [summary, setSummary] = useState<Summary | null>(null);
   const [selectedAkunInfo, setSelectedAkunInfo] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,8 +75,7 @@ export default function BukuBesar() {
   // Current page state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // ===== API BASE URL =====
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  
 
   // ===== HELPER: Get Auth Token =====
   const getAuthToken = () => {
@@ -97,7 +87,7 @@ export default function BukuBesar() {
   useEffect(() => {
     const fetchAkunList = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/buku-besar/akun-list`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/buku-besar/akun-list`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -137,7 +127,7 @@ export default function BukuBesar() {
       params.append("page", page.toString());
       params.append("per_page", "20");
 
-      const response = await fetch(`${API_BASE_URL}/api/buku-besar?${params.toString()}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/buku-besar?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -152,7 +142,6 @@ export default function BukuBesar() {
       if (result.success) {
         setBukuBesarData(result.data.items);
         setPagination(result.data.pagination);
-        setSummary(result.data.summary);
         setSelectedAkunInfo(result.data.akun);
       } else {
         throw new Error(result.message);
@@ -196,7 +185,7 @@ export default function BukuBesar() {
     if (unit) params.append("id_unit", unit);
     if (divisi) params.append("id_divisi", divisi);
 
-    const url = `${API_BASE_URL}/api/buku-besar/export?${params.toString()}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/buku-besar/export?${params.toString()}`;
     
     // Open in new tab to download
     window.open(url, "_blank");
@@ -246,39 +235,6 @@ export default function BukuBesar() {
             <div className="w-10 h-10" />
           </div>
 
-          {/* INFO AKUN TERPILIH */}
-          {selectedAkunInfo && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-sm font-medium text-blue-900">
-                {selectedAkunInfo.kode_akun} - {selectedAkunInfo.akun}
-              </p>
-              {selectedAkunInfo.kategori && (
-                <p className="text-xs text-blue-700 mt-1">Kategori: {selectedAkunInfo.kategori}</p>
-              )}
-            </div>
-          )}
-
-          {/* SUMMARY (SALDO) */}
-          {summary && (
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <p className="text-xs text-green-600 mb-1">Saldo Awal</p>
-                <p className="text-sm font-bold text-green-900">{formatCurrency(summary.saldo_awal)}</p>
-              </div>
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                <p className="text-xs text-purple-600 mb-1">Saldo Akhir</p>
-                <p className="text-sm font-bold text-purple-900">{formatCurrency(summary.saldo_akhir)}</p>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-600 mb-1">Total Debit</p>
-                <p className="text-sm font-bold text-blue-900">{formatCurrency(summary.total_debit)}</p>
-              </div>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-xs text-red-600 mb-1">Total Kredit</p>
-                <p className="text-sm font-bold text-red-900">{formatCurrency(summary.total_kredit)}</p>
-              </div>
-            </div>
-          )}
 
           {/* Tombol Export dan Print */}
           <div className="flex gap-2 mb-5">
@@ -453,6 +409,18 @@ export default function BukuBesar() {
           {loading && (
             <div className="flex justify-center items-center py-8">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+          )}
+
+          {/* INFO AKUN TERPILIH */}
+          {selectedAkunInfo && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 mt-6">
+              <p className="text-sm font-medium text-blue-900">
+                {selectedAkunInfo.kode_akun} - {selectedAkunInfo.akun}
+              </p>
+              {selectedAkunInfo.kategori && (
+                <p className="text-xs text-blue-700 mt-1">Kategori: {selectedAkunInfo.kategori}</p>
+              )}
             </div>
           )}
 
