@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\ArusKasController;
 use App\Http\Controllers\Api\CalkController;
 use App\Http\Controllers\Api\LogActivityController;
 use App\Http\Controllers\Api\BudgetRapbsKegiatanController;
+use App\Http\Controllers\Api\AnalisisDataController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -164,11 +165,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Log Aktivitas
     Route::get('/log-aktivitas', [LogActivityController::class, 'index']);
+
+    // Analisis Data Keuangan
+    Route::get('/analisis-data', [AnalisisDataController::class, 'index']);
+    
 });
 Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
 Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
 Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
-
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('budget-rapbs-kegiatan')->group(function () {
