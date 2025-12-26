@@ -1,37 +1,156 @@
 "use client";
 
-import { X, Calendar, Plus } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
+/**
+ * =========================
+ * TYPE SCRIPT INTERFACE
+ * =========================
+ */
+
+interface FormTransaksi {
+  tanggal: string;
+  keterangan: string;
+  jenis_transaksi: "Terikat" | "Tidak Terikat" | "";
+  id_unit: number | "";
+  id_divisi: number | "";
+  id_kegiatan: number | "";
+  id_sumber_anggaran: number | "";
+}
+
+interface DetailAkun {
+  id: number; // frontend only
+  id_akun: number | "";
+  debit: string;
+  kredit: string;
+}
+
+interface StoreTransaksiPayload {
+  tanggal: string;
+  keterangan: string;
+  jenis_transaksi: string;
+  id_unit: number;
+  id_divisi: number;
+  id_kegiatan: number;
+  id_sumber_anggaran: number;
+  id_akun: number[];
+  debit: string[];
+  kredit: string[];
+}
+
+/**
+ * =========================
+ * API RESPONSE INTERFACE
+ * =========================
+ */
+
+interface OptionUnit {
+  id_unit: number;
+  kode_unit: string;
+  unit: string;
+}
+
+interface OptionDivisi {
+  id_divisi: number;
+  divisi: string;
+}
+
+interface OptionKegiatan {
+  id_kegiatan: number;
+  kode_kegiatan: string;
+  kegiatan: string;
+}
+
+interface OptionAkun {
+  id_akun: number;
+  kode_akun: string;
+  akun: string;
+}
+
+interface FormDataResponse {
+  success: boolean;
+  data: {
+    unit: OptionUnit[];
+    divisi: OptionDivisi[];
+    kegiatan: OptionKegiatan[];
+    akun: OptionAkun[];
+    sumber_anggaran: OptionAkun[];
+  };
+}
+
+
+/**
+ * =========================
+ * HELPER AUTH TOKEN
+ * =========================
+ */
+const getAuthToken = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token"); // samakan dengan auth kamu
+};
+
 export default function TambahTransaksi({ open, onClose }: any) {
-  const [form, setForm] = useState({
+  /**
+   * =========================
+   * STATE
+   * =========================
+   */
+  const [form, setForm] = useState<FormTransaksi>({
     tanggal: "",
     keterangan: "",
-    jenis: "",
-    unit: "",
-    divisi: "",
-    kegiatan: "",
-    sumber: "",
+    jenis_transaksi: "",
+    id_unit: "",
+    id_divisi: "",
+    id_kegiatan: "",
+    id_sumber_anggaran: "",
   });
 
-  const [accounts, setAccounts] = useState([
-    { id: 1, akun: "", debit: "", kredit: "" }
+  /**
+   * =========================
+   * DROPDOWN STATE
+   * =========================
+   */
+  const [units, setUnits] = useState<OptionUnit[]>([]);
+  const [divisis, setDivisis] = useState<OptionDivisi[]>([]);
+  const [kegiatans, setKegiatans] = useState<OptionKegiatan[]>([]);
+  const [akuns, setAkuns] = useState<OptionAkun[]>([]);
+  const [sumberAnggaran, setSumberAnggaran] = useState<OptionAkun[]>([]);
+
+
+  const [accounts, setAccounts] = useState<DetailAkun[]>([
+    { id: 1, id_akun: "", debit: "", kredit: "" },
   ]);
 
-  const handleChange = (e: any) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  /**
+   * =========================
+   * HANDLER
+   * =========================
+   */
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAccountChange = (id: number, field: string, value: string) => {
-    setAccounts(accounts.map(acc => 
-      acc.id === id ? { ...acc, [field]: value } : acc
-    ));
+  const handleAccountChange = (
+    id: number,
+    field: keyof DetailAkun,
+    value: any
+  ) => {
+    setAccounts(prev =>
+      prev.map(acc =>
+        acc.id === id ? { ...acc, [field]: value } : acc
+      )
+    );
   };
 
   const addAccount = () => {
     const newId = Math.max(...accounts.map(a => a.id)) + 1;
-    setAccounts([...accounts, { id: newId, akun: "", debit: "", kredit: "" }]);
+    setAccounts([...accounts, { id: newId, id_akun: "", debit: "", kredit: "" }]);
   };
 
   const removeAccount = (id: number) => {
@@ -40,11 +159,66 @@ export default function TambahTransaksi({ open, onClose }: any) {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Form submitted:", { ...form, accounts });
-    onClose();
+  /**
+   * =========================
+   * SUBMIT
+   * =========================
+   */
+  const handleSubmit = async () => {
+    const token = getAuthToken();
+
+    if (!token) {
+      alert("Token tidak ditemukan, silakan login ulang.");
+      return;
+    }
+
+    const payload: StoreTransaksiPayload = {
+      tanggal: form.tanggal,
+      keterangan: form.keterangan,
+      jenis_transaksi: form.jenis_transaksi,
+      id_unit: Number(form.id_unit),
+      id_divisi: Number(form.id_divisi),
+      id_kegiatan: Number(form.id_kegiatan),
+      id_sumber_anggaran: Number(form.id_sumber_anggaran),
+      id_akun: accounts.map(a => Number(a.id_akun)),
+      debit: accounts.map(a => a.debit || "0"),
+      kredit: accounts.map(a => a.kredit || "0"),
+    };
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/input-transaksi`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error(result);
+        alert(result.message || "Gagal menyimpan transaksi");
+        return;
+      }
+
+      alert("Transaksi berhasil disimpan");
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan server");
+    }
   };
 
+  /**
+   * =========================
+   * EFFECT
+   * =========================
+   */
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "auto";
     return () => {
@@ -52,10 +226,58 @@ export default function TambahTransaksi({ open, onClose }: any) {
     };
   }, [open]);
 
-  if (!open) return null;
+  /**
+   * =========================
+   * FETCH FORM DATA
+   * =========================
+   */
+  useEffect(() => {
+    if (!open) return;
 
+    const fetchFormData = async () => {
+      const token = getAuthToken();
+      if (!token) return;
+
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/input-transaksi/form-data`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const result: FormDataResponse = await response.json();
+
+        if (!response.ok || !result.success) {
+          console.error("Gagal load form data", result);
+          return;
+        }
+
+        setUnits(result.data.unit);
+        setDivisis(result.data.divisi);
+        setKegiatans(result.data.kegiatan);
+        setAkuns(result.data.akun);
+        setSumberAnggaran(result.data.sumber_anggaran);
+
+      } catch (error) {
+        console.error("Error fetch form data:", error);
+      }
+    };
+
+    fetchFormData();
+  }, [open]);
+
+  /**
+   * =========================
+   * RENDER
+   * =========================
+   */
   return (
     <AnimatePresence>
+      {open && (
       <motion.div
         className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
         initial={{ opacity: 0 }}
@@ -63,267 +285,241 @@ export default function TambahTransaksi({ open, onClose }: any) {
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
-        {/* Modal box */}
         <motion.div
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden"
           initial={{ scale: 0.95, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] md:max-h-[85vh] flex flex-col overflow-hidden"
+          transition={{ duration: 0.2 }}
         >
-          {/* Header */}
-          <div className="flex justify-between items-center px-4 md:px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-            <h2 className="text-base md:text-lg font-bold text-gray-800 tracking-wide">
-              TAMBAH TRANSAKSI
+          {/* ================= HEADER ================= */}
+          <div className="flex justify-between items-center px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+            <h2 className="text-lg font-bold text-gray-800">
+              Tambah Transaksi
             </h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-white/80 transition-colors duration-200"
-              aria-label="Tutup"
-            >
-              <X size={20} className="text-gray-600" />
+            <button onClick={onClose} className="p-1 rounded-full hover:bg-white">
+              <X size={20} />
             </button>
           </div>
 
-          {/* Isi form scrollable */}
-          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
+          {/* ================= BODY ================= */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
             {/* Tanggal */}
-            <div className="space-y-1.5">
-              <label className="block text-gray-700 font-medium text-sm">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
                 Tanggal <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="tanggal"
-                  value={form.tanggal}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                />
-              </div>
+              <input
+                type="date"
+                name="tanggal"
+                value={form.tanggal}
+                onChange={handleChange}
+                className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* Keterangan */}
-            <div className="space-y-1.5">
-              <label className="block text-gray-700 font-medium text-sm">
+            <div>
+              <label className="text-sm font-medium text-gray-700">
                 Keterangan <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="keterangan"
-                placeholder="Masukkan keterangan transaksi"
                 value={form.keterangan}
                 onChange={handleChange}
                 rows={3}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* Grid untuk form fields */}
+            {/* Grid Master Data */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Jenis Transaksi */}
-              <div className="space-y-1.5">
-                <label className="block text-gray-700 font-medium text-sm">
+              <div>
+                <label className="text-sm font-medium text-gray-700">
                   Jenis Transaksi
                 </label>
                 <select
-                  name="jenis"
-                  value={form.jenis}
+                  name="jenis_transaksi"
+                  value={form.jenis_transaksi}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Pilih Jenis</option>
-                  <option value="pemasukan">Pemasukan</option>
-                  <option value="pengeluaran">Pengeluaran</option>
+                  <option value="Terikat">Terikat</option>
+                  <option value="Tidak Terikat">Tidak Terikat</option>
                 </select>
               </div>
 
               {/* Unit */}
-              <div className="space-y-1.5">
-                <label className="block text-gray-700 font-medium text-sm">
-                  Unit
-                </label>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Unit</label>
                 <select
-                  name="unit"
-                  value={form.unit}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  name="id_unit"
+                  value={form.id_unit}
+                  onChange={(e) =>
+                    setForm({ ...form, id_unit: e.target.value ? Number(e.target.value) : "" })
+                  }
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Pilih Unit</option>
-                  <option value="unit1">Unit 1</option>
-                  <option value="unit2">Unit 2</option>
+                  {units.map(u => (
+                    <option key={u.id_unit} value={u.id_unit}>
+                      {u.kode_unit} - {u.unit}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Divisi */}
-              <div className="space-y-1.5">
-                <label className="block text-gray-700 font-medium text-sm">
-                  Divisi
-                </label>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Divisi</label>
                 <select
-                  name="divisi"
-                  value={form.divisi}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  name="id_divisi"
+                  value={form.id_divisi}
+                  onChange={(e) =>
+                    setForm({ ...form, id_divisi: e.target.value ? Number(e.target.value) : "" })
+                  }
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Pilih Divisi</option>
-                  <option value="divisi1">Divisi 1</option>
-                  <option value="divisi2">Divisi 2</option>
+                  {divisis.map(d => (
+                    <option key={d.id_divisi} value={d.id_divisi}>
+                      {d.divisi}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               {/* Kegiatan */}
-              <div className="space-y-1.5">
-                <label className="block text-gray-700 font-medium text-sm">
-                  Kegiatan
-                </label>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Kegiatan</label>
                 <select
-                  name="kegiatan"
-                  value={form.kegiatan}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  name="id_kegiatan"
+                  value={form.id_kegiatan}
+                  onChange={(e) =>
+                    setForm({ ...form, id_kegiatan: e.target.value ? Number(e.target.value) : "" })
+                  }
+                  className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Pilih Kegiatan</option>
-                  <option value="kegiatan1">Kegiatan 1</option>
-                  <option value="kegiatan2">Kegiatan 2</option>
+                  {kegiatans.map(k => (
+                    <option key={k.id_kegiatan} value={k.id_kegiatan}>
+                      {k.kode_kegiatan} - {k.kegiatan}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
-            {/* Sumber Anggaran - Full width */}
-            <div className="space-y-1.5">
-              <label className="block text-gray-700 font-medium text-sm">
+            {/* Sumber Anggaran */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">
                 Sumber Anggaran
               </label>
               <select
-                name="sumber"
-                value={form.sumber}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                name="id_sumber_anggaran"
+                value={form.id_sumber_anggaran}
+                onChange={(e) =>
+                  setForm({ ...form, id_sumber_anggaran: e.target.value ? Number(e.target.value) : "" })
+                }
+                className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Pilih Sumber Anggaran</option>
-                <option value="sumber1">Sumber 1</option>
-                <option value="sumber2">Sumber 2</option>
+                {sumberAnggaran.map(s => (
+                  <option key={s.id_akun} value={s.id_akun}>
+                    {s.kode_akun} - {s.akun}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div className="border-t pt-4 mt-2">
+            {/* ================= DETAIL AKUN ================= */}
+            <div className="border-t pt-4">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
                 Detail Akun
               </h3>
 
-              {/* Render multiple accounts */}
-              {accounts.map((account, index) => (
-                <div key={account.id} className="space-y-4 mb-6 pb-6 border-b last:border-b-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-gray-500">
-                      
-                    </span>
-                    {accounts.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeAccount(account.id)}
-                        className="text-red-500 hover:text-red-700 text-xs font-medium transition-colors"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
+              {accounts.map((acc) => (
+                <div
+                  key={acc.id}
+                  className="border border-gray-400 rounded-lg p-4 mb-4 space-y-3"
+                >
+                  <select
+                    value={acc.id_akun}
+                    onChange={(e) =>
+                      handleAccountChange(acc.id, "id_akun", Number(e.target.value))
+                    }
+                    className="mt-1 w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Pilih Akun</option>
+                    {akuns.map(a => (
+                      <option key={a.id_akun} value={a.id_akun}>
+                        {a.kode_akun} - {a.akun}
+                      </option>
+                    ))}
+                  </select>
 
-                  {/* Akun */}
-                  <div className="space-y-1.5">
-                    <label className="block text-gray-700 font-medium text-sm">
-                      Akun <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={account.akun}
-                      onChange={(e) => handleAccountChange(account.id, 'akun', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    >
-                      <option value="">Pilih Akun</option>
-                      <option value="kas">Kas</option>
-                      <option value="bank">Bank</option>
-                      <option value="piutang">Piutang</option>
-                      <option value="hutang">Hutang</option>
-                      <option value="modal">Modal</option>
-                      <option value="pendapatan">Pendapatan</option>
-                      <option value="beban">Beban</option>
-                    </select>
-                  </div>
-
-                  {/* Debit & Kredit Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Debit */}
-                    <div className="space-y-1.5">
-                      <label className="block text-gray-700 font-medium text-sm">
-                        Debit
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus-within:ring-2 focus-within:ring-green-500 focus-within:border-transparent transition-all">
-                        <span className="text-gray-600 mr-2 text-sm font-medium">Rp</span>
-                        <input
-                          type="number"
-                          value={account.debit}
-                          onChange={(e) => handleAccountChange(account.id, 'debit', e.target.value)}
-                          placeholder="0"
-                          className="flex-1 bg-transparent outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Kredit */}
-                    <div className="space-y-1.5">
-                      <label className="block text-gray-700 font-medium text-sm">
-                        Kredit
-                      </label>
-                      <div className="flex items-center border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-50 focus-within:ring-2 focus-within:ring-red-500 focus-within:border-transparent transition-all">
-                        <span className="text-gray-600 mr-2 text-sm font-medium">Rp</span>
-                        <input
-                          type="number"
-                          value={account.kredit}
-                          onChange={(e) => handleAccountChange(account.id, 'kredit', e.target.value)}
-                          placeholder="0"
-                          className="flex-1 bg-transparent outline-none text-sm"
-                        />
-                      </div>
-                    </div>
+                    <input
+                      type="number"
+                      placeholder="Debit"
+                      value={acc.debit}
+                      onChange={(e) =>
+                        handleAccountChange(acc.id, "debit", e.target.value)
+                      }
+                      className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Kredit"
+                      value={acc.kredit}
+                      onChange={(e) =>
+                        handleAccountChange(acc.id, "kredit", e.target.value)
+                      }
+                      className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
+
+                  {accounts.length > 1 && (
+                    <button
+                      onClick={() => removeAccount(acc.id)}
+                      className="text-sm text-red-500"
+                    >
+                      Hapus Akun
+                    </button>
+                  )}
                 </div>
               ))}
 
-              {/* Tambah akun */}
-              <button 
-                type="button"
+              <button
                 onClick={addAccount}
-                className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors hover:gap-2"
+                className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
               >
-                <Plus size={16} />
-                Tambah Akun Lainnya
+                <Plus size={16} /> Tambah Akun
               </button>
             </div>
-
-            {/* Spacer agar scroll tidak mentok tombol */}
-            <div className="h-4"></div>
           </div>
 
-          {/* Tombol aksi sticky */}
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 border-t px-4 md:px-6 py-4 bg-gray-50">
+          {/* ================= FOOTER ================= */}
+          <div className="border-t px-6 py-4 flex justify-end gap-3 bg-gray-50">
             <button
               onClick={onClose}
-              type="button"
-              className="bg-white border-2 border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 px-6 rounded-lg text-sm transition-all duration-200 hover:shadow-md"
+              className="px-5 py-2 border border-red-200 rounded-lg text-sm"
             >
-              BATAL
+              Batal
             </button>
-            <button 
+            <button
               onClick={handleSubmit}
-              type="button"
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg text-sm transition-all duration-200 shadow-md hover:shadow-lg"
+              className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold"
             >
-              SIMPAN
+              Simpan
             </button>
           </div>
         </motion.div>
       </motion.div>
+      )}
     </AnimatePresence>
   );
 }

@@ -53,7 +53,7 @@ export default function Akun() {
         <div className="w-full flex items-center gap-3 mb-4">
 
           {/* PILIH FILE BTN */}
-          <label className="w-28 bg-gray-200 text-gray-700 px-3 py-2 rounded-xl 
+          <label className="w-28 bg-gray-200 text-gray-700 px-1 py-2 rounded-xl 
             text-sm font-medium cursor-pointer hover:bg-gray-300 transition text-center whitespace-nowrap">
             Pilih File
             <input type="file" className="hidden" />

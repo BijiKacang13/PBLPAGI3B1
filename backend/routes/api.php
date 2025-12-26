@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SubKategoriAkunController;
 use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
+use App\Http\Controllers\API\InputTransaksiController;
 use App\Http\Controllers\API\JurnalUmumController;
 use App\Http\Controllers\Api\BukuBesarController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
@@ -85,6 +86,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [AkuntanUnitController::class, 'show']);
         Route::put('/{id}', [AkuntanUnitController::class, 'update']);
         Route::delete('/{id}', [AkuntanUnitController::class, 'destroy']);
+    });
+
+    // Input Transaksi
+    Route::prefix('input-transaksi')->group(function () {
+        Route::get('/form-data', [InputTransaksiController::class, 'formData']);
+        Route::post('/', [InputTransaksiController::class, 'store']);
+        Route::post('/import', [InputTransaksiController::class, 'import']);
     });
 
     // Jurnal Umum
