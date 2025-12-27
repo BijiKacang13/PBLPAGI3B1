@@ -43,14 +43,23 @@
 
 
     const fetchKegiatan = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/api/kegiatan");
-        const json = await res.json();
-        setData(json);
-      } catch (error) {
-        console.log("Gagal mengambil data:", error);
-      }
-    };
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/kegiatan");
+
+    if (!res.ok) {
+      throw new Error("Fetch gagal");
+    }
+
+    const json = await res.json();
+
+    console.log("DATA DARI API:", json); // ⬅️ WAJIB ADA
+
+    setData(Array.isArray(json) ? json : []);
+  } catch (error) {
+    console.error("Gagal mengambil data:", error);
+    setData([]);
+  }
+};
 
     useEffect(() => {
       fetchKegiatan();
@@ -184,44 +193,47 @@
                   </tr>
                 </thead>
                   <tbody>
-                    {paginatedData.map((item) => (
-                      <tr
-                        key={item.id_kegiatan}
-                        className="border-t hover:bg-gray-50 transition-all"
-                      >
-                        <td className="px-4 py-2 text-gray-600 font-mono">
-                          {item.kode_kegiatan}
-                        </td>
-
-                        <td className="px-4 py-2">
-                          {item.kegiatan}
-                        </td>
-
-                        <td className="px-4 py-2">
-                          <div className="flex justify-end gap-3">
-                            <button
-                              className="text-yellow-500 hover:text-yellow-600"
-                              onClick={() => {
-                                setSelected(item);
-                                setOpenEdit(true);
-                              }}
-                            >
-                              <Pencil size={16} />
-                            </button>
-
-                            <button
-                              className="text-red-600 hover:text-red-700"
-                              onClick={() => {
-                                setSelected(item);
-                                setOpenHapus(true);
-                              }}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
+                    {paginatedData.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="text-center py-4 text-gray-400">
+                          Data belum tersedia
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      paginatedData.map((item) => (
+                        <tr
+                          key={item.id_kegiatan}
+                          className="border-t hover:bg-gray-50 transition-all"
+                        >
+                          <td className="px-4 py-2 text-gray-600 font-mono">
+                            {item.kode_kegiatan}
+                          </td>
+                          <td className="px-4 py-2">{item.kegiatan}</td>
+                          <td className="px-4 py-2">
+                            <div className="flex justify-end gap-3">
+                              <button
+                                className="text-yellow-500"
+                                onClick={() => {
+                                  setSelected(item);
+                                  setOpenEdit(true);
+                                }}
+                              >
+                                <Pencil size={16} />
+                              </button>
+                              <button
+                                className="text-red-600"
+                                onClick={() => {
+                                  setSelected(item);
+                                  setOpenHapus(true);
+                                }}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
               </table>
             </div>

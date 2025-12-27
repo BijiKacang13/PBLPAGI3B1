@@ -39,14 +39,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/form-data', [UserController::class, 'getFormData']);
     Route::apiResource('users', UserController::class);
 
-    // Kegiatan
-    Route::prefix('kegiatan')->group(function () {
-        Route::get('/', [KegiatanController::class, 'index']);
-        Route::post('/', [KegiatanController::class, 'store']);
-        Route::put('/{id}', [KegiatanController::class, 'update']);
-        Route::delete('/{id}', [KegiatanController::class, 'destroy']);
-    });
-
     // Kategori Akun
     Route::prefix('kategori-akun')->group(function () {
         Route::get('/', [KategoriAkunController::class, 'index']);
@@ -189,4 +181,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [BudgetRapbsKegiatanController::class, 'update']);
     });
 });
+    // Kegiatan
+    Route::prefix('kegiatan')->group(function () {
+        Route::get('/', [KegiatanController::class, 'index']);
+        Route::post('/', [KegiatanController::class, 'store']);
+        Route::put('/{id}', [KegiatanController::class, 'update']);
+        Route::delete('/{id}', [KegiatanController::class, 'destroy']);
+    });
 
