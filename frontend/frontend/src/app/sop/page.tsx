@@ -269,7 +269,7 @@ export default function SOPPage() {
         </div>
       )}
 
-      {/* <NavbarBottom /> */}
+      <NavbarBottom />
     </div>
   );
 }

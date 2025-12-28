@@ -18,7 +18,7 @@ export default function BerandaAkuntan() {
 
       {/* Konten utama */}
       <main className="flex flex-col items-center mt-6 px-4">
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm">
+        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-6xl">
           <p className="font-semibold mb-2 text-center">Selamat datang, Akuntan Unit!</p>
           <p className="text-gray-500 text-sm mb-3 text-center">
             Transaksi dalam 30 hari terakhir

@@ -1,176 +1,327 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Home, User, FileText, Activity, PlusSquare, BarChart3, ChevronLeft } from 'lucide-react';
-import NavbarBottom from '@/components/NavbarBottom';
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
+import NavbarBottom from "@/components/NavbarBottom";
+import { useRouter } from "next/navigation";
 
-const AnalisisDataAkuntan = () => {
-  // Data dummy
-  const [summaryData] = useState({
-    pengeluaran: 15750000,
-    pemasukan: 25000000,
-    labaRugi: 9250000
-  });
+/**
+ * =========================
+ * TYPE SCRIPT INTERFACE
+ * =========================
+ */
+interface AnalisisDataResponse {
+  tahun: number;
+  laporan_komprehensif: {
+    pendapatan_dan_sumbangan: number;
+    beban: number;
+    laba_bersih: number;
+  };
+  neraca: {
+    aktiva: number;
+    kewajiban: number;
+    aset_neto: number;
+  };
+}
 
-  const [categoryData] = useState({
-    aset: 5000000,
-    gedung: 3500000,
-    gaji: 4250000,
-    lainnya: 3000000
-  });
+const AnalisisData = () => {
+  const router = useRouter();
 
-  const [bottomSummary] = useState({
-    pemasukan: 25000000,
-    pengeluaran: 15750000
-  });
+  const [data, setData] = useState<AnalisisDataResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Animation state
-  const [isAnimated, setIsAnimated] = useState(false);
+  // ===== HELPER: Get Auth Token =====
+  const getAuthToken = () => {
+    // Sesuaikan dengan cara kamu menyimpan token (localStorage, cookies, etc)
+    return localStorage.getItem("auth_token") || "";
+  };
 
+  /**
+   * =========================
+   * FETCH DATA DARI API
+   * =========================
+   */
   useEffect(() => {
-    // Trigger animation after component mounts
-    const timer = setTimeout(() => {
-      setIsAnimated(true);
-    }, 100);
-    return () => clearTimeout(timer);
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/analisis-data?tahun=2025`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getAuthToken()}`, // <-- token harus valid
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.error("Fetch error:", response.status, await response.text());
+          setLoading(false);
+          return;
+        }
+
+        const result: AnalisisDataResponse = await response.json();
+        setData(result);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
+  /**
+   * =========================
+   * HELPER FORMAT RUPIAH
+   * =========================
+   */
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
     }).format(amount);
-  };
 
-  // Calculate bar height percentage
-  const getBarHeight = (value: number) => {
-    const maxValue = Math.max(...Object.values(categoryData));
-    return (value / maxValue) * 100;
-  };
+    const formatPercentage = (value: number) => {
+      if (!isFinite(value)) return "0%";
+      return `${(value * 100).toFixed(2)}%`;
+    };
+
+    type Interpretasi = {
+      label: string;
+      warna: string;
+    };
+
+    const interpretasiROI = (value: number): Interpretasi => {
+      if (value >= 0.1) return { label: "Baik", warna: "text-green-700" };
+      if (value >= 0) return { label: "Cukup", warna: "text-yellow-700" };
+      return { label: "Kurang", warna: "text-red-700" };
+    };
+
+    const interpretasiROA = (value: number): Interpretasi => {
+      if (value >= 0.05) return { label: "Efektif", warna: "text-green-700" };
+      if (value >= 0) return { label: "Kurang Efektif", warna: "text-yellow-700" };
+      return { label: "Tidak Efektif", warna: "text-red-700" };
+    };
+
+    const interpretasiDAR = (value: number): Interpretasi => {
+      if (value <= 0.5) return { label: "Sehat", warna: "text-green-700" };
+      if (value <= 0.7) return { label: "Cukup Sehat", warna: "text-yellow-700" };
+      return { label: "Berisiko", warna: "text-red-700" };
+    };
+
+    const interpretasiDER = (value: number): Interpretasi => {
+      if (value <= 1) return { label: "Aman", warna: "text-green-700" };
+      if (value <= 2) return { label: "Perlu Perhatian", warna: "text-yellow-700" };
+      return { label: "Berisiko Tinggi", warna: "text-red-700" };
+    };
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">
+        Memuat data analisis...
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm text-red-500">
+        Data analisis tidak tersedia
+      </div>
+    );
+  }
+
+  const roi =
+    data.laporan_komprehensif.laba_bersih /
+    data.laporan_komprehensif.pendapatan_dan_sumbangan;
+
+  const roa =
+    data.laporan_komprehensif.laba_bersih /
+    data.neraca.aktiva;
+
+  const dar =
+    data.neraca.kewajiban /
+    data.neraca.aktiva;
+
+  const der =
+    data.neraca.kewajiban /
+    data.neraca.aset_neto;
+
+  const roiResult = interpretasiROI(roi);
+  const roaResult = interpretasiROA(roa);
+  const darResult = interpretasiDAR(dar);
+  const derResult = interpretasiDER(der);
 
   return (
     <div className="min-h-screen bg-white pb-24">
       <Navbar />
-      
 
- {/* Main Content */}
-      <div className="px-3 py-3 space-y-3 max-w-2xl mx-auto w-full">
-        {/* Summary Cards */}
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          {/* Title */}
-          <h1 className="text-sm font-bold text-gray-900 text-center mb-4 tracking-wide uppercase">ANALISIS DATA</h1>
-          
-          <div className="grid grid-cols-3 gap-2 mb-2.5">
-            <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
-              <div className="text-[9px] text-gray-500 mb-1.5 leading-tight font-medium">Jumlah Pengeluaran</div>
-              <div className="text-[10px] font-bold text-blue-900 leading-tight break-words">Rp 15.750.000</div>
+      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
+        <div className="px-3 py-3 space-y-4 max-w-7xl mx-auto w-full">
+          {/* HEADER */}
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 text-gray-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+
+            <h1 className="flex-1 text-lg font-bold text-gray-800 text-center sm:text-start">
+              ANALISIS DATA
+            </h1>
+
+            <div className="w-10 h-10" />
+          </div>
+
+          {/* RINGKASAN LAPORAN */}
+          <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4">
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
+                <div className="text-[12px] text-gray-500 font-medium mb-1">
+                  Total Beban
+                </div>
+                <div className="text-xs font-bold text-blue-900">
+                  {formatCurrency(data.laporan_komprehensif.beban)}
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
+                <div className="text-[12px] text-gray-500 font-medium mb-1">
+                  Total Pendapatan
+                </div>
+                <div className="text-xs font-bold text-blue-900">
+                  {formatCurrency(
+                    data.laporan_komprehensif.pendapatan_dan_sumbangan
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
+                <div className="text-[12px] text-gray-500 font-medium mb-1">
+                  Laba Bersih
+                </div>
+                <div className="text-xs font-bold text-blue-900">
+                  {formatCurrency(data.laporan_komprehensif.laba_bersih)}
+                </div>
+              </div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
-              <div className="text-[9px] text-gray-500 mb-1.5 leading-tight font-medium">Jumlah Pemasukan</div>
-              <div className="text-[10px] font-bold text-blue-900 leading-tight break-words">Rp 25.000.000</div>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-2 border border-blue-100">
-              <div className="text-[9px] text-gray-500 mb-1.5 leading-tight font-medium whitespace-nowrap overflow-hidden text-ellipsis">Jumlah Laba Rugi</div>
-              <div className="text-[10px] font-bold text-blue-900 leading-tight break-words">Rp 9.250.000</div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+                <div className="text-xs font-bold text-gray-900">
+                  {formatCurrency(data.neraca.aktiva)}
+                </div>
+                <div className="text-[12px] text-gray-500 mt-0.5">
+                  Total Aktiva
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+                <div className="text-xs font-bold text-gray-900">
+                  {formatCurrency(data.neraca.kewajiban)}
+                </div>
+                <div className="text-[12px] text-gray-500 mt-0.5">
+                  Total Kewajiban
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
+                <div className="text-xs font-bold text-gray-900">
+                  {formatCurrency(data.neraca.aset_neto)}
+                </div>
+                <div className="text-[12px] text-gray-500 mt-0.5">
+                  Aset Neto
+                </div>
+              </div>
             </div>
           </div>
-          {/* Bottom Summary */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-blue-50 rounded-lg p-2.5 border border-blue-100">
-              <div className="text-xs font-bold text-blue-900 break-words">Rp 25.000.000</div>
-              <div className="text-[9px] text-gray-500 mt-0.5 font-medium">Pemasukan</div>
+
+          {/* RASIO KEUANGAN */}
+          <div className="bg-white border border-gray-100 shadow-sm rounded-xl p-4">
+            <h2 className="text-sm font-bold text-gray-800 mb-3">
+              Rasio Keuangan & Interpretasi
+            </h2>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                <div className="text-[12px] text-gray-600 font-medium">
+                  ROI (Return on Investment)
+                </div>
+                <div className="text-sm font-bold text-green-800">
+                  {formatPercentage(roi)}
+                </div>
+                <div className={`text-[12px] font-semibold ${roiResult.warna}`}>
+                  {roiResult.label}
+                </div>
+              </div>
+
+              <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                <div className="text-[12px] text-gray-600 font-medium">
+                  ROA (Return on Asset)
+                </div>
+                <div className="text-sm font-bold text-green-800">
+                  {formatPercentage(roa)}
+                </div>
+                <div className={`text-[12px] font-semibold ${roaResult.warna}`}>
+                  {roaResult.label}
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
+                <div className="text-[12px] text-gray-600 font-medium">
+                  DAR (Debt to Asset Ratio)
+                </div>
+                <div className="text-sm font-bold text-yellow-800">
+                  {formatPercentage(dar)}
+                </div>
+                <div className={`text-[12px] font-semibold ${darResult.warna}`}>
+                  {darResult.label}
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
+                <div className="text-[12px] text-gray-600 font-medium">
+                  DER (Debt to Equity Ratio)
+                </div>
+                <div className="text-sm font-bold text-yellow-800">
+                  {formatPercentage(der)}
+                </div>
+                <div className={`text-[12px] font-semibold ${derResult.warna}`}>
+                  {derResult.label}
+                </div>
+              </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-200">
-              <div className="text-xs font-bold text-gray-900 break-words">Rp 15.750.000</div>
-              <div className="text-[9px] text-gray-500 mt-0.5 font-medium">Pengeluaran</div>
-            </div>
+          </div>
+
+
+          {/* FOOTER */}
+          <div className="text-center text-[12px] text-gray-400 italic pt-2">
+            Sistem Informasi Akuntansi Yayasan
+            <br />
+            Darussalam Batam | {data.tahun}
           </div>
         </div>
+      </main>
 
-        {/* Chart Section */}
-        <div className="bg-white rounded-xl p-3 border border-gray-100">
-          <h2 className="text-xs font-bold text-gray-900 mb-3 leading-tight">Pengeluaran<br/>Setiap Kategori</h2>
-          
-          {/* Bar Chart */}
-          <div className="flex items-end justify-between gap-1.5 sm:gap-2 mb-2.5" style={{ height: '180px' }}>
-            {/* ASET */}
-            <div className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
-              <div className="text-[9px] font-bold text-gray-700 mb-1 text-center leading-tight w-full px-0.5">Rp 5.0 jt</div>
-              <div 
-                className="w-full bg-gradient-to-t from-blue-300 via-blue-200 to-blue-100 rounded-t-md shadow-sm" 
-                style={{ 
-                  height: isAnimated ? `${getBarHeight(categoryData.aset)}%` : '0%',
-                  minHeight: isAnimated ? '30px' : '0px',
-                  transition: 'height 1s ease-out, min-height 1s ease-out'
-                }}
-              ></div>
-            </div>
-
-            {/* GEDUNG */}
-            <div className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
-              <div className="text-[9px] font-bold text-gray-700 mb-1 text-center leading-tight w-full px-0.5">Rp 3.5 jt</div>
-              <div 
-                className="w-full bg-gradient-to-t from-blue-300 via-blue-200 to-blue-100 rounded-t-md shadow-sm" 
-                style={{ 
-                  height: isAnimated ? `${getBarHeight(categoryData.gedung)}%` : '0%',
-                  minHeight: isAnimated ? '30px' : '0px',
-                  transition: 'height 1.2s ease-out 0.1s, min-height 1.2s ease-out 0.1s'
-                }}
-              ></div>
-            </div>
-
-            {/* GAJI */}
-            <div className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
-              <div className="text-[9px] font-bold text-gray-700 mb-1 text-center leading-tight w-full px-0.5">Rp 4.3 jt</div>
-              <div 
-                className="w-full bg-gradient-to-t from-blue-300 via-blue-200 to-blue-100 rounded-t-md shadow-sm" 
-                style={{ 
-                  height: isAnimated ? `${getBarHeight(categoryData.gaji)}%` : '0%',
-                  minHeight: isAnimated ? '30px' : '0px',
-                  transition: 'height 1.4s ease-out 0.2s, min-height 1.4s ease-out 0.2s'
-                }}
-              ></div>
-            </div>
-
-            {/* LAINNYA */}
-            <div className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
-              <div className="text-[9px] font-bold text-blue-700 mb-1 text-center leading-tight w-full px-0.5">Rp 3.0 jt</div>
-              <div 
-                className="w-full bg-gradient-to-t from-blue-600 via-blue-500 to-blue-400 rounded-t-md shadow-sm" 
-                style={{ 
-                  height: isAnimated ? `${getBarHeight(categoryData.lainnya)}%` : '0%',
-                  minHeight: isAnimated ? '30px' : '0px',
-                  transition: 'height 1.6s ease-out 0.3s, min-height 1.6s ease-out 0.3s'
-                }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Labels */}
-          <div className="flex justify-between gap-1.5 sm:gap-2 pt-1 border-t border-gray-100">
-            <div className="flex-1 text-center text-[9px] font-semibold text-gray-600 uppercase tracking-wide min-w-0">ASET</div>
-            <div className="flex-1 text-center text-[9px] font-semibold text-gray-600 uppercase tracking-wide min-w-0">GEDUNG</div>
-            <div className="flex-1 text-center text-[9px] font-semibold text-gray-600 uppercase tracking-wide min-w-0">GAJI</div>
-            <div className="flex-1 text-center text-[9px] font-semibold text-blue-700 uppercase tracking-wide min-w-0">LAINNYA</div>
-          </div>
-        </div>
-
-        {/* Footer Text */}
-        <div className="text-center text-[9px] text-gray-400 italic pt-2 pb-1">
-          Sistem Informasi Akuntansi Yayasan<br/>
-          Darussalam Batam | 2025
-        </div>
-      </div>
-
-        <NavbarBottom />
+      <NavbarBottom />
     </div>
   );
 };
 
-export default AnalisisDataAkuntan;
-
-
+export default AnalisisData;
