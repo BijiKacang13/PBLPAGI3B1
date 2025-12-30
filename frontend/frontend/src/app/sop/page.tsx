@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import { useRouter } from "next/navigation";
@@ -27,27 +28,38 @@ export default function SOPPage() {
   };
 
   // Handler untuk hapus SOP
-  const handleDeleteSOP = (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus SOP ini?")) {
+  const handleDeleteSOP = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus SOP ini?")) return;
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sop/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+      },
+    });
+
+    const result = await res.json();
+
+    if (res.ok && result.success) {
       setSopList(sopList.filter((sop) => sop.id !== id));
+    } else {
+      alert("Gagal menghapus SOP");
     }
   };
 
+
   // Handler untuk download file
-  const handleDownloadFile = (file: File | null, fileName: string) => {
-    if (!file) {
-      alert("Tidak ada file untuk diunduh");
+  const handleDownloadFile = (filePath: string | null, fileName: string) => {
+    if (!filePath) {
+      alert("File tidak tersedia");
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+    const BASE_URL = API_URL.replace("/api", "");
+
+    const url = `${BASE_URL}/storage/${filePath}`;
+    window.open(url, "_blank");
   };
 
   // Filter SOP berdasarkan search query
@@ -57,14 +69,40 @@ export default function SOPPage() {
   );
 
   // Format tanggal
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string) => {
     return new Intl.DateTimeFormat("id-ID", {
       day: "2-digit",
       month: "long",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(date);
+    }).format(new Date(date));
+  };
+
+  useEffect(() => {
+    fetchSOP();
+  }, []);
+
+  const fetchSOP = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sop`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+      },
+    });
+
+    const result = await res.json();
+
+    if (res.ok && result.success) {
+      const mapped = result.data.map((item: any) => ({
+        id: item.id_sop,
+        keterangan: item.keterangan,
+        file: item.file,
+        fileName: item.file?.split("/").pop() || "",
+        createdAt: item.created_at,
+      }));
+
+      setSopList(mapped);
+    }
   };
 
   return (
@@ -199,7 +237,7 @@ export default function SOPPage() {
                             {sop.fileName}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {(sop.file.size / 1024).toFixed(2)} KB
+                            File SOP
                           </p>
                         </div>
                       </div>

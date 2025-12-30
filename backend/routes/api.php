@@ -9,8 +9,8 @@ use App\Http\Controllers\Api\SubKategoriAkunController;
 use App\Http\Controllers\Api\AkunController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\BudgetRapbsAkunController;
-use App\Http\Controllers\API\InputTransaksiController;
-use App\Http\Controllers\API\JurnalUmumController;
+use App\Http\Controllers\Api\InputTransaksiController;
+use App\Http\Controllers\Api\JurnalUmumController;
 use App\Http\Controllers\Api\BukuBesarController;
 use App\Http\Controllers\Api\LaporanKomprehensifController;
 use App\Http\Controllers\Api\NeracaSaldoController;
@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\AkuntanUnitController;
 use App\Http\Controllers\Api\PRRAController;
 use App\Http\Controllers\Api\ArusKasController;
 use App\Http\Controllers\Api\CalkController;
+use App\Http\Controllers\Api\SopController;
 use App\Http\Controllers\Api\LogActivityController;
 use App\Http\Controllers\Api\BudgetRapbsKegiatanController;
 use App\Http\Controllers\Api\AnalisisDataController;
@@ -165,6 +166,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //Log Aktivitas
     Route::get('/log-aktivitas', [LogActivityController::class, 'index']);
+
+    // SOP
+    Route::prefix('sop')->group(function () {
+        Route::get('/', [SopController::class, 'index']);
+        Route::post('/', [SopController::class, 'store']);
+        Route::put('/{id}', [SopController::class, 'update']);
+        Route::delete('/{id}', [SopController::class, 'destroy']);
+        Route::post('/sort', [SopController::class, 'sort']);
+    });
 
     // Analisis Data Keuangan
     Route::get('/analisis-data', [AnalisisDataController::class, 'index']);
