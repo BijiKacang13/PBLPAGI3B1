@@ -10,9 +10,9 @@ interface TambahSOPFormProps {
 export interface SOPData {
   id: string;
   keterangan: string;
-  file: File | null;
+  file: string | null;
   fileName: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export default function TambahSOPForm({ onClose, onSubmit }: TambahSOPFormProps) {
@@ -52,24 +52,47 @@ export default function TambahSOPForm({ onClose, onSubmit }: TambahSOPFormProps)
     onClose();
   };
 
-  // Handler untuk tombol Simpan
-  const handleSimpan = () => {
-    if (!keterangan.trim()) {
-      alert("Keterangan tidak boleh kosong!");
-      return;
-    }
+  // Handler untuk tombol Simpan    
+  const handleSimpan = async () => {
+      if (!keterangan.trim()) {
+        alert("Keterangan tidak boleh kosong!");
+        return;
+      }
 
-    const newSOP: SOPData = {
-      id: Date.now().toString(),
-      keterangan: keterangan.trim(),
-      file: file,
-      fileName: fileName,
-      createdAt: new Date(),
+      if (!file) {
+        alert("File wajib diunggah!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("keterangan", keterangan.trim());
+      formData.append("file", file);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sop`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+        },
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        alert("Gagal menyimpan SOP");
+        return;
+      }
+
+      onSubmit({
+        id: result.data.id_sop,
+        keterangan: result.data.keterangan,
+        file: result.data.file,
+        fileName: result.data.file.split("/").pop(),
+        createdAt: result.data.created_at,
+      });
+
+      handleBatal();
     };
-
-    onSubmit(newSOP);
-    handleBatal(); // Reset form dan tutup modal
-  };
 
   return (
     <div className="p-6 space-y-6">

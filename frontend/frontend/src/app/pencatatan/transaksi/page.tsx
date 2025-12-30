@@ -6,9 +6,97 @@ import NavbarBottom from "@/components/NavbarBottom";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+/**
+ * =========================
+ * IMPORT EXCEL INTERFACE
+ * =========================
+ */
+
+/** Response sukses import Excel */
+interface ImportExcelSuccessResponse {
+  success: true;
+  message: string;
+}
+
+/** Response validasi gagal (422) */
+interface ImportExcelValidationError {
+  success: false;
+  message: string;
+  errors: {
+    file_excel?: string[];
+  };
+}
+
+/** Response error umum (500) */
+interface ImportExcelServerError {
+  success: false;
+  message: string;
+  error?: string;
+}
+
+/** Union type response Import Excel */
+type ImportExcelResponse =
+  | ImportExcelSuccessResponse
+  | ImportExcelValidationError
+  | ImportExcelServerError;
+
+
 export default function Akun() {
   const [openModal, setOpenModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState("Tidak ada file");
+  const [loadingImport, setLoadingImport] = useState(false);
   const router = useRouter();
+
+  const handleImportExcel = async () => {
+    if (!selectedFile) {
+      alert("Silakan pilih file Excel terlebih dahulu");
+      return;
+    }
+
+    try {
+      setLoadingImport(true);
+
+      const formData = new FormData();
+      // HARUS sama dengan Laravel
+      formData.append("file_excel", selectedFile);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/input-transaksi/import`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            // JANGAN set Content-Type manual untuk FormData
+          },
+          body: formData,
+        }
+      );
+
+      const result: ImportExcelResponse = await response.json();
+
+      if (!response.ok || !result.success) {
+        if ("errors" in result) {
+          alert(result.errors.file_excel?.[0] ?? "Validasi gagal");
+        } else {
+          alert(result.message);
+        }
+        return;
+      }
+
+      alert(result.message);
+
+      // Reset setelah sukses
+      setSelectedFile(null);
+      setFileName("Tidak ada file");
+
+    } catch (error) {
+      console.error("Import Excel error:", error);
+      alert("Terjadi kesalahan saat import Excel");
+    } finally {
+      setLoadingImport(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20 relative">
@@ -56,21 +144,38 @@ export default function Akun() {
           <label className="w-28 bg-gray-200 text-gray-700 px-1 py-2 rounded-xl 
             text-sm font-medium cursor-pointer hover:bg-gray-300 transition text-center whitespace-nowrap">
             Pilih File
-            <input type="file" className="hidden" />
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setSelectedFile(file);
+                  setFileName(file.name);
+                }
+              }}
+            />
           </label>
 
           {/* FILE NAME */}
           <input
             type="text"
-            value="Tidak ada file"
+            value={fileName}
             readOnly
             className="flex-1 border border-gray-300 rounded-xl px-3 py-2 
               text-xs text-gray-500 outline-none bg-gray-50"
           />
 
           {/* IMPORT BUTTON */}
-          <button className="bg-blue-200 text-gray-800 px-4 py-2 rounded-xl text-xs md:text-sm font-medium hover:bg-blue-400 transition w-full md:w-auto">
-            Import Excel
+          <button
+            onClick={handleImportExcel}
+            disabled={loadingImport}
+            className="bg-blue-200 text-gray-800 px-4 py-2 rounded-xl 
+              text-xs md:text-sm font-medium hover:bg-blue-400 transition 
+              w-full md:w-auto disabled:opacity-50"
+          >
+            {loadingImport ? "Mengimpor..." : "Import Excel"}
           </button>
         </div>
 
