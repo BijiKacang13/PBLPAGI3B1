@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Akun;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class AkunController extends Controller
 {
@@ -45,6 +47,8 @@ class AkunController extends Controller
     // =========================================================
     public function store(Request $request)
     {
+        DB::statement('SET @current_user_id = ?', [auth()->id()]);
+
         $request->merge([
             'saldo_awal_debit'  => str_replace('.', '', $request->saldo_awal_debit),
             'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit),
@@ -72,6 +76,8 @@ class AkunController extends Controller
     // =========================================================
     public function update(Request $request, $id)
     {
+        DB::statement('SET @current_user_id = ?', [auth()->id()]);
+
         $request->merge([
             'saldo_awal_debit'  => str_replace('.', '', $request->saldo_awal_debit),
             'saldo_awal_kredit' => str_replace('.', '', $request->saldo_awal_kredit),
@@ -100,6 +106,8 @@ class AkunController extends Controller
     // =========================================================
     public function destroy($id)
     {
+        DB::statement('SET @current_user_id = ?', [auth()->id()]);
+        
         $akun = Akun::findOrFail($id);
         $akun->delete();
 

@@ -43,6 +43,8 @@ class BudgetRapbsKegiatanController extends Controller
     // =========================
     public function storeOrUpdate(Request $request)
     {
+        DB::statement('SET @current_user_id = ?', [auth()->id()]);
+
         $validated = $request->validate([
             'id_kegiatan' => 'required|integer',
             'id_unit' => 'required|integer',

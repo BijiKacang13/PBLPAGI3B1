@@ -15,7 +15,7 @@ class BudgetRapbsAkunController extends Controller
     {
         $search  = trim($request->input('search', ''));
         $id_unit = $request->input('unit', 'all');
-    
+
         $query = Akun::select(
             'akun.id_akun',
             'akun.kode_akun',
@@ -40,37 +40,34 @@ class BudgetRapbsAkunController extends Controller
             }
         })
         ->orderBy('akun.kode_akun', 'ASC');
-    
-        // Grouping khusus untuk ALL unit
+
         if ($id_unit === 'all') {
             $query->groupBy('akun.id_akun', 'akun.kode_akun', 'akun.akun');
         }
-    
-        // SEARCH
+
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('akun.kode_akun', 'like', "%$search%")
                   ->orWhere('akun.akun', 'like', "%$search%");
             });
         }
-    
-        // 🔥 NO PAGINATION — return all data
-        $data = $query->get();
-    
-        return response()->json($data);
+
+        return response()->json($query->get());
     }
 
     // =========================
-    // CREATE/UPDATE BUDGET
+    // CREATE / UPDATE BUDGET
     // =========================
     public function storeOrUpdate(Request $request)
     {
+        DB::statement('SET @current_user_id = ?', [auth()->id()]);
+    
         $validated = $request->validate([
             'id_akun' => 'required|integer',
             'id_unit' => 'required|integer',
             'budget_rapbs_akun' => 'required|numeric',
         ]);
-
+    
         Budget_Rapbs_Akun::updateOrCreate(
             [
                 'id_akun' => $validated['id_akun'],
@@ -80,13 +77,12 @@ class BudgetRapbsAkunController extends Controller
                 'budget_rapbs_akun' => $validated['budget_rapbs_akun'],
             ]
         );
-
+    
         return response()->json(['message' => 'Berhasil disimpan']);
     }
 
-
     // =========================
-    // IMPORT EXCEL (NO AUTH)
+    // IMPORT EXCEL
     // =========================
     public function importExcel(Request $request)
     {
@@ -94,8 +90,7 @@ class BudgetRapbsAkunController extends Controller
             'file' => 'required|mimes:xlsx,xls',
         ]);
 
-        $file = $request->file('file');
-        $spreadsheet = IOFactory::load($file->getRealPath());
+        $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
         $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
         try {
@@ -104,16 +99,16 @@ class BudgetRapbsAkunController extends Controller
                     if ($index === 1) continue;
 
                     $kode_akun = trim($row['A']);
-                    $budget = (float) str_replace(',', '', $row['C']);
+                    $budget    = (float) str_replace(',', '', $row['C']);
                     $kode_unit = trim($row['D']);
 
                     $id_akun = DB::table('akun')
-                                ->where('kode_akun', $kode_akun)
-                                ->value('id_akun');
+                        ->where('kode_akun', $kode_akun)
+                        ->value('id_akun');
 
                     $id_unit = DB::table('unit')
-                                ->where('kode_unit', $kode_unit)
-                                ->value('id_unit');
+                        ->where('kode_unit', $kode_unit)
+                        ->value('id_unit');
 
                     if (!$id_akun || !$id_unit) continue;
 
@@ -123,7 +118,8 @@ class BudgetRapbsAkunController extends Controller
                             'id_unit' => $id_unit,
                         ],
                         [
-                            'budget_rapbs_akun' => $budget
+                            'budget_rapbs_akun' => $budget,
+                            'id_user' => auth()->id(), // ✅ WAJIB JUGA
                         ]
                     );
                 }

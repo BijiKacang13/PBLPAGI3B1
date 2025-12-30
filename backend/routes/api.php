@@ -168,11 +168,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Analisis Data Keuangan
     Route::get('/analisis-data', [AnalisisDataController::class, 'index']);
-    
+   
+    Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
+    Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
+    Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
 });
-Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
-Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
-Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('budget-rapbs-kegiatan')->group(function () {
