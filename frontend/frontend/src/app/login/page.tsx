@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SuccessAlert from "@/components/SuccessAlert";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { isOnline, wasOffline } = useOnlineStatus();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -87,61 +89,61 @@ export default function LoginScreen() {
     }
   };
 
-// app/login/page.tsx - Update handleLogin function
+  // app/login/page.tsx - Update handleLogin function
 
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError("");
-  setIsLoading(true);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-  if (!username.trim() || !password.trim()) {
-    setError("Username dan password harus diisi");
-    setIsLoading(false);
-    return;
-  }
+    if (!username.trim() || !password.trim()) {
+      setError("Username dan password harus diisi");
+      setIsLoading(false);
+      return;
+    }
 
-  try {
-    console.log("Attempting login to:", `${process.env.NEXT_PUBLIC_API_URL}/login`);
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify({
-        username: username.trim(),
-        password: password,
-        remember: rememberMe,
-      }),
-    });
+    try {
+      console.log("Attempting login to:", `${process.env.NEXT_PUBLIC_API_URL}/login`);
 
-    console.log("Response status:", response.status);
-    
-    const data = await response.json();
-    console.log("Response data:", data);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          password: password,
+          remember: rememberMe,
+        }),
+      });
 
-    if (response.ok && data.success) {
-      localStorage.setItem("auth_token", data.data.token);
-      localStorage.setItem("user_data", JSON.stringify(data.data.user));
-      localStorage.setItem("user_role", data.data.user.role);
+      console.log("Response status:", response.status);
 
-      setShowSuccess(true);
+      const data = await response.json();
+      console.log("Response data:", data);
 
-      setTimeout(() => {
-        setShowSuccess(false);
-        redirectToDashboard(data.data.user.role);
-      }, 2000);
-    } else {
-      setError(data.message || "Login gagal. Silakan coba lagi.");
+      if (response.ok && data.success) {
+        localStorage.setItem("auth_token", data.data.token);
+        localStorage.setItem("user_data", JSON.stringify(data.data.user));
+        localStorage.setItem("user_role", data.data.user.role);
+
+        setShowSuccess(true);
+
+        setTimeout(() => {
+          setShowSuccess(false);
+          redirectToDashboard(data.data.user.role);
+        }, 2000);
+      } else {
+        setError(data.message || "Login gagal. Silakan coba lagi.");
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Terjadi kesalahan koneksi. Periksa koneksi internet Anda atau URL API.");
       setIsLoading(false);
     }
-  } catch (error) {
-    console.error("Login error:", error);
-    setError("Terjadi kesalahan koneksi. Periksa koneksi internet Anda atau URL API.");
-    setIsLoading(false);
-  }
-};
+  };
   return (
     <div
       className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#E9F0FF] overflow-y-auto relative"
@@ -159,10 +161,10 @@ const handleLogin = async (e: React.FormEvent) => {
             alt="Logo Yayasan"
             className="w-16 h-16 sm:w-18 sm:h-18 md:w-[85px] md:h-[85px] object-contain"
           />
-          
+
           {/* Divider */}
           <div className="w-[3px] h-8 sm:h-10 bg-[#1A3E85]"></div>
-          
+
           {/* Text SIA + Yayasan Darussalam */}
           <div className="flex items-center gap-1.5 sm:gap-2">
             <h1 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-[#1A3E85] leading-none">
@@ -177,7 +179,7 @@ const handleLogin = async (e: React.FormEvent) => {
               </p>
             </div>
           </div>
-      </div>  
+        </div>
 
         {/* Subjudul */}
         <p className="text-gray-400 text-sm mb-8 -mt-6">
@@ -185,7 +187,7 @@ const handleLogin = async (e: React.FormEvent) => {
         </p>
 
         {/* Error Alert */}
-        {error && (
+        {error && isOnline && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-600">{error}</p>
           </div>
@@ -198,31 +200,43 @@ const handleLogin = async (e: React.FormEvent) => {
             placeholder="Nama Pengguna"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#1A3E85] placeholder-gray-500 text-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            disabled={isLoading || !isOnline}
+            className={`w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 placeholder-gray-500 text-gray-700 disabled:cursor-not-allowed transition-colors
+              ${!isOnline
+                ? 'border-gray-200 bg-gray-100 text-gray-400'
+                : 'border-gray-300 focus:ring-[#1A3E85] disabled:bg-gray-100'
+              }`}
           />
           <input
             type="password"
             placeholder="Kata Sandi"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#1A3E85] placeholder-gray-500 text-gray-700 disabled:bg-gray-100 disabled:cursor-not-allowed"
+            disabled={isLoading || !isOnline}
+            className={`w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 placeholder-gray-500 text-gray-700 disabled:cursor-not-allowed transition-colors
+              ${!isOnline
+                ? 'border-gray-200 bg-gray-100 text-gray-400'
+                : 'border-gray-300 focus:ring-[#1A3E85] disabled:bg-gray-100'
+              }`}
           />
-          <label className="flex items-center gap-2 text-sm text-gray-600">
+          <label className={`flex items-center gap-2 text-sm ${!isOnline ? 'text-gray-400' : 'text-gray-600'}`}>
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={() => setRememberMe(!rememberMe)}
-              disabled={isLoading}
+              disabled={isLoading || !isOnline}
               className="accent-[#1A3E85] disabled:cursor-not-allowed"
             />
             Ingat saya
           </label>
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full bg-[#004CDF] text-white py-2 rounded-full font-semibold shadow-md hover:bg-[#1A3E85] transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
+            disabled={isLoading || !isOnline}
+            className={`w-full py-2 rounded-full font-semibold shadow-md transition flex items-center justify-center
+              ${!isOnline
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-[#004CDF] text-white hover:bg-[#1A3E85] disabled:bg-gray-400 disabled:cursor-not-allowed'
+              }`}
           >
             {isLoading ? (
               <>
@@ -252,6 +266,30 @@ const handleLogin = async (e: React.FormEvent) => {
               "Masuk"
             )}
           </button>
+
+          {/* Pesan Offline di bawah tombol Masuk */}
+          {!isOnline && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+              <div className="flex items-center justify-center gap-2">
+                <svg
+                  className="w-5 h-5 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-red-600">
+                  Koneksi anda terputus, hubungkan ulang
+                </span>
+              </div>
+            </div>
+          )}
         </form>
       </div>
 
