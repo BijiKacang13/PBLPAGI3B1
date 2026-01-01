@@ -66,6 +66,77 @@ export default function SidebarHover() {
       ];
     }
   };
+  // Mapping child routes ke parent menu
+  const childRouteMapping: Record<string, string[]> = {
+    // RAPBS menu (untuk akuntan_unit) - include semua halaman RAPBS
+    "/akuntan/rapbs": [
+      "/keuangan/RapbsAkun",
+      "/kegiatan/RapbsKegiatan",
+      "/keuangan",
+    ],
+    // Pencatatan menu
+    "/pencatatan": [
+      "/pencatatan/jurnal",
+      "/pencatatan/buku-besar",
+      "/pencatatan/transaksi",
+    ],
+    // Laporan menu
+    "/laporan": [
+      "/laporan/komprehensif",
+      "/laporan/posisi-keuangan",
+      "/laporan/arus-kas",
+      "/laporan/perubahan-aset-neto",
+      "/laporan/calk",
+      "/laporan/prra",
+    ],
+    // Keuangan menu (untuk admin)
+    "/keuangan": [
+      "/keuangan/RapbsAkun",
+      "/keuangan/kategori",
+      "/keuangan/sub-kategori",
+      "/keuangan/akun",
+    ],
+    // Akun menu
+    "/akun": [
+      "/akun/akuntan",
+      "/akun/auditor",
+      "/akun/tambah",
+    ],
+    // Kegiatan menu (untuk admin)
+    "/kegiatan": [
+      "/kegiatan/RapbsKegiatan",
+      "/kegiatan/data-kegiatan",
+    ],
+  };
+
+  // Fungsi untuk mengecek apakah menu aktif
+  const isMenuActive = (menuPath: string): boolean => {
+    const currentPath = pathname.toLowerCase();
+    const targetPath = menuPath.toLowerCase();
+
+
+    // Direct match
+    if (currentPath === targetPath) return true;
+
+    // Child route match (startsWith)
+    if (currentPath.startsWith(targetPath + "/")) return true;
+
+    // Check mapped child routes
+    const childRoutes = childRouteMapping[menuPath];
+
+    if (childRoutes) {
+      for (const childRoute of childRoutes) {
+        const childRouteLower = childRoute.toLowerCase();
+        if (currentPath === childRouteLower ||
+          currentPath.startsWith(childRouteLower + "/") ||
+          currentPath.startsWith(childRouteLower)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
 
   const menus = getMenus();
 
@@ -93,9 +164,8 @@ export default function SidebarHover() {
 
   return (
     <aside
-      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm transition-all duration-300 ease-out ${
-        expanded ? "w-64" : "w-20"
-      } flex flex-col`}
+      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm transition-all duration-300 ease-out ${expanded ? "w-64" : "w-20"
+        } flex flex-col`}
     >
 
       {/* Navigation */}
@@ -111,28 +181,25 @@ export default function SidebarHover() {
         )}
         <ul className="space-y-2">
           {menus.map((item) => {
-            const isActive =
-              pathname === item.path || pathname.startsWith(item.path + "/");
+            const isActive = isMenuActive(item.path);
             return (
               <li key={item.name} className="relative">
                 <Link
                   href={item.path}
-                  className={`group relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 ${
-                    isActive
-                      ? "bg-blue-100 text-blue-800 shadow-lg shadow-blue-500/30"
-                      : "text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-md"
-                  }`}
+                  className={`group relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 ${isActive
+                    ? "bg-blue-100 text-blue-800 shadow-lg shadow-blue-500/30"
+                    : "text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-md"
+                    }`}
                 >
                   {isActive && (
                     <div className="absolute inset-0 rounded-xl bg-white opacity-10" />
                   )}
-                  
+
                   <div
-                    className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
-                      isActive
-                        ? "bg-white/60 text-blue-800"
-                        : "bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600"
-                    }`}
+                    className={`relative flex h-9 w-9 items-center justify-center rounded-lg transition-all ${isActive
+                      ? "bg-white/60 text-blue-800"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600"
+                      }`}
                   >
                     {item.icon}
                   </div>

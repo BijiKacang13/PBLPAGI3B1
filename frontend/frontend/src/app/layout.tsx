@@ -50,13 +50,13 @@ export default function RootLayout({
         <OfflineProvider>
           {/* Sidebar hanya di layar besar dan bukan halaman auth */}
           {!isAuthPage && (
-            <aside className="hidden md:block w-64 bg-gray-50 border-lr shadow-sm">
+            <div className="hidden md:block">
               <Sidebar />
-            </aside>
+            </div>
           )}
 
-          {/* Konten utama */}
-          <main className={`flex-1 relative ${!isAuthPage ? 'pb-20 md:pb-0 pt-[90px]' : ''}`}>{children}</main>
+          {/* Konten utama dengan margin-left untuk sidebar di desktop */}
+          <main className={`flex-1 relative ${!isAuthPage ? 'pb-20 md:pb-0 pt-[90px] md:ml-20 lg:ml-64 transition-all duration-300' : ''}`}>{children}</main>
 
           {/* Navbar Bottom hanya muncul di mobile DAN hanya jika sudah login */}
           {showNavbarBottom && (

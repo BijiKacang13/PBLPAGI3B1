@@ -78,7 +78,7 @@ export default function RapbsKegiatanPage() {
       <Navbar />
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
+      <main className="flex-1 w-full px-4 py-6 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
           <div className="flex items-center gap-3 mb-2">
             <button

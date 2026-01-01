@@ -115,7 +115,7 @@ export default function RapbsAkunPage() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
+      <main className="flex-1 w-full px-4 py-6 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
           {/* TITLE */}
           <div className="flex items-center gap-3 mb-2">
@@ -215,9 +215,8 @@ export default function RapbsAkunPage() {
                       setPage(1);
                       setShowDropdown(false);
                     }}
-                    className={`px-4 py-2 cursor-pointer ${
-                      limit === value ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
-                    }`}
+                    className={`px-4 py-2 cursor-pointer ${limit === value ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
+                      }`}
                   >
                     {value} Data
                   </div>
@@ -287,11 +286,10 @@ export default function RapbsAkunPage() {
             <button
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className={`px-3 py-1 rounded-lg text-sm ${
-                page === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
-              }`}
+              className={`px-3 py-1 rounded-lg text-sm ${page === 1
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-blue-200 text-gray-800 hover:bg-blue-400"
+                }`}
             >
               Sebelumnya
             </button>
@@ -303,11 +301,10 @@ export default function RapbsAkunPage() {
             <button
               onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
               disabled={page === totalPages}
-              className={`px-3 py-1 rounded-lg text-sm ${
-                page === totalPages
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
-              }`}
+              className={`px-3 py-1 rounded-lg text-sm ${page === totalPages
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-blue-200 text-gray-800 hover:bg-blue-400"
+                }`}
             >
               Selanjutnya
             </button>
