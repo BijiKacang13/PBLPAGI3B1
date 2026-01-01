@@ -33,7 +33,7 @@ class AkuntanUnitController extends Controller
                 $query->where('id_unit', $request->unit);
             }
 
-            $data = $query->get()->sortBy('user.nama')->values();
+            $data = $query->orderBy('id_akuntan_unit', 'asc')->get();
 
             return response()->json([
                 'success' => true,
@@ -44,6 +44,31 @@ class AkuntanUnitController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data akuntan unit',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /api/akuntan-unit/units
+     * Get all units for dropdown
+     */
+    public function getUnits()
+    {
+        try {
+            $units = Unit::select('id_unit', 'kode_unit', 'unit')
+                ->orderBy('id_unit', 'asc')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data unit berhasil diambil',
+                'data' => $units
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data unit',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -80,6 +105,10 @@ class AkuntanUnitController extends Controller
     public function store(Request $request)
     {
         try {
+            // Log incoming request
+            \Log::info('=== CREATE AKUNTAN UNIT START ===');
+            \Log::info('Request data:', $request->all());
+            
             $request->validate([
                 'nama' => 'required|string|max:255',
                 'username' => 'required|string|max:255|unique:user,username',
@@ -91,6 +120,12 @@ class AkuntanUnitController extends Controller
 
             DB::beginTransaction();
 
+            // Set current user ID for trigger logging
+            $currentUserId = auth('sanctum')->id() ?? auth()->id();
+            if ($currentUserId) {
+                DB::statement("SET @current_user_id = ?", [$currentUserId]);
+            }
+
             // 1️⃣ Buat user (ROLE DIKUNCI DI BACKEND)
             $user = User::create([
                 'nama' => $request->nama,
@@ -98,6 +133,8 @@ class AkuntanUnitController extends Controller
                 'password' => Hash::make($request->password),
                 'role' => 'akuntan_unit',
             ]);
+            
+            \Log::info('User created with ID:', ['id_user' => $user->id_user]);
 
             // 2️⃣ Buat akuntan unit
             $akuntanUnit = Akuntan_Unit::create([
@@ -106,16 +143,23 @@ class AkuntanUnitController extends Controller
                 'email' => $request->email,
                 'telp' => $request->telp,
             ]);
+            
+            \Log::info('Akuntan Unit created:', ['id_akuntan_unit' => $akuntanUnit->id_akuntan_unit]);
 
             // 3️⃣ Hak akses (boolean semua, default false)
-            Hak_Akses::create(
+            $hakAkses = Hak_Akses::create(
                 array_merge(
                     ['id_akuntan_unit' => $user->id_user],
                     $this->hakAksesPayload($request)
                 )
             );
+            
+            \Log::info('Hak Akses created:', ['id_hak_akses' => $hakAkses->id_hak_akses]);
 
             DB::commit();
+            
+            \Log::info('Transaction committed successfully');
+            \Log::info('=== CREATE AKUNTAN UNIT END ===');
 
             $akuntanUnit->load(['user', 'unit', 'hakAkses']);
 
@@ -126,6 +170,7 @@ class AkuntanUnitController extends Controller
             ], 201);
 
         } catch (ValidationException $e) {
+            \Log::error('Validation failed:', ['errors' => $e->errors()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
@@ -134,6 +179,7 @@ class AkuntanUnitController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Create akuntan unit failed:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mendaftarkan akuntan unit',
@@ -223,11 +269,66 @@ class AkuntanUnitController extends Controller
         DB::beginTransaction();
 
         try {
-            Hak_Akses::where('id_akuntan_unit', $id)->delete();
-            Akuntan_Unit::where('id_akuntan_unit', $id)->delete();
-            User::where('id_user', $id)->delete();
+            \Log::info("=== DELETE AKUNTAN UNIT START ===");
+            \Log::info("Deleting akuntan unit with ID: " . $id);
+
+            // Cek apakah akuntan unit exists
+            $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $id)->first();
+            if (!$akuntanUnit) {
+                \Log::error("Akuntan unit not found: " . $id);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akuntan unit tidak ditemukan'
+                ], 404);
+            }
+
+            // Get user info for logging before deletion
+            $user = User::find($id);
+            $userName = $user ? $user->nama : 'Unknown';
+            $userUsername = $user ? $user->username : 'Unknown';
+
+            // Disable foreign key checks and triggers temporarily
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            DB::statement('SET @DISABLE_TRIGGERS=1');
+
+            // Delete log_activity first (to prevent trigger issues)
+            DB::table('log_activity')->where('id_user', $id)->delete();
+            \Log::info("Deleted log_activity records");
+
+            // Delete hak_akses (foreign key to akuntan_unit)
+            DB::table('hak_akses')->where('id_akuntan_unit', $id)->delete();
+            \Log::info("Deleted hak_akses records");
+
+            // Delete akuntan_unit
+            DB::table('akuntan_unit')->where('id_akuntan_unit', $id)->delete();
+            \Log::info("Deleted akuntan_unit records");
+
+            // Delete user using raw SQL to bypass trigger
+            DB::table('user')->where('id_user', $id)->delete();
+            \Log::info("Deleted user records");
+
+            // Re-enable foreign key checks
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            DB::statement('SET @DISABLE_TRIGGERS=NULL');
+
+            // Manually insert log activity for delete action
+            $currentUserId = auth('sanctum')->id() ?? auth()->id();
+            \Log::info("Current user ID for log: " . ($currentUserId ?? 'NULL'));
+            
+            if ($currentUserId) {
+                DB::table('log_activity')->insert([
+                    'id_user' => $currentUserId,
+                    'keterangan' => "Menghapus Pengguna: {$userName} ({$userUsername})",
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                \Log::info("Inserted delete log activity");
+            } else {
+                \Log::warning("No current user ID found, cannot insert log activity");
+            }
 
             DB::commit();
+            \Log::info("=== DELETE AKUNTAN UNIT SUCCESS ===");
 
             return response()->json([
                 'success' => true,
@@ -236,6 +337,18 @@ class AkuntanUnitController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            // Make sure to re-enable foreign key checks even on error
+            try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+                DB::statement('SET @DISABLE_TRIGGERS=NULL');
+            } catch (\Exception $ex) {
+                // Ignore
+            }
+            
+            \Log::error("=== DELETE AKUNTAN UNIT ERROR ===");
+            \Log::error("Error: " . $e->getMessage());
+            \Log::error("Trace: " . $e->getTraceAsString());
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus akuntan unit',

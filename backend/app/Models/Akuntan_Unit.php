@@ -16,6 +16,8 @@ class Akuntan_Unit extends Model
 
     protected $table = 'akuntan_unit';
     protected $primaryKey = 'id_akuntan_unit';
+    public $incrementing = false; // Primary key is assigned from User's id_user
+    protected $keyType = 'int';
     protected $fillable = ['id_akuntan_unit', 'id_unit', 'email', 'telp'];
 
     public function unit(): BelongsTo

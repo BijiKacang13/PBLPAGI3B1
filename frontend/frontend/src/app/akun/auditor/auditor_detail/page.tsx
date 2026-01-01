@@ -4,49 +4,62 @@ import { useState, useEffect } from "react";
 import { UserPlus, Eye, EyeOff, ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
 
 // Delete Confirmation Modal
-const DeleteModal = ({ 
-  show, 
-  onClose, 
-  onConfirm 
-}: { 
-  show: boolean; 
-  onClose: () => void; 
+const DeleteModal = ({
+  show,
+  onClose,
+  onConfirm
+}: {
+  show: boolean;
+  onClose: () => void;
   onConfirm: () => void;
 }) => {
-  if (!show) return null;
-
   return (
-    <>
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-[60]"
-        onClick={onClose}
-      />
-      
-      <div className="fixed inset-0 flex items-center justify-center z-[70] pointer-events-none">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 pointer-events-auto shadow-2xl">
-          <h3 className="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-          <p className="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus pengguna ini?</p>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+    <AnimatePresence>
+      {show && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+
+          <div className="fixed inset-0 flex items-center justify-center z-[70] pointer-events-none p-4">
+            <motion.div
+              className="bg-white rounded-xl p-6 max-w-md w-full pointer-events-auto shadow-2xl border border-gray-100"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
-              Batal
-            </button>
-            <button
-              onClick={onConfirm}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
-              Hapus
-            </button>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Konfirmasi Hapus</h3>
+              <p className="text-gray-700 mb-6">Apakah Anda yakin ingin menghapus pengguna ini?</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition"
+                >
+                  Hapus
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </div>
-    </>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -57,6 +70,7 @@ export default function AuditorDetailPage() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -108,7 +122,7 @@ export default function AuditorDetailPage() {
 
       if (result.success && result.data) {
         const data = result.data;
-        
+
         // Set form data
         setFormData({
           id_auditor: data.id_auditor || "",
@@ -175,7 +189,7 @@ export default function AuditorDetailPage() {
 
     try {
       const token = localStorage.getItem("auth_token");
-      
+
       // Prepare data untuk update
       const updateData: any = {
         nama: formData.nama,
@@ -208,8 +222,9 @@ export default function AuditorDetailPage() {
       }
 
       if (result.success) {
+        setSuccessMessage("BERHASIL MENGUBAH AKUN");
         setShowSuccess(true);
-        
+
         // Reset password fields
         setFormData((prev) => ({
           ...prev,
@@ -217,7 +232,7 @@ export default function AuditorDetailPage() {
           new_password: "",
           new_password_confirmation: "",
         }));
-        
+
         // Hide success alert dan redirect setelah 2 detik
         setTimeout(() => {
           setShowSuccess(false);
@@ -259,8 +274,13 @@ export default function AuditorDetailPage() {
       }
 
       if (result.success) {
-        alert("Pengguna berhasil dihapus!");
-        router.push("/akun/auditor");
+        setSuccessMessage("BERHASIL MENGHAPUS AKUN");
+        setShowSuccess(true);
+        // Redirect setelah 2 detik
+        setTimeout(() => {
+          setShowSuccess(false);
+          router.push("/akun/auditor");
+        }, 2000);
       }
     } catch (err: any) {
       const errorMessage = err?.message || "Gagal menghapus auditor";
@@ -313,7 +333,7 @@ export default function AuditorDetailPage() {
 
       <main className="flex-1 w-full pb-20 sm:pb-6">
         <div className="max-w-5xl mx-auto p-3 sm:p-6 lg:p-8">
-          
+
           {/* Back Button - Desktop */}
           <button
             onClick={handleBack}
@@ -354,7 +374,7 @@ export default function AuditorDetailPage() {
             {/* Form Content */}
             <div className="p-4 sm:p-6 lg:p-8">
               <div className="space-y-6 sm:space-y-8">
-                
+
                 {/* Profil Section */}
                 <div>
                   <h6 className="font-semibold text-base sm:text-lg mb-4 text-gray-800 border-b pb-2 flex items-center gap-2">
@@ -374,11 +394,11 @@ export default function AuditorDetailPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="Masukkan nama lengkap"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email <span className="text-red-500">*</span>
@@ -390,11 +410,11 @@ export default function AuditorDetailPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="contoh@email.com"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         No. Telepon <span className="text-red-500">*</span>
@@ -406,7 +426,7 @@ export default function AuditorDetailPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="08xxxxxxxxxx"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -421,7 +441,7 @@ export default function AuditorDetailPage() {
                     <div className="w-1 h-5 bg-[#004CDF] rounded"></div>
                     Akun Pengguna
                   </h6>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -434,7 +454,7 @@ export default function AuditorDetailPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="Username untuk login"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -462,7 +482,7 @@ export default function AuditorDetailPage() {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Masukkan password lama"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <button
                           type="button"
@@ -474,7 +494,7 @@ export default function AuditorDetailPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Password Baru</label>
                       <div className="relative">
@@ -485,7 +505,7 @@ export default function AuditorDetailPage() {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Minimal 8 karakter"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                           minLength={8}
                         />
                         <button
@@ -498,7 +518,7 @@ export default function AuditorDetailPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password Baru</label>
                       <div className="relative">
@@ -509,7 +529,7 @@ export default function AuditorDetailPage() {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Ulangi password baru"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                           minLength={8}
                         />
                         <button
@@ -570,7 +590,7 @@ export default function AuditorDetailPage() {
       </main>
 
       {/* Success Alert */}
-      <SuccessAlert show={showSuccess} />
+      <SuccessAlert show={showSuccess} message={successMessage} />
 
       {/* Delete Modal */}
       <DeleteModal

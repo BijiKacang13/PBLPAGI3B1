@@ -51,7 +51,7 @@ export default function AkuntanUnitPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Load units dan akuntan unit secara paralel
       await Promise.all([
         loadUnits(),
@@ -65,99 +65,99 @@ export default function AkuntanUnitPage() {
     }
   };
 
-// Load units untuk dropdown
-const loadUnits = async () => {
-  try {
-    const token = localStorage.getItem("auth_token");
+  // Load units untuk dropdown
+  const loadUnits = async () => {
+    try {
+      const token = localStorage.getItem("auth_token");
 
-    const response = await fetch(`${API_BASE_URL}/akuntan-unit/units`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    });
+      const response = await fetch(`${API_BASE_URL}/akuntan-unit/units`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch units: ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Failed to fetch units: ${response.status}`);
+      }
 
-    const result = await response.json();
-    if (result.success && result.data) {
-      setUnits(Array.isArray(result.data) ? result.data : []);
-    } else {
-      setUnits([]);
-      console.error("Failed to load units:", result);
-    }
-  } catch (err: any) {
-    console.error("Error loading units:", err);
-    setUnits([]);
-    // Don't set error here to avoid overwriting more important errors
-  }
-};
-
-const loadAkuntanUnit = async () => {
-  setLoading(true);
-
-  try {
-    const token = localStorage.getItem("auth_token");
-    const queryParams = new URLSearchParams();
-    if (search) queryParams.append("search", search);
-    if (selectedUnit) queryParams.append("unit", selectedUnit);
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
-
-    const response = await fetch(`${API_BASE_URL}/akuntan-unit${query}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      const errorMessage = result.message || result.error || `Failed to fetch data: ${response.status}`;
-      throw new Error(errorMessage);
-    }
-    
-    // Handle both paginated and non-paginated responses
-    if (result.success && result.data) {
-      // Check if response is paginated (has last_page property)
-      if (result.data.last_page !== undefined) {
-        // Paginated response: data.data contains the array
-        setFilteredData(result.data.data || []);
-        setTotalPages(result.data.last_page || 1);
-      } else if (Array.isArray(result.data)) {
-        // Non-paginated response: data is directly an array
-        setFilteredData(result.data);
-        setTotalPages(1);
+      const result = await response.json();
+      if (result.success && result.data) {
+        setUnits(Array.isArray(result.data) ? result.data : []);
       } else {
-        // Fallback: try to extract array from nested structure
+        setUnits([]);
+        console.error("Failed to load units:", result);
+      }
+    } catch (err: any) {
+      console.error("Error loading units:", err);
+      setUnits([]);
+      // Don't set error here to avoid overwriting more important errors
+    }
+  };
+
+  const loadAkuntanUnit = async () => {
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("auth_token");
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append("search", search);
+      if (selectedUnit) queryParams.append("unit", selectedUnit);
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
+
+      const response = await fetch(`${API_BASE_URL}/akuntan-unit${query}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = result.message || result.error || `Failed to fetch data: ${response.status}`;
+        throw new Error(errorMessage);
+      }
+
+      // Handle both paginated and non-paginated responses
+      if (result.success && result.data) {
+        // Check if response is paginated (has last_page property)
+        if (result.data.last_page !== undefined) {
+          // Paginated response: data.data contains the array
+          setFilteredData(result.data.data || []);
+          setTotalPages(result.data.last_page || 1);
+        } else if (Array.isArray(result.data)) {
+          // Non-paginated response: data is directly an array
+          setFilteredData(result.data);
+          setTotalPages(1);
+        } else {
+          // Fallback: try to extract array from nested structure
+          setFilteredData([]);
+          setTotalPages(1);
+          console.error("Unexpected data structure:", result);
+        }
+      } else {
+        // API returned success: false or no data
         setFilteredData([]);
         setTotalPages(1);
-        console.error("Unexpected data structure:", result);
+        if (result.message) {
+          setError(result.message);
+        }
       }
-    } else {
-      // API returned success: false or no data
+    } catch (err: any) {
+      const errorMessage = err?.message || "Gagal mengambil data akuntan unit";
+      setError(errorMessage);
+      console.error("Error loading akuntan unit:", err);
       setFilteredData([]);
-      setTotalPages(1);
-      if (result.message) {
-        setError(result.message);
-      }
+    } finally {
+      setLoading(false);
     }
-  } catch (err: any) {
-    const errorMessage = err?.message || "Gagal mengambil data akuntan unit";
-    setError(errorMessage);
-    console.error("Error loading akuntan unit:", err);
-    setFilteredData([]);
-  } finally {
-    setLoading(false);
-  }
-};
-  
+  };
+
 
   const handleCardClick = (id: string) => {
     router.push(`/akun/akuntan/akuntan_detail?id=${id}`);
@@ -197,7 +197,7 @@ const loadAkuntanUnit = async () => {
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6">
         <div className="bg-white shadow-lg rounded-lg p-6">
-          
+
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
@@ -239,40 +239,40 @@ const loadAkuntanUnit = async () => {
               {/* Search Input */}
               <div className="md:col-span-7">
                 <div className="relative">
-            <Search
+                  <Search
                     size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
                     placeholder="Cari nama akuntan..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         handleFilter();
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
-            />
-          </div>
+                    className="w-full pl-10 pr-4 py-2 text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
+                  />
+                </div>
               </div>
 
               {/* Unit Dropdown */}
               <div className="md:col-span-3">
-            <select
-              value={selectedUnit}
-              onChange={(e) => setSelectedUnit(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
+                <select
+                  value={selectedUnit}
+                  onChange={(e) => setSelectedUnit(e.target.value)}
+                  className="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
                   disabled={loading}
-            >
+                >
                   <option value="">-- Semua Unit --</option>
                   {units.map((unit) => (
                     <option key={unit.id_unit} value={unit.id_unit}>
                       {unit.kode_unit} | {unit.unit}
                     </option>
                   ))}
-            </select>
+                </select>
               </div>
 
               {/* Filter Button */}
@@ -287,9 +287,9 @@ const loadAkuntanUnit = async () => {
                   ) : (
                     <Filter size={18} />
                   )}
-              Filter
-            </button>
-          </div>
+                  Filter
+                </button>
+              </div>
             </div>
 
             {/* Reset Filter Button */}
@@ -313,11 +313,11 @@ const loadAkuntanUnit = async () => {
               </div>
             ) : filteredData.length > 0 ? (
               filteredData.map((data) => (
-              <div
+                <div
                   key={data.id_akuntan_unit}
                   onClick={() => handleCardClick(data.id_akuntan_unit)}
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer"
-              >
+                >
                   <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
                     <div className="text-gray-800">
                       <strong className="text-lg">{data.user.nama}</strong>
@@ -351,8 +351,9 @@ const loadAkuntanUnit = async () => {
         <div className="py-6 text-center">
           <p className="text-gray-400 text-sm">
             Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025
-        </p>
+          </p>
         </div>
       </main>
     </div>
-  )};
+  )
+};

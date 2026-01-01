@@ -71,8 +71,10 @@ class AuditorController extends Controller
             DB::beginTransaction();
 
             try {
-                if (auth()->check()) {
-                    DB::statement('SET @current_user_id = ' . auth()->id());
+                // Set current user ID for trigger logging
+                $currentUserId = auth('sanctum')->id() ?? auth()->id();
+                if ($currentUserId) {
+                    DB::statement("SET @current_user_id = ?", [$currentUserId]);
                 }
 
                 // Buat user
@@ -166,8 +168,10 @@ class AuditorController extends Controller
             DB::beginTransaction();
 
             try {
-                if (auth()->check()) {
-                    DB::statement('SET @current_user_id = ' . auth()->id());
+                // Set current user ID for trigger logging
+                $currentUserId = auth('sanctum')->id() ?? auth()->id();
+                if ($currentUserId) {
+                    DB::statement("SET @current_user_id = ?", [$currentUserId]);
                 }
 
                 $user = User::findOrFail($id);
@@ -240,18 +244,38 @@ class AuditorController extends Controller
         DB::beginTransaction();
 
         try {
-            if (auth()->check()) {
-                DB::statement("SET @current_user_id = " . auth()->id());
-            }
-
             // Cek apakah data exists
-            $auditor = Auditor::findOrFail($id);
+            $auditor = Auditor::with('user')->findOrFail($id);
+            
+            // Get user info for logging before deletion
+            $userName = $auditor->user->nama ?? 'Unknown';
+            $userUsername = $auditor->user->username ?? 'Unknown';
+
+            // Disable foreign key checks temporarily
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+            // Delete log_activity first (to prevent trigger issues)
+            DB::table('log_activity')->where('id_user', $id)->delete();
 
             // Hapus data auditor
-            $auditor->delete();
+            DB::table('auditor')->where('id_auditor', $id)->delete();
 
             // Hapus user
-            User::where('id_user', $id)->delete();
+            DB::table('user')->where('id_user', $id)->delete();
+
+            // Re-enable foreign key checks
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
+            // Manually insert log activity for delete action
+            $currentUserId = auth('sanctum')->id() ?? auth()->id();
+            if ($currentUserId) {
+                DB::table('log_activity')->insert([
+                    'id_user' => $currentUserId,
+                    'keterangan' => "Menghapus Pengguna: {$userName} ({$userUsername})",
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
 
             DB::commit();
 
@@ -262,6 +286,12 @@ class AuditorController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            // Re-enable foreign key checks even on error
+            try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1');
+            } catch (\Exception $ex) {
+                // Ignore
+            }
 
             return response()->json([
                 'success' => false,

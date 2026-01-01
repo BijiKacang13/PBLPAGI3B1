@@ -33,7 +33,7 @@ export default function AuditorPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem("auth_token");
       const queryParams = new URLSearchParams();
       if (search) queryParams.append("search", search);
@@ -85,13 +85,13 @@ export default function AuditorPage() {
   const handleCardClick = (id: string) => {
     // PERBAIKAN: Sesuaikan path dengan struktur file Anda
     // Pilih salah satu dari opsi berikut sesuai struktur folder Anda:
-    
+
     // Opsi 1: Jika file detail ada di /app/akun/auditor/detail/page.tsx
     router.push(`/akun/auditor/auditor_detail?id=${id}`);
-    
+
     // Opsi 2: Jika file detail ada di /app/akun/auditor/[id]/page.tsx (dynamic route)
     // router.push(`/akun/auditor/${id}`);
-    
+
     // Opsi 3: Jika file detail ada di /app/akun/auditor/auditor_detail/page.tsx
     // router.push(`/akun/auditor/auditor_detail?id=${id}`);
   };
@@ -102,7 +102,7 @@ export default function AuditorPage() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6">
         <div className="bg-white shadow-lg rounded-lg p-6">
-          
+
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
@@ -157,7 +157,7 @@ export default function AuditorPage() {
                         handleFilter();
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent"
                   />
                 </div>
               </div>

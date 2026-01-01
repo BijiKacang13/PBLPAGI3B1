@@ -155,26 +155,35 @@ function getHeaders(isJson: boolean = true) {
 async function handleResponse<T>(response: Response): Promise<T> {
   const raw = await response.text();
 
+  let data;
   try {
-    const data = JSON.parse(raw);
-
-    if (!response.ok) {
-      if (response.status === 422 && data.errors) {
-        throw new Error(Object.values(data.errors).flat().join(", "));
-      }
-
-      if (response.status === 401) {
-        throw new Error("Unauthenticated: Token tidak valid atau expired");
-      }
-
-      throw new Error(data.message || "Terjadi kesalahan server");
-    }
-
-    return data;
+    data = JSON.parse(raw);
   } catch {
     console.error("RAW RESPONSE:", raw);
     throw new Error("Response bukan JSON. Cek API / token.");
   }
+
+  if (!response.ok) {
+    if (response.status === 422 && data.errors) {
+      throw new Error(Object.values(data.errors).flat().join(", "));
+    }
+
+    if (response.status === 401) {
+      // Bersihkan token yang tidak valid
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
+        // Redirect ke halaman login
+        window.location.href = "/login";
+      }
+      throw new Error("Sesi telah berakhir. Silakan login kembali.");
+    }
+
+    throw new Error(data.message || "Terjadi kesalahan server");
+  }
+
+  return data;
 }
 
 // =============================
@@ -258,13 +267,23 @@ export const userService = {
    * AKUNTAN UNIT
    */
   async createAkuntanUnit(data: CreateAkuntanUnitData) {
+    console.log('=== CREATE AKUNTAN UNIT DEBUG ===');
+    console.log('Request URL:', `${API_BASE_URL}/akuntan-unit`);
+    console.log('Request Data:', JSON.stringify(data, null, 2));
+
     const res = await fetch(`${API_BASE_URL}/akuntan-unit`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
 
+    console.log('Response Status:', res.status);
+    console.log('Response OK:', res.ok);
+
     const result = await handleResponse<ApiResponse<AkuntanUnit>>(res);
+    console.log('Response Result:', JSON.stringify(result, null, 2));
+    console.log('=== END DEBUG ===');
+
     return result.data;
   },
 
@@ -310,5 +329,29 @@ export const userService = {
     });
 
     await handleResponse<ApiResponse<null>>(res);
+  },
+
+  /**
+   * AUDITOR
+   */
+  async createAuditor(data: { nama: string; username: string; password: string; password_confirmation: string; email: string; telp: string }) {
+    console.log('=== CREATE AUDITOR DEBUG ===');
+    console.log('Request URL:', `${API_BASE_URL}/auditor`);
+    console.log('Request Data:', JSON.stringify(data, null, 2));
+
+    const res = await fetch(`${API_BASE_URL}/auditor`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    console.log('Response Status:', res.status);
+    console.log('Response OK:', res.ok);
+
+    const result = await handleResponse<ApiResponse<any>>(res);
+    console.log('Response Result:', JSON.stringify(result, null, 2));
+    console.log('=== END DEBUG ===');
+
+    return result.data;
   },
 };

@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { UserPlus, Eye, EyeOff, ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import SuccessAlert from "@/components/SuccessAlert";
 
 // Types
 interface Unit {
@@ -63,45 +65,57 @@ type Permissions = {
 };
 
 // Delete Confirmation Modal
-const DeleteModal = ({ 
-  show, 
-  onClose, 
-  onConfirm 
-}: { 
-  show: boolean; 
-  onClose: () => void; 
+const DeleteModal = ({
+  show,
+  onClose,
+  onConfirm
+}: {
+  show: boolean;
+  onClose: () => void;
   onConfirm: () => void;
 }) => {
-  if (!show) return null;
-
   return (
-    <>
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-60 z-[60]"
-        onClick={onClose}
-      />
-      
-      <div className="fixed inset-0 flex items-center justify-center z-[70] pointer-events-none">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 pointer-events-auto shadow-2xl">
-          <h3 className="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-          <p className="text-gray-600 mb-6">Apakah anda yakin ingin menghapus pengguna ini?</p>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+    <AnimatePresence>
+      {show && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+
+          <div className="fixed inset-0 flex items-center justify-center z-[70] pointer-events-none p-4">
+            <motion.div
+              className="bg-white rounded-xl p-6 max-w-md w-full pointer-events-auto shadow-2xl border border-gray-100"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
             >
-              Batal
-            </button>
-            <button
-              onClick={onConfirm}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-            >
-              Hapus
-            </button>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Konfirmasi Hapus</h3>
+              <p className="text-gray-700 mb-6">Apakah anda yakin ingin menghapus pengguna ini?</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={onClose}
+                  className="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition"
+                >
+                  Hapus
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      </div>
-    </>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -109,8 +123,10 @@ export default function DetailAkuntanUnitPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -196,7 +212,9 @@ export default function DetailAkuntanUnitPage() {
       setError("");
       const token = localStorage.getItem("auth_token");
 
-      const response = await fetch(`${API_BASE_URL}/akuntan-unit/${id}`, {
+      const apiUrl = `${API_BASE_URL}/akuntan-unit/${id}`;
+
+      const response = await fetch(apiUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -208,12 +226,20 @@ export default function DetailAkuntanUnitPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Handle 401 - redirect to login
+        if (response.status === 401) {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_data");
+          localStorage.removeItem("user_role");
+          window.location.href = "/login";
+          return;
+        }
         throw new Error(result.message || result.error || `Failed to fetch data: ${response.status}`);
       }
 
       if (result.success && result.data) {
         const data = result.data;
-        
+
         // Set form data
         setFormData({
           id_unit: data.unit?.id_unit || "",
@@ -226,29 +252,36 @@ export default function DetailAkuntanUnitPage() {
           new_password_confirmation: "",
         });
 
-        // Set permissions dari hakAkses
-        if (data.hakAkses) {
-          setPermissions({
-            view_rapbs_akun: data.hakAkses.view_rapbs_akun || false,
-            create_rapbs_akun: data.hakAkses.create_rapbs_akun || false,
-            update_rapbs_akun: data.hakAkses.update_rapbs_akun || false,
-            view_rapbs_kegiatan: data.hakAkses.view_rapbs_kegiatan || false,
-            create_rapbs_kegiatan: data.hakAkses.create_rapbs_kegiatan || false,
-            update_rapbs_kegiatan: data.hakAkses.update_rapbs_kegiatan || false,
-            view_jurnal_umum: data.hakAkses.view_jurnal_umum || false,
-            create_jurnal_umum: data.hakAkses.create_jurnal_umum || false,
-            update_jurnal_umum: data.hakAkses.update_jurnal_umum || false,
-            delete_jurnal_umum: data.hakAkses.delete_jurnal_umum || false,
-            view_buku_besar: data.hakAkses.view_buku_besar || false,
-            create_buku_besar: data.hakAkses.create_buku_besar || false,
-            delete_buku_besar: data.hakAkses.delete_buku_besar || false,
-            view_laporan_komprehensif: data.hakAkses.view_laporan_komprehensif || false,
-            view_laporan_perubahan_aset_neto: data.hakAkses.view_laporan_perubahan_aset_neto || false,
-            view_laporan_posisi_keuangan: data.hakAkses.view_laporan_posisi_keuangan || false,
-            view_laporan_arus_kas: data.hakAkses.view_laporan_arus_kas || false,
-            view_laporan_catatan_atas_laporan_keuangan: data.hakAkses.view_laporan_catatan_atas_laporan_keuangan || false,
-            view_laporan_proyeksi_rencana_dan_realisasi_anggaran: data.hakAkses.view_laporan_proyeksi_rencana_dan_realisasi_anggaran || false,
-          });
+        // Set permissions dari hakAkses (support both camelCase and snake_case)
+        const hakAksesData = data.hakAkses || data.hak_akses || null;
+
+        // Debug log to check hakAkses data
+        console.log('Hak Akses Data from API:', hakAksesData);
+
+        if (hakAksesData) {
+          const newPermissions = {
+            view_rapbs_akun: hakAksesData.view_rapbs_akun === true || hakAksesData.view_rapbs_akun === 1 || hakAksesData.view_rapbs_akun === '1',
+            create_rapbs_akun: hakAksesData.create_rapbs_akun === true || hakAksesData.create_rapbs_akun === 1 || hakAksesData.create_rapbs_akun === '1',
+            update_rapbs_akun: hakAksesData.update_rapbs_akun === true || hakAksesData.update_rapbs_akun === 1 || hakAksesData.update_rapbs_akun === '1',
+            view_rapbs_kegiatan: hakAksesData.view_rapbs_kegiatan === true || hakAksesData.view_rapbs_kegiatan === 1 || hakAksesData.view_rapbs_kegiatan === '1',
+            create_rapbs_kegiatan: hakAksesData.create_rapbs_kegiatan === true || hakAksesData.create_rapbs_kegiatan === 1 || hakAksesData.create_rapbs_kegiatan === '1',
+            update_rapbs_kegiatan: hakAksesData.update_rapbs_kegiatan === true || hakAksesData.update_rapbs_kegiatan === 1 || hakAksesData.update_rapbs_kegiatan === '1',
+            view_jurnal_umum: hakAksesData.view_jurnal_umum === true || hakAksesData.view_jurnal_umum === 1 || hakAksesData.view_jurnal_umum === '1',
+            create_jurnal_umum: hakAksesData.create_jurnal_umum === true || hakAksesData.create_jurnal_umum === 1 || hakAksesData.create_jurnal_umum === '1',
+            update_jurnal_umum: hakAksesData.update_jurnal_umum === true || hakAksesData.update_jurnal_umum === 1 || hakAksesData.update_jurnal_umum === '1',
+            delete_jurnal_umum: hakAksesData.delete_jurnal_umum === true || hakAksesData.delete_jurnal_umum === 1 || hakAksesData.delete_jurnal_umum === '1',
+            view_buku_besar: hakAksesData.view_buku_besar === true || hakAksesData.view_buku_besar === 1 || hakAksesData.view_buku_besar === '1',
+            create_buku_besar: hakAksesData.create_buku_besar === true || hakAksesData.create_buku_besar === 1 || hakAksesData.create_buku_besar === '1',
+            delete_buku_besar: hakAksesData.delete_buku_besar === true || hakAksesData.delete_buku_besar === 1 || hakAksesData.delete_buku_besar === '1',
+            view_laporan_komprehensif: hakAksesData.view_laporan_komprehensif === true || hakAksesData.view_laporan_komprehensif === 1 || hakAksesData.view_laporan_komprehensif === '1',
+            view_laporan_perubahan_aset_neto: hakAksesData.view_laporan_perubahan_aset_neto === true || hakAksesData.view_laporan_perubahan_aset_neto === 1 || hakAksesData.view_laporan_perubahan_aset_neto === '1',
+            view_laporan_posisi_keuangan: hakAksesData.view_laporan_posisi_keuangan === true || hakAksesData.view_laporan_posisi_keuangan === 1 || hakAksesData.view_laporan_posisi_keuangan === '1',
+            view_laporan_arus_kas: hakAksesData.view_laporan_arus_kas === true || hakAksesData.view_laporan_arus_kas === 1 || hakAksesData.view_laporan_arus_kas === '1',
+            view_laporan_catatan_atas_laporan_keuangan: hakAksesData.view_laporan_catatan_atas_laporan_keuangan === true || hakAksesData.view_laporan_catatan_atas_laporan_keuangan === 1 || hakAksesData.view_laporan_catatan_atas_laporan_keuangan === '1',
+            view_laporan_proyeksi_rencana_dan_realisasi_anggaran: hakAksesData.view_laporan_proyeksi_rencana_dan_realisasi_anggaran === true || hakAksesData.view_laporan_proyeksi_rencana_dan_realisasi_anggaran === 1 || hakAksesData.view_laporan_proyeksi_rencana_dan_realisasi_anggaran === '1',
+          };
+          console.log('Permissions setelah parsing:', newPermissions);
+          setPermissions(newPermissions);
         }
       }
     } catch (err: any) {
@@ -306,7 +339,7 @@ export default function DetailAkuntanUnitPage() {
   const handleCheckAll = () => {
     const newValue = !checkAllAccess;
     setCheckAllAccess(newValue);
-    
+
     const updatedPermissions = { ...permissions };
     Object.keys(updatedPermissions).forEach((key) => {
       updatedPermissions[key as keyof typeof permissions] = newValue;
@@ -343,8 +376,8 @@ export default function DetailAkuntanUnitPage() {
 
     try {
       const token = localStorage.getItem("auth_token");
-      
-      // Prepare data untuk update
+
+      // Prepare data untuk update (profil, akun, dan permissions)
       const updateData: any = {
         nama: formData.nama,
         username: formData.username,
@@ -378,7 +411,8 @@ export default function DetailAkuntanUnitPage() {
       }
 
       if (result.success) {
-        alert("Data berhasil diupdate!");
+        setSuccessMessage("BERHASIL MENGUBAH AKUN");
+        setShowSuccess(true);
         // Reload data
         await loadAkuntanDetail();
         // Reset password fields
@@ -388,6 +422,11 @@ export default function DetailAkuntanUnitPage() {
           new_password: "",
           new_password_confirmation: "",
         }));
+        // Hide success alert dan redirect setelah 2 detik
+        setTimeout(() => {
+          setShowSuccess(false);
+          router.push("/akun/akuntan");
+        }, 2000);
       }
     } catch (err: any) {
       const errorMessage = err?.message || "Gagal mengupdate data akuntan unit";
@@ -425,8 +464,13 @@ export default function DetailAkuntanUnitPage() {
       }
 
       if (result.success) {
-        alert("Pengguna berhasil dihapus!");
-        router.push("/akun/akuntan");
+        setSuccessMessage("BERHASIL MENGHAPUS AKUN");
+        setShowSuccess(true);
+        // Redirect setelah 2 detik
+        setTimeout(() => {
+          setShowSuccess(false);
+          router.push("/akun/akuntan");
+        }, 2000);
       }
     } catch (err: any) {
       const errorMessage = err?.message || "Gagal menghapus akuntan unit";
@@ -478,7 +522,7 @@ export default function DetailAkuntanUnitPage() {
       <Navbar />
       <main className="flex-1 w-full pb-20 sm:pb-6">
         <div className="max-w-5xl mx-auto p-3 sm:p-6 lg:p-8">
-          
+
           {/* Back Button - Desktop */}
           <button
             onClick={handleBack}
@@ -519,7 +563,7 @@ export default function DetailAkuntanUnitPage() {
             {/* Form Content */}
             <div className="p-4 sm:p-6 lg:p-8">
               <form className="space-y-6 sm:space-y-8">
-                
+
                 {/* Profil Section */}
                 <div>
                   <h6 className="font-semibold text-base sm:text-lg mb-4 text-gray-800 border-b pb-2 flex items-center gap-2">
@@ -536,7 +580,7 @@ export default function DetailAkuntanUnitPage() {
                       value={formData.id_unit}
                       onChange={handleChange}
                       disabled={isLoading}
-                      className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                       required
                     >
                       <option value="">Pilih unit</option>
@@ -560,11 +604,11 @@ export default function DetailAkuntanUnitPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="Masukkan nama lengkap"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email <span className="text-red-500">*</span>
@@ -576,11 +620,11 @@ export default function DetailAkuntanUnitPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="contoh@email.com"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         No. Telepon <span className="text-red-500">*</span>
@@ -592,7 +636,7 @@ export default function DetailAkuntanUnitPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="08xxxxxxxxxx"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -607,7 +651,7 @@ export default function DetailAkuntanUnitPage() {
                     <div className="w-1 h-5 bg-[#004CDF] rounded"></div>
                     Akun Pengguna
                   </h6>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -620,7 +664,7 @@ export default function DetailAkuntanUnitPage() {
                         onChange={handleChange}
                         disabled={isLoading}
                         placeholder="Username untuk login"
-                        className="w-full px-4 py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -646,7 +690,7 @@ export default function DetailAkuntanUnitPage() {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Masukkan password lama"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <button
                           type="button"
@@ -658,7 +702,7 @@ export default function DetailAkuntanUnitPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Password Baru</label>
                       <div className="relative">
@@ -669,7 +713,7 @@ export default function DetailAkuntanUnitPage() {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Minimal 8 karakter"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                           minLength={8}
                         />
                         <button
@@ -682,7 +726,7 @@ export default function DetailAkuntanUnitPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password Baru</label>
                       <div className="relative">
@@ -693,7 +737,7 @@ export default function DetailAkuntanUnitPage() {
                           onChange={handleChange}
                           disabled={isLoading}
                           placeholder="Ulangi password baru"
-                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-4 py-3 pr-12 text-sm sm:text-base text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
                           minLength={8}
                         />
                         <button
@@ -832,6 +876,9 @@ export default function DetailAkuntanUnitPage() {
           handleDelete();
         }}
       />
+
+      {/* Success Alert */}
+      <SuccessAlert show={showSuccess} message={successMessage} />
     </div>
   );
 }

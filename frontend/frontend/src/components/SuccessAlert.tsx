@@ -5,9 +5,16 @@ import { Check } from "lucide-react";
 interface SuccessAlertProps {
   show: boolean;
   onClose?: () => void;
+  message?: string;
+  subtitle?: string;
 }
 
-export default function SuccessAlert({ show, onClose }: SuccessAlertProps) {
+export default function SuccessAlert({
+  show,
+  onClose,
+  message = "BERHASIL",
+  subtitle
+}: SuccessAlertProps) {
   return (
     <AnimatePresence>
       {show && (
@@ -69,23 +76,25 @@ export default function SuccessAlert({ show, onClose }: SuccessAlertProps) {
 
             {/* Teks utama */}
             <motion.h1
-              className="text-blue-600 text-lg font-bold mb-1"
+              className="text-blue-600 text-lg font-bold mb-1 text-center"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.1, duration: 0.3 }}
             >
-              BERHASIL MASUK
+              {message}
             </motion.h1>
 
             {/* Subteks */}
-            {/* <motion.p
-              className="text-gray-500 text-sm"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.3 }}
-            >
-              Selamat datang di SIA Yayasan Darussalam!
-            </motion.p> */}
+            {subtitle && (
+              <motion.p
+                className="text-gray-500 text-sm text-center"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.3 }}
+              >
+                {subtitle}
+              </motion.p>
+            )}
           </motion.div>
         </motion.div>
       )}
