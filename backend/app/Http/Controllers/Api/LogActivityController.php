@@ -33,28 +33,25 @@ class LogActivityController extends Controller
         }
 
         // ===========================
-        // DATE RANGE
+        // DATE RANGE (Optional - hanya filter jika ada parameter)
         // ===========================
-        $startDate = $request->start_date
-            ? $request->start_date
-            : Carbon::now()->startOfMonth()->toDateString();
+        if ($request->filled('start_date') || $request->filled('end_date')) {
+            $startDate = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
+            $endDate = $request->end_date ?? Carbon::now()->endOfMonth()->toDateString();
 
-        $endDate = $request->end_date
-            ? $request->end_date
-            : Carbon::now()->endOfMonth()->toDateString();
+            $startTime = $request->start_time ? $request->start_time . ':00' : '00:00:00';
+            $endTime   = $request->end_time ? $request->end_time . ':00'   : '23:59:59';
 
-        $startTime = $request->start_time ? $request->start_time . ':00' : '00:00:00';
-        $endTime   = $request->end_time ? $request->end_time . ':00'   : '23:59:59';
+            $startDateTime = Carbon::createFromFormat('Y-m-d H:i:s', "$startDate $startTime");
+            $endDateTime   = Carbon::createFromFormat('Y-m-d H:i:s', "$endDate $endTime");
 
-        $startDateTime = Carbon::createFromFormat('Y-m-d H:i:s', "$startDate $startTime");
-        $endDateTime   = Carbon::createFromFormat('Y-m-d H:i:s', "$endDate $endTime");
+            // Tukar jika start > end
+            if ($startDateTime > $endDateTime) {
+                [$startDateTime, $endDateTime] = [$endDateTime, $startDateTime];
+            }
 
-        // Tukar jika start > end
-        if ($startDateTime > $endDateTime) {
-            [$startDateTime, $endDateTime] = [$endDateTime, $startDateTime];
+            $query->whereBetween('created_at', [$startDateTime, $endDateTime]);
         }
-
-        $query->whereBetween('created_at', [$startDateTime, $endDateTime]);
 
         // ===========================
         // PAGINATION

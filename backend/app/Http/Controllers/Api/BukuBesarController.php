@@ -541,4 +541,47 @@ class BukuBesarController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * POST /api/buku-besar/unpost
+     * Unpost (hapus) jurnal dari buku besar
+     */
+    public function unpost(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'id_jurnal_umum' => 'required|exists:jurnal_umum,id_jurnal_umum',
+            ]);
+
+            DB::statement("SET @current_user_id = " . Auth::id());
+
+            $bukuBesar = Buku_Besar::where('id_jurnal_umum', $validated['id_jurnal_umum'])->first();
+
+            if (!$bukuBesar) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jurnal belum diposting ke buku besar',
+                ], 404);
+            }
+
+            $bukuBesar->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Jurnal berhasil di-unpost dari buku besar',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

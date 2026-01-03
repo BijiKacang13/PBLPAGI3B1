@@ -59,14 +59,14 @@ class JurnalUmumController extends Controller
         // ==========================
         // 3. Base Query
         // ==========================
-        $query = Jurnal_Umum::with(['unit', 'divisi'])
+        $query = Jurnal_Umum::with(['unit', 'divisi', 'kegiatan', 'sumber_anggaran', 'buku_besar', 'detail_jurnal_umum.akun'])
             ->orderByDesc('id_jurnal_umum');
 
         // ==========================
         // 4. Filter Tanggal (from–to)
         // ==========================
         $from = $request->from ?: date('Y-01-01');
-        $to   = $request->to   ?: date('Y-m-d');
+        $to   = $request->to   ?: date('Y-12-31');
 
         $query->whereBetween('tanggal', [$from, $to]);
 
@@ -88,16 +88,37 @@ class JurnalUmumController extends Controller
         if ($divisiFilter) $query->where('id_divisi', $divisiFilter);
 
         // ==========================
-        // 7. Pagination
+        // 7. Count unposted journals
+        // ==========================
+        $hasUnposted = (clone $query)->whereDoesntHave('buku_besar')->exists();
+
+        // ==========================
+        // 8. Pagination
         // ==========================
         $perPage = $request->per_page ?? 10;
         $result = $query->paginate($perPage);
 
+        // Add is_posted flag and calculate totals for each item
+        $result->getCollection()->transform(function ($item) {
+            $item->is_posted = $item->buku_besar !== null;
+            
+            // Calculate total debit and kredit from detail_jurnal_umum
+            $item->total_debit = $item->detail_jurnal_umum
+                ->where('debit_kredit', 'debit')
+                ->sum('nominal');
+            $item->total_kredit = $item->detail_jurnal_umum
+                ->where('debit_kredit', 'kredit')
+                ->sum('nominal');
+            
+            return $item;
+        });
+
         // ==========================
-        // 8. Return
+        // 9. Return
         // ==========================
         return response()->json([
             'success' => true,
+            'has_unposted' => $hasUnposted,
             'data' => $result
         ]);
     }
@@ -139,13 +160,13 @@ class JurnalUmumController extends Controller
         // ==========================
         // 3. Query tanpa paginate
         // ==========================
-        $query = Jurnal_Umum::with(['unit', 'divisi'])
+        $query = Jurnal_Umum::with(['unit', 'divisi', 'kegiatan', 'sumber_anggaran', 'detail_jurnal_umum.akun'])
             ->orderBy('tanggal')
             ->orderBy('no_bukti');
 
         // Tanggal
         $from = $request->from ?: date('Y-01-01');
-        $to   = $request->to   ?: date('Y-m-d');
+        $to   = $request->to   ?: date('Y-12-31');
         $query->whereBetween('tanggal', [$from, $to]);
 
         // Search
@@ -264,7 +285,7 @@ class JurnalUmumController extends Controller
      */
     public function show($id)
     {
-        $jurnal = Jurnal_Umum::with('detail_jurnal_umum')->find($id);
+        $jurnal = Jurnal_Umum::with(['detail_jurnal_umum', 'buku_besar'])->find($id);
 
         if (!$jurnal) {
             return response()->json(['error' => 'Data tidak ditemukan'], 404);

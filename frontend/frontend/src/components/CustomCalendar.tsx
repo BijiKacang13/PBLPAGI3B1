@@ -9,12 +9,21 @@ interface CustomCalendarProps {
   onClose: () => void;
 }
 
-export default function CustomCalendar({ 
-  selectedDate, 
-  onSelectDate, 
-  onClose 
+export default function CustomCalendar({
+  selectedDate,
+  onSelectDate,
+  onClose
 }: CustomCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  // Initialize with selected date's month if available, otherwise current month
+  const getInitialMonth = () => {
+    if (selectedDate) {
+      const [year, month] = selectedDate.split('-').map(Number);
+      return new Date(year, month - 1);
+    }
+    return new Date();
+  };
+
+  const [currentMonth, setCurrentMonth] = useState(getInitialMonth);
   const calendarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,19 +64,22 @@ export default function CustomCalendar({
   };
 
   const handleDateClick = (day: number) => {
-    const selected = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    const formattedDate = selected.toISOString().split('T')[0];
+    const year = currentMonth.getFullYear();
+    const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${dayStr}`;
     onSelectDate(formattedDate);
     onClose();
   };
 
   const isSelectedDate = (day: number) => {
     if (!selectedDate) return false;
-    const selected = new Date(selectedDate);
+    // Parse date string manually to avoid timezone issues
+    const [year, month, dayOfMonth] = selectedDate.split('-').map(Number);
     return (
-      selected.getDate() === day &&
-      selected.getMonth() === currentMonth.getMonth() &&
-      selected.getFullYear() === currentMonth.getFullYear()
+      dayOfMonth === day &&
+      month - 1 === currentMonth.getMonth() &&
+      year === currentMonth.getFullYear()
     );
   };
 

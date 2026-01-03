@@ -91,11 +91,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Jurnal Umum
     Route::prefix('jurnal-umum')->group(function () {
         Route::get('/', [JurnalUmumController::class, 'index']);
+        Route::get('/export', [JurnalUmumController::class, 'export']);
         Route::post('/', [JurnalUmumController::class, 'store']);
         Route::get('/{id}', [JurnalUmumController::class, 'show']);
         Route::put('/{id}', [JurnalUmumController::class, 'update']);
         Route::delete('/{id}', [JurnalUmumController::class, 'destroy']);
-        Route::get('/export', [JurnalUmumController::class, 'export']);
     });
 
     // Buku Besar
@@ -105,6 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/export', [BukuBesarController::class, 'exportExcel']);
         Route::post('/posting', [BukuBesarController::class, 'store']);
         Route::post('/posting-semua', [BukuBesarController::class, 'postingSemua']);
+        Route::post('/unpost', [BukuBesarController::class, 'unpost']);
     });
 
     // Auditor
