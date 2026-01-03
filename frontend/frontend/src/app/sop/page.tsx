@@ -42,6 +42,18 @@ export default function SOPPage() {
       },
     });
 
+    // Handle 401 Unauthenticated
+    if (res.status === 401) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("user_unit_id");
+      localStorage.removeItem("user_unit_name");
+      alert("Sesi sudah habis, silahkan login ulang");
+      router.push("/login");
+      return;
+    }
+
     const result = await res.json();
 
     if (res.ok && result.success) {
@@ -98,6 +110,18 @@ export default function SOPPage() {
         Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
       },
     });
+
+    // Handle 401 Unauthenticated
+    if (res.status === 401) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("user_unit_id");
+      localStorage.removeItem("user_unit_name");
+      alert("Sesi sudah habis, silahkan login ulang");
+      router.push("/login");
+      return;
+    }
 
     const result = await res.json();
 

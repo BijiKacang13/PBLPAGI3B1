@@ -34,9 +34,20 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_data");
-        window.location.href = "/login"; // auto logout
+        // Check if we're not already on the login page
+        if (!window.location.pathname.includes("/login")) {
+          // Clear all auth data
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_data");
+          localStorage.removeItem("user_role");
+          localStorage.removeItem("user_unit_id");
+          localStorage.removeItem("user_unit_name");
+          localStorage.removeItem("session_expires_in");
+          localStorage.removeItem("remember_me");
+
+          // Dispatch custom event that SessionProvider will catch
+          window.dispatchEvent(new CustomEvent("session-expired"));
+        }
       }
     }
 
@@ -70,6 +81,53 @@ export const api = {
 
   delete: (url: string, config?: AxiosRequestConfig) =>
     axiosClient.delete(url, config),
+};
+
+// ===============================
+// SESSION EXPIRED HANDLER
+// ===============================
+export const handleSessionExpired = () => {
+  if (typeof window !== "undefined") {
+    if (!window.location.pathname.includes("/login")) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("user_unit_id");
+      localStorage.removeItem("user_unit_name");
+      localStorage.removeItem("session_expires_in");
+      localStorage.removeItem("remember_me");
+
+      alert("Sesi sudah habis, silahkan login ulang");
+      window.location.href = "/login";
+    }
+  }
+};
+
+// ===============================
+// AUTH FETCH WRAPPER
+// Wrapper untuk fetch yang otomatis handle 401
+// ===============================
+export const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+
+  const headers: HeadersInit = {
+    ...options.headers,
+  };
+
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    handleSessionExpired();
+  }
+
+  return response;
 };
 
 export default axiosClient;

@@ -97,9 +97,13 @@ export default function Akun() {
 
       // Handle 401 Unauthenticated
       if (response.status === 401) {
-        alert("Sesi Anda telah berakhir. Silakan login kembali.");
         localStorage.removeItem("auth_token");
-        router.push("/");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("user_unit_id");
+        localStorage.removeItem("user_unit_name");
+        alert("Sesi sudah habis, silahkan login ulang");
+        router.push("/login");
         return;
       }
 

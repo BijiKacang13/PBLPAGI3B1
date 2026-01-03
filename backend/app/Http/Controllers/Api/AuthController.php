@@ -53,17 +53,55 @@ class AuthController extends Controller
             }
 
             // Tentukan durasi token berdasarkan remember me
-            $remember = $request->input('remember', false);
+            // Parse remember value properly (handles both boolean and string values)
+            $rememberInput = $request->input('remember', false);
+            $remember = filter_var($rememberInput, FILTER_VALIDATE_BOOLEAN);
+            
+            Log::info('Remember me value', [
+                'raw_input' => $rememberInput, 
+                'parsed' => $remember,
+                'type' => gettype($rememberInput)
+            ]);
+            
             $tokenName = $remember ? 'auth-token-remembered' : 'auth-token';
             
             // Hapus token lama jika ada
             $user->tokens()->delete();
 
             // Generate token baru
+            // Remember me: 24 jam, Normal: 2 jam
             $expiresAt = $remember ? now()->addDay() : now()->addHours(2);
             $token = $user->createToken($tokenName, ['*'], $expiresAt)->plainTextToken;
 
-            Log::info('Login successful', ['username' => $user->username]);
+            Log::info('Login successful', [
+                'username' => $user->username,
+                'remember' => $remember,
+                'expires_at' => $expiresAt->toDateTimeString()
+            ]);
+
+            // Get unit info if akuntan_unit
+            $unitName = null;
+            $unitId = null;
+            if ($user->role === 'akuntan_unit') {
+                // Use getKey() for safer primary key access
+                $userId = $user->getKey();
+                Log::info('Looking up akuntan_unit', ['user_id' => $userId, 'id_user' => $user->id_user ?? null]);
+                
+                $akuntan = \App\Models\Akuntan_Unit::where('id_akuntan_unit', $userId)
+                    ->with('unit')
+                    ->first();
+                    
+                Log::info('Akuntan lookup result', [
+                    'found' => $akuntan ? true : false,
+                    'id_unit' => $akuntan ? $akuntan->id_unit : null,
+                    'unit_name' => $akuntan && $akuntan->unit ? $akuntan->unit->unit : null
+                ]);
+                
+                if ($akuntan && $akuntan->unit) {
+                    $unitName = $akuntan->unit->unit;
+                    $unitId = $akuntan->id_unit;
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -75,6 +113,8 @@ class AuthController extends Controller
                         'name' => $user->name ?? $user->username,
                         'email' => $user->email ?? null,
                         'role' => $user->role,
+                        'unit_name' => $unitName,
+                        'id_unit' => $unitId,
                     ],
                     'token' => $token,
                     'token_type' => 'Bearer',

@@ -169,13 +169,19 @@ async function handleResponse<T>(response: Response): Promise<T> {
     }
 
     if (response.status === 401) {
-      // Bersihkan token yang tidak valid
+      // Bersihkan semua data localStorage
       if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_data");
-        localStorage.removeItem("user_role");
-        // Redirect ke halaman login
-        window.location.href = "/login";
+        if (!window.location.pathname.includes("/login")) {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_data");
+          localStorage.removeItem("user_role");
+          localStorage.removeItem("user_unit_id");
+          localStorage.removeItem("user_unit_name");
+
+          // Show alert first, then redirect
+          alert("Sesi sudah habis, silahkan login ulang");
+          window.location.href = "/login";
+        }
       }
       throw new Error("Sesi telah berakhir. Silakan login kembali.");
     }

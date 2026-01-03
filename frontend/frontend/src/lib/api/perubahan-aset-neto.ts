@@ -19,8 +19,15 @@ const authFetch = async (url: string, options?: RequestInit) => {
   // Handle unauthorized globally
   if (res.status === 401) {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+      if (!window.location.pathname.includes("/login")) {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("user_unit_id");
+        localStorage.removeItem("user_unit_name");
+        alert("Sesi sudah habis, silahkan login ulang");
+        window.location.href = "/login";
+      }
     }
     throw new Error("Unauthorized");
   }
@@ -111,7 +118,7 @@ export const perubahanAsetNetoApi = {
   // Export to Excel
   exportExcel: async (params: PerubahanAsetNetoParams): Promise<void> => {
     const queryParams = new URLSearchParams();
-    
+
     if (params.tanggal_mulai) queryParams.append('tanggal_mulai', params.tanggal_mulai);
     if (params.tanggal_selesai) queryParams.append('tanggal_selesai', params.tanggal_selesai);
     if (params.unit !== undefined && params.unit !== null) queryParams.append('unit', params.unit.toString());
@@ -119,7 +126,7 @@ export const perubahanAsetNetoApi = {
 
     const token = localStorage.getItem('auth_token');
     const url = `${API_BASE_URL}/perubahan-aset-neto/export-excel?${queryParams.toString()}`;
-    
+
     try {
       // Use fetch to download with authorization header
       const response = await fetch(url, {

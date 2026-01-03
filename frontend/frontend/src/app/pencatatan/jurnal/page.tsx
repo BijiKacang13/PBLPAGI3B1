@@ -79,6 +79,18 @@ export default function JurnalUmum() {
         },
       });
 
+      // Handle 401 Unauthenticated
+      if (res.status === 401) {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("user_unit_id");
+        localStorage.removeItem("user_unit_name");
+        alert("Sesi sudah habis, silahkan login ulang");
+        window.location.href = "/login";
+        return;
+      }
+
       const json = await res.json();
 
       setData(json.data);

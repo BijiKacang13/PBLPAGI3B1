@@ -128,6 +128,20 @@ export default function LoginScreen() {
         localStorage.setItem("user_data", JSON.stringify(data.data.user));
         localStorage.setItem("user_role", data.data.user.role);
 
+        // Store session info
+        localStorage.setItem("session_expires_in", data.data.expires_in || "2 hours");
+        localStorage.setItem("remember_me", String(rememberMe));
+
+        // Store unit info for akuntan_unit
+        if (data.data.user.unit_name) {
+          localStorage.setItem("user_unit_name", data.data.user.unit_name);
+        }
+        if (data.data.user.id_unit) {
+          localStorage.setItem("user_unit_id", String(data.data.user.id_unit));
+        }
+
+        console.log("Login successful with remember me:", rememberMe, "expires:", data.data.expires_in);
+
         setShowSuccess(true);
 
         setTimeout(() => {

@@ -122,6 +122,11 @@ export default function BukuBesar() {
         // Handle 401 Unauthorized - redirect to login
         if (response.status === 401) {
           localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_data");
+          localStorage.removeItem("user_role");
+          localStorage.removeItem("user_unit_id");
+          localStorage.removeItem("user_unit_name");
+          alert("Sesi sudah habis, silahkan login ulang");
           router.push("/login");
           return;
         }

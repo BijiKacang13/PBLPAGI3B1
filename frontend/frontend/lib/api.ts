@@ -29,7 +29,7 @@ export const apiClient = {
   logout: async () => {
     const token = localStorage.getItem("auth_token");
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/logout`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -39,6 +39,7 @@ export const apiClient = {
     } finally {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_data");
+      localStorage.removeItem("user_role");
     }
   },
 };
