@@ -49,9 +49,21 @@ export default function EditRapbsKegiatan({
 
     setLoading(true);
     try {
+      // Get user's unit ID from localStorage
+      const userRole = localStorage.getItem("user_role");
+      let userUnitId = 1; // Default to 1 (Yayasan) for admin
+
+      // For akuntan_unit, get their unit ID
+      if (userRole === "akuntan_unit") {
+        const storedUnitId = localStorage.getItem("user_unit_id");
+        if (storedUnitId) {
+          userUnitId = parseInt(storedUnitId, 10);
+        }
+      }
+
       const payload = {
         id_kegiatan: data.id_kegiatan,
-        id_unit: 1,
+        id_unit: userUnitId,
         budget_rapbs_kegiatan: safeBudget,
       };
 

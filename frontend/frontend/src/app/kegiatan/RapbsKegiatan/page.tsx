@@ -6,6 +6,7 @@ import { ChevronDown, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import EditRapbsKegiatan from "@/components/EditRapbsKegiatan";
+import SuccessAlert from "@/components/SuccessAlert";
 import { useRouter } from "next/navigation";
 
 type RapbsKegiatan = {
@@ -18,28 +19,60 @@ type RapbsKegiatan = {
   items?: any[];
 };
 
+type Unit = {
+  id_unit: number;
+  kode_unit: string;
+  unit: string;
+};
+
 export default function RapbsKegiatanPage() {
   const [data, setData] = useState<RapbsKegiatan[]>([]);
   const [selected, setSelected] = useState<RapbsKegiatan | null>(null);
   const [openEdit, setOpenEdit] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [unitDropdown, setUnitDropdown] = useState(false);
 
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
 
+  // Unit Filter
+  const [unit, setUnit] = useState("all");
+  const [unitList, setUnitList] = useState<Unit[]>([]);
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitName, setUserUnitName] = useState<string>("");
+
   const [fileName, setFileName] = useState("Tidak ada file");
+  const [file, setFile] = useState<File | null>(null);
+  const [loadingImport, setLoadingImport] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // Alert states
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // ======================
+  // FETCH UNIT LIST
+  // ======================
+  const fetchUnits = async () => {
+    try {
+      const res = await api.get("/input-transaksi/form-data");
+      const data = res.data || res;
+      setUnitList(data.unit || data.units || []);
+    } catch (err) {
+      console.error("Error fetching units:", err);
+    }
+  };
 
   // ======================
   // FETCH DATA
   // ======================
-  const fetchRapbsKegiatan = async () => {
+  const fetchRapbsKegiatan = async (selectedUnit: string = unit) => {
     setLoading(true);
     try {
-      const res = await api.get("/budget-rapbs-kegiatan");
+      const params = selectedUnit !== "all" ? `?unit=${selectedUnit}` : "";
+      const res = await api.get(`/budget-rapbs-kegiatan${params}`);
 
       const arr = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
 
@@ -53,8 +86,66 @@ export default function RapbsKegiatanPage() {
   };
 
   useEffect(() => {
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+
+    // Get user's unit name from localStorage for akuntan_unit
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
+
+    fetchUnits();
     fetchRapbsKegiatan();
   }, []);
+
+  // Re-fetch when unit changes
+  useEffect(() => {
+    fetchRapbsKegiatan(unit);
+  }, [unit]);
+
+  // ======================
+  // IMPORT EXCEL
+  // ======================
+  const handleImportExcel = async () => {
+    if (!file) {
+      alert("Pilih file terlebih dahulu");
+      return;
+    }
+
+    setLoadingImport(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/budget-rapbs-kegiatan/import`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && (result.success !== false)) {
+        setSuccessMessage("BERHASIL IMPORT DATA RAPBS KEGIATAN");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2500);
+        fetchRapbsKegiatan();
+        setFile(null);
+        setFileName("Tidak ada file");
+      } else {
+        alert(result.message || result.error || "Gagal import");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Gagal import");
+    } finally {
+      setLoadingImport(false);
+    }
+  };
 
   // ======================
   // FILTER & PAGINATION
@@ -103,6 +194,15 @@ export default function RapbsKegiatanPage() {
             <div className="w-10 h-10" />
           </div>
 
+          {/* UNIT INDICATOR - For Akuntan Unit */}
+          {userRole === "akuntan_unit" && userUnitName && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-3">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">Unit:</span> {userUnitName}
+              </p>
+            </div>
+          )}
+
           {/* Download Template */}
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Rapbs_Kegiatan.xlsx`}
@@ -124,9 +224,12 @@ export default function RapbsKegiatanPage() {
               id="fileUpload"
               type="file"
               className="hidden"
-              onChange={(e) =>
-                setFileName(e.target.files?.[0]?.name || "Tidak ada file")
-              }
+              accept=".xlsx,.xls"
+              onChange={(e) => {
+                const f = e.target.files?.[0] || null;
+                setFile(f);
+                setFileName(f?.name || "Tidak ada file");
+              }}
             />
             <input
               type="text"
@@ -134,51 +237,65 @@ export default function RapbsKegiatanPage() {
               readOnly
               className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 bg-gray-50"
             />
-            <button className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition">
-              Import Excel
+            <button
+              onClick={handleImportExcel}
+              disabled={loadingImport}
+              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingImport ? "Mengimpor..." : "Import Excel"}
             </button>
           </div>
 
-          {/* Dropdown Unit */}
-          <div className="relative text-sm mb-3">
-            <label className="block text-gray-700 mb-1">Unit</label>
-            <div
-              onClick={() => setUnitDropdown(!unitDropdown)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm"
-            >
-              <span>Akumulasi (Semua Unit)</span>
-              <ChevronDown
-                className={`w-4 h-4 transition ${unitDropdown ? "rotate-180" : ""
-                  }`}
-              />
-            </div>
+          {/* Dropdown Unit - Only for Admin */}
+          {userRole === "admin" && (
+            <div className="relative text-sm mb-3">
+              <label className="block text-gray-700 mb-1">Unit</label>
+              <div
+                onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm bg-white"
+              >
+                <span>
+                  {unit === "all"
+                    ? "Akumulasi (Semua Unit)"
+                    : unitList.find((u) => String(u.id_unit) === unit)?.unit || "Pilih Unit"}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition ${showUnitDropdown ? "rotate-180" : ""}`} />
+              </div>
 
-            <AnimatePresence>
-              {unitDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="absolute w-full bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-10"
-                >
-                  {[
-                    "Akumulasi (Semua Unit)",
-                    "Unit SD IT",
-                    "Unit SMP IT",
-                    "Unit SMK IT",
-                  ].map((value) => (
+              <AnimatePresence>
+                {showUnitDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute w-full bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-20 max-h-60 overflow-y-auto"
+                  >
                     <div
-                      key={value}
-                      onClick={() => setUnitDropdown(false)}
-                      className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                      onClick={() => {
+                        setUnit("all");
+                        setShowUnitDropdown(false);
+                      }}
+                      className={`px-4 py-2 cursor-pointer ${unit === "all" ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"}`}
                     >
-                      {value}
+                      Akumulasi (Semua Unit)
                     </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                    {unitList.map((u) => (
+                      <div
+                        key={u.id_unit}
+                        onClick={() => {
+                          setUnit(String(u.id_unit));
+                          setShowUnitDropdown(false);
+                        }}
+                        className={`px-4 py-2 cursor-pointer ${String(u.id_unit) === unit ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"}`}
+                      >
+                        {u.kode_unit} - {u.unit}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* Dropdown Limit */}
           <div className="relative text-sm mb-3">
@@ -316,6 +433,12 @@ export default function RapbsKegiatanPage() {
         onClose={() => setOpenEdit(false)}
         onSuccess={fetchRapbsKegiatan}
         data={selected}
+      />
+
+      {/* SUCCESS ALERT */}
+      <SuccessAlert
+        show={showSuccess}
+        message={successMessage}
       />
     </div>
   );

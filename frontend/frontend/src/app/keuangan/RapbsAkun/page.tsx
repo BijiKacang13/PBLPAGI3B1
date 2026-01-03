@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import NavbarBottom from "@/components/NavbarBottom";
 import EditRapbsAkun from "@/components/EditRapbsAkun";
+import SuccessAlert from "@/components/SuccessAlert";
 import { useRouter } from "next/navigation";
 
 type RapbsAkun = {
@@ -14,6 +15,12 @@ type RapbsAkun = {
   kode_akun: string;
   akun: string;
   budget: number;
+};
+
+type Unit = {
+  id_unit: number;
+  kode_unit: string;
+  unit: string;
 };
 
 export default function RapbsAkunPage() {
@@ -27,23 +34,49 @@ export default function RapbsAkunPage() {
   const [page, setPage] = useState(1);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Unit Filter
+  const [unit, setUnit] = useState("all");
+  const [unitList, setUnitList] = useState<Unit[]>([]);
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitName, setUserUnitName] = useState<string>("");
+
   // Modals
   const [openEdit, setOpenEdit] = useState(false);
 
   // Import Excel
   const [fileName, setFileName] = useState("Tidak ada file");
   const [file, setFile] = useState<File | null>(null);
+  const [loadingImport, setLoadingImport] = useState(false);
+
+  // Alert states
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Loading
   const [loading, setLoading] = useState(true);
 
   // ======================
+  // FETCH UNIT LIST
+  // ======================
+  const fetchUnits = async () => {
+    try {
+      const res = await api.get("/input-transaksi/form-data");
+      const data = res.data || res;
+      setUnitList(data.unit || data.units || []);
+    } catch (err) {
+      console.error("Error fetching units:", err);
+    }
+  };
+
+  // ======================
   // FETCH DATA
   // ======================
-  const fetchRapbsAkun = async () => {
+  const fetchRapbsAkun = async (selectedUnit: string = unit) => {
     setLoading(true);
     try {
-      const res = await api.get("/budget-rapbs-akun");
+      const params = selectedUnit !== "all" ? `?unit=${selectedUnit}` : "";
+      const res = await api.get(`/budget-rapbs-akun${params}`);
 
       const arr = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
 
@@ -64,8 +97,21 @@ export default function RapbsAkunPage() {
   };
 
   useEffect(() => {
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+
+    // Get user's unit name from localStorage for akuntan_unit
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
+
+    fetchUnits();
     fetchRapbsAkun();
   }, []);
+
+  // Re-fetch when unit changes
+  useEffect(() => {
+    fetchRapbsAkun(unit);
+  }, [unit]);
 
   // ======================
   // IMPORT EXCEL
@@ -76,21 +122,39 @@ export default function RapbsAkunPage() {
       return;
     }
 
+    setLoadingImport(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      await api.post("/budget-rapbs-akun/import", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/budget-rapbs-akun/import`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          body: formData,
+        }
+      );
 
-      alert("Import berhasil");
-      fetchRapbsAkun();
-      setFile(null);
-      setFileName("Tidak ada file");
+      const result = await response.json();
+
+      if (response.ok && (result.success !== false)) {
+        setSuccessMessage("BERHASIL IMPORT DATA RAPBS");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2500);
+        fetchRapbsAkun();
+        setFile(null);
+        setFileName("Tidak ada file");
+      } else {
+        alert(result.message || result.error || "Gagal import");
+      }
     } catch (err: any) {
       console.error(err);
       alert(err.message || "Gagal import");
+    } finally {
+      setLoadingImport(false);
     }
   };
 
@@ -141,6 +205,59 @@ export default function RapbsAkunPage() {
             <div className="w-10 h-10" />
           </div>
 
+          {/* UNIT INDICATOR - For Akuntan Unit */}
+          {userRole === "akuntan_unit" && userUnitName && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-3">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">Unit:</span> {userUnitName}
+              </p>
+            </div>
+          )}
+
+          {/* UNIT FILTER - Only for Admin */}
+          {userRole === "admin" && (
+            <div className="relative text-sm mb-3">
+              <label className="block text-gray-700 mb-1">Unit</label>
+              <div
+                onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2 flex justify-between items-center cursor-pointer shadow-sm bg-white"
+              >
+                <span>
+                  {unit === "all"
+                    ? "Akumulasi (Semua Unit)"
+                    : unitList.find((u) => String(u.id_unit) === unit)?.unit || "Pilih Unit"}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition ${showUnitDropdown ? "rotate-180" : ""}`} />
+              </div>
+
+              {showUnitDropdown && (
+                <div className="absolute w-full bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-20 max-h-60 overflow-y-auto">
+                  <div
+                    onClick={() => {
+                      setUnit("all");
+                      setShowUnitDropdown(false);
+                    }}
+                    className={`px-4 py-2 cursor-pointer ${unit === "all" ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"}`}
+                  >
+                    Akumulasi (Semua Unit)
+                  </div>
+                  {unitList.map((u) => (
+                    <div
+                      key={u.id_unit}
+                      onClick={() => {
+                        setUnit(String(u.id_unit));
+                        setShowUnitDropdown(false);
+                      }}
+                      className={`px-4 py-2 cursor-pointer ${String(u.id_unit) === unit ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"}`}
+                    >
+                      {u.kode_unit} - {u.unit}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* DOWNLOAD TEMPLATE */}
           <a
             href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Rapbs_Akun.xlsx`}
@@ -179,9 +296,10 @@ export default function RapbsAkunPage() {
 
             <button
               onClick={handleImportExcel}
-              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-300 transition"
+              disabled={loadingImport}
+              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Import
+              {loadingImport ? "Mengimpor..." : "Import"}
             </button>
           </div>
 
@@ -324,6 +442,12 @@ export default function RapbsAkunPage() {
         onClose={() => setOpenEdit(false)}
         onSuccess={fetchRapbsAkun}
         data={selected}
+      />
+
+      {/* SUCCESS ALERT */}
+      <SuccessAlert
+        show={showSuccess}
+        message={successMessage}
       />
     </div>
   );
