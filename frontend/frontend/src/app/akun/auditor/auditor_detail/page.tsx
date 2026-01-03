@@ -218,6 +218,11 @@ export default function AuditorDetailPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Handle validation errors with details
+        if (response.status === 422 && result.errors) {
+          const errorMessages = Object.values(result.errors).flat().join(", ");
+          throw new Error(errorMessages || result.message || "Validasi gagal");
+        }
         throw new Error(result.message || result.error || "Gagal mengupdate data");
       }
 
@@ -242,6 +247,8 @@ export default function AuditorDetailPage() {
     } catch (err: any) {
       const errorMessage = err?.message || "Gagal mengupdate data auditor";
       setError(errorMessage);
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Error updating auditor:", err);
       setIsLoading(false);
     }

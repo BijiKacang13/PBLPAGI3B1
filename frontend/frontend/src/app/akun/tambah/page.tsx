@@ -182,6 +182,8 @@ export default function TambahUser() {
       setTimeout(() => router.push("/akun"), 1500);
     } catch (e: any) {
       setError(e.message || "Gagal menyimpan data");
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsLoading(false);
     }

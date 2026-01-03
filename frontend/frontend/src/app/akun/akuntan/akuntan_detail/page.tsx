@@ -407,14 +407,18 @@ export default function DetailAkuntanUnitPage() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Handle validation errors with details
+        if (response.status === 422 && result.errors) {
+          const errorMessages = Object.values(result.errors).flat().join(", ");
+          throw new Error(errorMessages || result.message || "Validasi gagal");
+        }
         throw new Error(result.message || result.error || "Gagal mengupdate data");
       }
 
       if (result.success) {
         setSuccessMessage("BERHASIL MENGUBAH AKUN");
         setShowSuccess(true);
-        // Reload data
-        await loadAkuntanDetail();
+
         // Reset password fields
         setFormData((prev) => ({
           ...prev,
@@ -422,6 +426,7 @@ export default function DetailAkuntanUnitPage() {
           new_password: "",
           new_password_confirmation: "",
         }));
+
         // Hide success alert dan redirect setelah 2 detik
         setTimeout(() => {
           setShowSuccess(false);
@@ -431,6 +436,8 @@ export default function DetailAkuntanUnitPage() {
     } catch (err: any) {
       const errorMessage = err?.message || "Gagal mengupdate data akuntan unit";
       setError(errorMessage);
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Error updating akuntan:", err);
     } finally {
       setIsLoading(false);

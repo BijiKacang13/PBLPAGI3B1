@@ -207,6 +207,12 @@ class AkuntanUnitController extends Controller
 
             DB::beginTransaction();
 
+            // Set current user ID for trigger logging
+            $currentUserId = auth('sanctum')->id() ?? auth()->id();
+            if ($currentUserId) {
+                DB::statement("SET @current_user_id = ?", [$currentUserId]);
+            }
+
             $user = User::findOrFail($id);
             $akuntanUnit = Akuntan_Unit::where('id_akuntan_unit', $id)->firstOrFail();
             $hakAkses = Hak_Akses::where('id_akuntan_unit', $id)->firstOrFail();
