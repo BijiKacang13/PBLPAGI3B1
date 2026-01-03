@@ -223,7 +223,7 @@ export default function RapbsKegiatanPage() {
           </div>
 
           {/* TABLE */}
-          <div className="overflow-hidden rounded-xl border border-gray-300">
+          <div className="overflow-x-auto rounded-xl border border-gray-300">
             <table className="w-full text-sm">
               <thead className="bg-gray-100">
                 <tr>

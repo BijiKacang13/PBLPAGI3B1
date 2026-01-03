@@ -13,6 +13,10 @@ export default function SOPPage() {
   const [sopList, setSopList] = useState<SOPData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  type UserRole = "admin" | "auditor" | "akuntan_unit";
+
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -81,6 +85,11 @@ export default function SOPPage() {
 
   useEffect(() => {
     fetchSOP();
+
+    const role = localStorage.getItem("user_role") as UserRole;
+  if (role) {
+    setUserRole(role);
+  }
   }, []);
 
   const fetchSOP = async () => {
@@ -135,12 +144,14 @@ export default function SOPPage() {
           </div>
 
           {/* Button Tambah SOP */}
+          {userRole === "admin" && (
           <button
             onClick={handleOpenModal}
             className="bg-blue-600 hover:bg-blue-700 text-white font-large py-2 px-6 rounded-full transition-colors duration-200 mb-6"
           >
             Tambah SOP
           </button>
+          )}
 
           {/* Search Bar */}
           <div className="mb-6">
