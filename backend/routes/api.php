@@ -60,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('akun')->group(function () {
         Route::get('/', [AkunController::class, 'index']);
         Route::post('/', [AkunController::class, 'store']);
+        Route::post('/import', [AkunController::class, 'importExcel']);
+        Route::get('/export', [AkunController::class, 'exportExcel']);
         Route::put('/{id}', [AkunController::class, 'update']);
         Route::delete('/{id}', [AkunController::class, 'destroy']);
     });

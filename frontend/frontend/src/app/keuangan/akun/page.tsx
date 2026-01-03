@@ -9,6 +9,7 @@ import NavbarBottom from "@/components/NavbarBottom";
 import TambahAkun from "@/components/TambahAkun";
 import EditAkun from "@/components/EditAkun";
 import HapusAkun from "@/components/HapusAkun";
+import SuccessAlert from "@/components/SuccessAlert";
 import { useRouter } from "next/navigation";
 
 type Akun = {
@@ -38,6 +39,13 @@ export default function AkunPage() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+
+  // Import
+  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState("Tidak ada file");
+  const [loadingImport, setLoadingImport] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // ======================
   // FETCH
@@ -94,6 +102,79 @@ export default function AkunPage() {
   const startIndex = (page - 1) * limit;
   const paginated = filtered.slice(startIndex, startIndex + limit);
 
+  // ======================
+  // IMPORT EXCEL
+  // ======================
+  const handleImportExcel = async () => {
+    if (!file) {
+      alert("Pilih file terlebih dahulu");
+      return;
+    }
+
+    setLoadingImport(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/akun/import`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          body: formData,
+        }
+      );
+
+      // Handle 401
+      if (response.status === 401) {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
+        alert("Sesi sudah habis, silahkan login ulang");
+        router.push("/login");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Build detailed message like Pencatatan page
+        const data = result.data || {};
+        const created = data.created_count || 0;
+        const updated = data.updated_count || 0;
+        const skipped = data.skipped_count || 0;
+
+        let msg = '';
+        if (created > 0 && updated > 0) {
+          msg = `BERHASIL IMPORT: ${created} AKUN BARU, ${updated} DIUPDATE`;
+        } else if (created > 0) {
+          msg = `BERHASIL IMPORT: ${created} AKUN BARU`;
+        } else if (updated > 0) {
+          msg = `BERHASIL UPDATE: ${updated} AKUN`;
+        } else if (skipped > 0) {
+          msg = 'TIDAK ADA PERUBAHAN';
+        } else {
+          msg = 'IMPORT SELESAI';
+        }
+
+        setSuccessMessage(msg);
+        setShowSuccess(true);
+        fetchAkun();
+        setFile(null);
+        setFileName("Tidak ada file");
+      } else {
+        alert(result.message || "Gagal import");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Gagal import");
+    } finally {
+      setLoadingImport(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
@@ -123,6 +204,48 @@ export default function AkunPage() {
               AKUN
             </h1>
             <div className="w-10 h-10" />
+          </div>
+
+          {/* DOWNLOAD TEMPLATE */}
+          <a
+            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Akun.xlsx`}
+            download="Template_Akun.xlsx"
+            className="text-blue-600 text-sm font-semibold underline block text-right mb-3"
+          >
+            Download Template Import Akun
+          </a>
+
+          <div className="flex items-center gap-2 mb-3">
+            <label
+              htmlFor="fileUploadAkun"
+              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
+            >
+              Pilih File
+            </label>
+            <input
+              id="fileUploadAkun"
+              type="file"
+              className="hidden"
+              accept=".xlsx,.xls"
+              onChange={(e) => {
+                const f = e.target.files?.[0] || null;
+                setFile(f);
+                setFileName(f?.name || "Tidak ada file");
+              }}
+            />
+            <input
+              type="text"
+              value={fileName}
+              readOnly
+              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 bg-gray-50"
+            />
+            <button
+              onClick={handleImportExcel}
+              disabled={loadingImport}
+              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingImport ? "Mengimpor..." : "Import Excel"}
+            </button>
           </div>
 
           {/* BUTTON TAMBAH */}
@@ -170,8 +293,8 @@ export default function AkunPage() {
                       setShowDropdown(false);
                     }}
                     className={`px-4 py-2 cursor-pointer ${limit === value
-                        ? "bg-blue-100 text-blue-700"
-                        : "hover:bg-blue-50"
+                      ? "bg-blue-100 text-blue-700"
+                      : "hover:bg-blue-50"
                       }`}
                   >
                     {value} Data
@@ -260,8 +383,8 @@ export default function AkunPage() {
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1}
               className={`px-3 py-1 rounded-lg text-sm ${page === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-blue-200 text-gray-800 hover:bg-blue-400"
                 }`}
             >
               Sebelumnya
@@ -275,8 +398,8 @@ export default function AkunPage() {
               onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
               disabled={page === totalPages}
               className={`px-3 py-1 rounded-lg text-sm ${page === totalPages
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-blue-200 text-gray-800 hover:bg-blue-400"
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-blue-200 text-gray-800 hover:bg-blue-400"
                 }`}
             >
               Selanjutnya
@@ -308,6 +431,14 @@ export default function AkunPage() {
         onClose={() => setOpenHapus(false)}
         onSuccess={fetchAkun}
         data={selected}
+      />
+
+      {/* SUCCESS ALERT */}
+      <SuccessAlert
+        show={showSuccess}
+        message={successMessage}
+        onClose={() => setShowSuccess(false)}
+        autoCloseMs={3000}
       />
     </div>
   );
