@@ -5,45 +5,46 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Akun;
 use App\Models\Budget_Rapbs_Akun;
+use App\Models\Akuntan_Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class BudgetRapbsAkunController extends Controller
 {
     public function index(Request $request)
     {
+        $user = Auth::user();
         $search  = trim($request->input('search', ''));
         $id_unit = $request->input('unit', 'all');
+        $isAll = ($id_unit === 'all' || $id_unit === null);
+        
+        // If akuntan_unit, force filter to their own unit
+        if ($user && $user->role === 'akuntan_unit') {
+            $akuntan = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
+            if ($akuntan) {
+                $id_unit = $akuntan->id_unit;
+                $isAll = false;
+            }
+        }
 
         $query = Akun::select(
             'akun.id_akun',
             'akun.kode_akun',
             'akun.akun',
-            ($id_unit === 'all'
-                ? DB::raw('SUM(akun.saldo_awal_debit) AS saldo_awal_debit')
-                : 'akun.saldo_awal_debit'),
-            ($id_unit === 'all'
-                ? DB::raw('SUM(akun.saldo_awal_kredit) AS saldo_awal_kredit')
-                : 'akun.saldo_awal_kredit'),
-            DB::raw(
-                ($id_unit === 'all'
-                    ? 'SUM(budget_rapbs_akun.budget_rapbs_akun)'
-                    : 'COALESCE(budget_rapbs_akun.budget_rapbs_akun, 0)'
-                ) . ' AS budget_rapbs'
-            )
+            DB::raw('COALESCE(SUM(akun.saldo_awal_debit), 0) AS saldo_awal_debit'),
+            DB::raw('COALESCE(SUM(akun.saldo_awal_kredit), 0) AS saldo_awal_kredit'),
+            DB::raw('COALESCE(SUM(budget_rapbs_akun.budget_rapbs_akun), 0) AS budget_rapbs')
         )
-        ->leftJoin('budget_rapbs_akun', function ($join) use ($id_unit) {
+        ->leftJoin('budget_rapbs_akun', function ($join) use ($id_unit, $isAll) {
             $join->on('akun.id_akun', '=', 'budget_rapbs_akun.id_akun');
-            if ($id_unit !== 'all') {
+            if (!$isAll) {
                 $join->where('budget_rapbs_akun.id_unit', '=', $id_unit);
             }
         })
+        ->groupBy('akun.id_akun', 'akun.kode_akun', 'akun.akun')
         ->orderBy('akun.kode_akun', 'ASC');
-
-        if ($id_unit === 'all') {
-            $query->groupBy('akun.id_akun', 'akun.kode_akun', 'akun.akun');
-        }
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -94,6 +95,8 @@ class BudgetRapbsAkunController extends Controller
         $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
         try {
+            DB::statement('SET @current_user_id = ?', [auth()->id()]);
+            
             DB::transaction(function () use ($rows) {
                 foreach ($rows as $index => $row) {
                     if ($index === 1) continue;
@@ -125,9 +128,9 @@ class BudgetRapbsAkunController extends Controller
                 }
             });
 
-            return response()->json(['message' => 'Import berhasil']);
+            return response()->json(['success' => true, 'message' => 'Import berhasil']);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 }

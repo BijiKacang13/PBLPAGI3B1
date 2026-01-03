@@ -46,9 +46,41 @@ export default function EditRapbsAkun({
 
     setLoading(true);
     try {
+      // Get user's unit ID from localStorage
+      const userData = localStorage.getItem("user_data");
+      const userRole = localStorage.getItem("user_role");
+      const storedUnitId = localStorage.getItem("user_unit_id");
+
+      console.log("=== DEBUG EDIT RAPBS AKUN ===");
+      console.log("userRole:", userRole);
+      console.log("storedUnitId:", storedUnitId);
+      console.log("userData:", userData);
+
+      let userUnitId = 1; // Default to 1 (Yayasan) for admin
+
+      // First priority: use stored user_unit_id
+      if (storedUnitId && userRole === "akuntan_unit") {
+        userUnitId = parseInt(storedUnitId, 10);
+        console.log("Using storedUnitId:", userUnitId);
+      }
+      // Second priority: get from user_data
+      else if (userRole === "akuntan_unit" && userData) {
+        try {
+          const user = JSON.parse(userData);
+          if (user.id_unit) {
+            userUnitId = user.id_unit;
+            console.log("Using user.id_unit from userData:", userUnitId);
+          }
+        } catch (e) {
+          console.error("Error parsing user data:", e);
+        }
+      }
+
+      console.log("Final userUnitId:", userUnitId);
+
       const payload = {
         id_akun: data.id_akun,
-        id_unit: 1,
+        id_unit: userUnitId,
         budget_rapbs_akun: safeBudget,
       };
 

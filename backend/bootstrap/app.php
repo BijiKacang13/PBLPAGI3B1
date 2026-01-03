@@ -5,6 +5,8 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\HakAksesMiddleware;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,5 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Handle unauthenticated requests for API - return JSON instead of redirect
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated. Token tidak valid atau sudah expired.',
+                ], 401);
+            }
+        });
     })->create();
