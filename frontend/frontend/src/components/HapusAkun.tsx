@@ -9,12 +9,12 @@ type HapusAkunProps = {
   onClose: () => void;
   onSuccess: () => void;
   data:
-    | {
-        id_akun: number;
-        akun: string;
-        kode_akun: string;
-      }
-    | null;
+  | {
+    id_akun: number;
+    akun: string;
+    kode_akun: string;
+  }
+  | null;
 };
 
 export default function HapusAkun({ open, onClose, onSuccess, data }: HapusAkunProps) {
@@ -47,7 +47,7 @@ export default function HapusAkun({ open, onClose, onSuccess, data }: HapusAkunP
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white w-[85%] max-w-xs rounded-2xl p-6 shadow-lg relative"
+          className="bg-white w-[90%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl rounded-2xl p-5 sm:p-6 shadow-lg relative"
         >
           <button
             onClick={onClose}

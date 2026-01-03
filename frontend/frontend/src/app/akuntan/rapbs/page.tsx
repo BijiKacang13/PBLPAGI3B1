@@ -1,8 +1,8 @@
 "use client";
 
-import Navbar from "@/components/Navbar"; 
+import Navbar from "@/components/Navbar";
 import { FileText, ChartLine } from "lucide-react";
-import { useRouter } from "next/navigation";   
+import { useRouter } from "next/navigation";
 import NavbarBottom from "@/components/NavbarBottom";
 
 export default function RapbsMenu() {
@@ -14,7 +14,7 @@ export default function RapbsMenu() {
       <Navbar />
 
       {/* Konten Utama */}
-      <main className="flex flex-col items-center mt-6 px-4">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm text-center">
           <h2 className="font-semibold text-lg mb-5">
             MANAJEMEN RAPBS
@@ -25,14 +25,14 @@ export default function RapbsMenu() {
             <button
               onClick={() => router.push("/keuangan/RapbsAkun")}
               className="flex items-center justify-center gap-2 bg-[#0D5FFF] text-white font-semibold py-3 rounded-lg shadow hover:bg-[#254da0] transition">
-              <FileText size={20} /> 
+              <FileText size={20} />
               RAPBS PER-AKUN
             </button>
 
-            <button 
+            <button
               onClick={() => router.push("/kegiatan/RapbsKegiatan")}
               className="flex items-center justify-center gap-2 bg-[#0D5FFF] text-white font-semibold py-3 rounded-lg shadow hover:bg-[#254da0] transition">
-              <ChartLine size={20} />  
+              <ChartLine size={20} />
               RAPBS PER-KEGIATAN
             </button>
           </div>

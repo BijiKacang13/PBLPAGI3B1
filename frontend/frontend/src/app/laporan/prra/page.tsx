@@ -77,13 +77,13 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
     fetchFilterOptions();
     const role = localStorage.getItem("user_role") as "admin" | "auditor" | "akuntan_unit";
     const unitId = localStorage.getItem("user_unit_id");
-    
+
     if (role) {
-      setUserRole({ 
-        role, 
-        id_unit: unitId ? parseInt(unitId) : undefined 
+      setUserRole({
+        role,
+        id_unit: unitId ? parseInt(unitId) : undefined
       });
-      
+
       // Set unit for akuntan_unit
       if (role === "akuntan_unit" && unitId) {
         setSelectedUnit(parseInt(unitId));
@@ -211,7 +211,7 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
       <Navbar />
 
       {/* Konten Utama */}
-      <main className="flex flex-col items-center mt-6 px-4 w-full max-w-4xl mx-auto">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Filter Section */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
           <h2 className="font-semibold text-lg mb-5">
@@ -334,7 +334,7 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
             </div>
 
             {/* Tombol Refresh */}
-            <button 
+            <button
               onClick={handleResetFilters}
               className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >

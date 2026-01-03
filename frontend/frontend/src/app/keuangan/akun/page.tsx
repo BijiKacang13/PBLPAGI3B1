@@ -51,8 +51,8 @@ export default function AkunPage() {
       const arr = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data?.data)
-        ? res.data.data
-        : [];
+          ? res.data.data
+          : [];
 
       const mapped = arr.map((x: any) => ({
         id_akun: Number(x.id_akun),
@@ -98,8 +98,8 @@ export default function AkunPage() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
-        <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+        <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full mb-6">
 
           {/* TITLE */}
           <div className="flex items-center gap-3 mb-6">
@@ -154,9 +154,8 @@ export default function AkunPage() {
             >
               <span>{limit}</span>
               <ChevronDown
-                className={`w-4 h-4 transition ${
-                  showDropdown ? "rotate-180" : ""
-                }`}
+                className={`w-4 h-4 transition ${showDropdown ? "rotate-180" : ""
+                  }`}
               />
             </div>
 
@@ -170,11 +169,10 @@ export default function AkunPage() {
                       setPage(1);
                       setShowDropdown(false);
                     }}
-                    className={`px-4 py-2 cursor-pointer ${
-                      limit === value
+                    className={`px-4 py-2 cursor-pointer ${limit === value
                         ? "bg-blue-100 text-blue-700"
                         : "hover:bg-blue-50"
-                    }`}
+                      }`}
                   >
                     {value} Data
                   </div>
@@ -195,64 +193,64 @@ export default function AkunPage() {
                   <th className="px-4 py-2 w-20"></th>
                 </tr>
               </thead>
-                <tbody>
-                  {loadingData ? (
-                    <tr>
-                      <td colSpan={5} className="py-10 text-center">
-                        <div className="flex flex-col items-center justify-center">
-                          <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                          <p className="text-gray-500 text-sm mt-3">Memuat data...</p>
-                        </div>
+              <tbody>
+                {loadingData ? (
+                  <tr>
+                    <td colSpan={5} className="py-10 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-gray-500 text-sm mt-3">Memuat data...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : paginated.length > 0 ? (
+                  paginated.map((item) => (
+                    <tr key={item.id_akun} className="border-t hover:bg-gray-50">
+                      <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
+                      <td className="px-4 py-2">{item.akun}</td>
+                      <td className="px-4 py-2 text-right">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(item.saldo_awal_debit)}
                       </td>
-                    </tr>
-                  ) : paginated.length > 0 ? (
-                    paginated.map((item) => (
-                      <tr key={item.id_akun} className="border-t hover:bg-gray-50">
-                        <td className="px-4 py-2 font-mono text-gray-600">{item.kode_akun}</td>
-                        <td className="px-4 py-2">{item.akun}</td>
-                        <td className="px-4 py-2 text-right">
-                          {new Intl.NumberFormat("id-ID", {
-                            style: "currency",
-                            currency: "IDR",
-                          }).format(item.saldo_awal_debit)}
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          {new Intl.NumberFormat("id-ID", {
-                            style: "currency",
-                            currency: "IDR",
-                          }).format(item.saldo_awal_kredit)}
-                        </td>
-                        <td className="px-4 py-2 flex justify-end gap-3">
-                          <button
-                            onClick={() => {
+                      <td className="px-4 py-2 text-right">
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                        }).format(item.saldo_awal_kredit)}
+                      </td>
+                      <td className="px-4 py-2 flex justify-end gap-3">
+                        <button
+                          onClick={() => {
                             setSelected(item);
                             setOpenEdit(true);
-                            }}
-                            className="text-yellow-500 hover:text-yellow-600"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          
-                          <button
-                            onClick={() => {
-                              setSelected(item);
-                              setOpenHapus(true);
-                            }}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="text-center py-4 text-gray-400">
-                        Tidak ada data
+                          }}
+                          className="text-yellow-500 hover:text-yellow-600"
+                        >
+                          <Pencil size={16} />
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setSelected(item);
+                            setOpenHapus(true);
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </td>
                     </tr>
-                  )}
-                </tbody>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4 text-gray-400">
+                      Tidak ada data
+                    </td>
+                  </tr>
+                )}
+              </tbody>
             </table>
           </div>
 
@@ -261,11 +259,10 @@ export default function AkunPage() {
             <button
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={page === 1}
-              className={`px-3 py-1 rounded-lg text-sm ${
-                page === 1
+              className={`px-3 py-1 rounded-lg text-sm ${page === 1
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-blue-200 text-gray-800 hover:bg-blue-400"
-              }`}
+                }`}
             >
               Sebelumnya
             </button>
@@ -277,11 +274,10 @@ export default function AkunPage() {
             <button
               onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
               disabled={page === totalPages}
-              className={`px-3 py-1 rounded-lg text-sm ${
-                page === totalPages
+              className={`px-3 py-1 rounded-lg text-sm ${page === totalPages
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-blue-200 text-gray-800 hover:bg-blue-400"
-              }`}
+                }`}
             >
               Selanjutnya
             </button>

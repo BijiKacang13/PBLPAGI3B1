@@ -50,7 +50,7 @@ export default function LaporanPerubahanAsetNeto() {
   // Fetch report data function
   const fetchReportData = useCallback(async () => {
     if (!tanggalMulai || !tanggalSelesai) return;
-    
+
     setLoading(true);
     setError("");
     try {
@@ -62,11 +62,11 @@ export default function LaporanPerubahanAsetNeto() {
       };
 
       const response = await perubahanAsetNetoApi.getData(params);
-      
+
       if (response.success && response.data) {
         setData(response.data.report_data);
         setTotalSaldoAkhir(response.data.total_saldo_akhir);
-        
+
         // Update user info from response
         if (response.data.user) {
           setUser({
@@ -155,7 +155,7 @@ export default function LaporanPerubahanAsetNeto() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
 
-      <main className="flex flex-col items-center mt-6 px-4 w-full max-w-4xl mx-auto">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Filter Section */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
           <h2 className="font-semibold text-lg mb-5">LAPORAN PERUBAHAN ASET NETO</h2>
@@ -266,7 +266,7 @@ export default function LaporanPerubahanAsetNeto() {
             </div>
 
             {/* Tombol Refresh */}
-            <button 
+            <button
               onClick={handleResetFilters}
               className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >

@@ -110,23 +110,23 @@ export default function CatatanLaporanKeuangan() {
         formDataToSend.append("file", formData.file);
       }
 
-const response = await fetch(`${API_BASE_URL}/laporan/calk`, {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-    // JANGAN tambahkan Content-Type, biarkan browser yang set otomatis untuk FormData
-  },
-  body: formDataToSend,
-});
+      const response = await fetch(`${API_BASE_URL}/laporan/calk`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          // JANGAN tambahkan Content-Type, biarkan browser yang set otomatis untuk FormData
+        },
+        body: formDataToSend,
+      });
 
-// Tambahkan pengecekan response status
-if (!response.ok) {
-  const errorText = await response.text();
-  console.error("Error response:", errorText);
-  throw new Error(`HTTP error! status: ${response.status}`);
-}
+      // Tambahkan pengecekan response status
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-const result = await response.json();
+      const result = await response.json();
 
       if (result.success) {
         showAlert("success", "CALK berhasil ditambahkan");
@@ -253,17 +253,16 @@ const result = await response.json();
       <Navbar />
 
       {/* Main Content */}
-      <main className="flex flex-col items-center mt-6 px-4 w-full max-w-4xl mx-auto">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Header Card */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full">
           {/* Alert */}
           {alert.show && (
             <div
-              className={`mb-4 p-4 rounded-lg ${
-                alert.type === "success"
+              className={`mb-4 p-4 rounded-lg ${alert.type === "success"
                   ? "bg-green-100 text-green-800 border border-green-200"
                   : "bg-red-100 text-red-800 border border-red-200"
-              }`}
+                }`}
             >
               <div className="flex justify-between items-center">
                 <span>{alert.message}</span>

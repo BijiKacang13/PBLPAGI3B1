@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { api } from "@/lib/api/axiosClient"; 
+import { api } from "@/lib/api/axiosClient";
 
 type EditKategoriProps = {
   open: boolean;
@@ -38,7 +38,7 @@ export default function EditKategori({ open, onClose, onSuccess, data }: EditKat
         kode_kategori_akun: kode,
         kategori_akun: kategori,
       });
-      
+
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -60,7 +60,7 @@ export default function EditKategori({ open, onClose, onSuccess, data }: EditKat
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
+          className="bg-white w-[90%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl rounded-2xl shadow-lg p-5 sm:p-6 relative"
         >
           <button onClick={onClose} className="absolute top-3 right-3 text-gray-700">
             <X className="w-5 h-5" />

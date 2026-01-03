@@ -51,7 +51,7 @@ export default function PosisiKeuangan() {
   const [loading, setLoading] = useState(false);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({ units: [], divisis: [] });
   const [neracaData, setNeracaData] = useState<NeracaData | null>(null);
-  
+
   // Filter states
   const [selectedUnit, setSelectedUnit] = useState<number | null>(null);
   const [selectedDivisi, setSelectedDivisi] = useState<number | null>(null);
@@ -85,9 +85,9 @@ export default function PosisiKeuangan() {
           'Accept': 'application/json',
         },
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setFilterOptions(result.data);
       }
@@ -98,7 +98,7 @@ export default function PosisiKeuangan() {
 
   const fetchNeracaData = async () => {
     setLoading(true);
-    
+
     try {
       const params = new URLSearchParams();
       if (selectedUnit) params.append("unit", selectedUnit.toString());
@@ -112,9 +112,9 @@ export default function PosisiKeuangan() {
           'Accept': 'application/json',
         },
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setNeracaData(result.data);
       } else {
@@ -186,20 +186,20 @@ export default function PosisiKeuangan() {
       <Navbar />
 
       {/* Konten Utama */}
-      <main className="flex flex-col items-center mt-6 px-4 w-full max-w-4xl mx-auto">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Filter Section */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
           <h2 className="font-semibold text-lg mb-5">POSISI KEUANGAN</h2>
 
           {/* Tombol Export dan Print */}
           <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">
-            <button 
+            <button
               onClick={handleExportExcel}
               className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-2 font-semibold hover:bg-gray-200 transition-colors"
             >
               <FileSpreadsheet size={18} /> Export Excel
             </button>
-            <button 
+            <button
               onClick={handlePrint}
               className="flex-1 flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 font-semibold hover:bg-[#a8d5f5] transition-colors"
             >
@@ -272,7 +272,7 @@ export default function PosisiKeuangan() {
             </div>
 
             {/* Tombol Refresh */}
-            <button 
+            <button
               onClick={handleResetFilters}
               className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >

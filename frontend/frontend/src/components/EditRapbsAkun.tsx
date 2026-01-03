@@ -79,7 +79,7 @@ export default function EditRapbsAkun({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
+          className="bg-white w-[90%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl rounded-2xl shadow-lg p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
         >
           <button
             onClick={onClose}

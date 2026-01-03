@@ -294,7 +294,11 @@ export default function LoginScreen() {
       </div>
 
       {/* Alert sukses */}
-      <SuccessAlert show={showSuccess} />
+      <SuccessAlert
+        show={showSuccess}
+        message="BERHASIL MASUK"
+        subtitle="Anda berhasil masuk ke sistem"
+      />
     </div>
   );
 }

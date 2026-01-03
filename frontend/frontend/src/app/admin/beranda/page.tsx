@@ -17,7 +17,7 @@ export default function Beranda() {
       <Navbar />
 
       {/* Konten utama */}
-      <main className="flex flex-col items-center mt-6 px-4">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-6xl">
           <p className="font-semibold mb-2 text-center">Selamat datang, Admin!</p>
           <p className="text-gray-500 text-sm mb-3 text-center">
@@ -34,7 +34,7 @@ export default function Beranda() {
           <ChartTransaksi />
 
           {/* Button Analisis Data */}
-          <button 
+          <button
             onClick={handleAnalisisData}
             className="w-full bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-3 px-4 rounded-xl transition-colors mt-6"
           >

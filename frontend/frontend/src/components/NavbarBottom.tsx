@@ -68,7 +68,7 @@ export default function NavbarBottom({ isModalOpen = false }) {
   return (
     <nav
       className={`
-        fixed bottom-0 left-0 right-0 z-50 md:hidden
+        fixed bottom-0 left-0 right-0 z-50 md:hidden no-print
         border-t border-gray-200 shadow-sm transition-all duration-300
         ${isModalOpen ? "backdrop-blur-lg bg-white/40" : "bg-white/90 backdrop-blur-sm"}
       `}
@@ -80,21 +80,18 @@ export default function NavbarBottom({ isModalOpen = false }) {
             <li key={index}>
               <Link
                 href={menu.href}
-                className={`flex flex-col items-center text-xs font-medium transition-all ${
-                  isActive ? "text-blue-800" : "text-gray-400"
-                }`}
+                className={`flex flex-col items-center text-xs font-medium transition-all ${isActive ? "text-blue-800" : "text-gray-400"
+                  }`}
               >
                 <div
-                  className={`p-2 rounded-full transition-colors ${
-                    isActive ? "bg-blue-100" : "bg-transparent"
-                  }`}
+                  className={`p-2 rounded-full transition-colors ${isActive ? "bg-blue-100" : "bg-transparent"
+                    }`}
                 >
                   {menu.icon}
                 </div>
                 <span
-                  className={`mt-1 ${
-                    isActive ? "text-blue-800" : "text-gray-500"
-                  }`}
+                  className={`mt-1 ${isActive ? "text-blue-800" : "text-gray-500"
+                    }`}
                 >
                   {menu.name}
                 </span>

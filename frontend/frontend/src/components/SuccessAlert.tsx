@@ -1,20 +1,34 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check } from "lucide-react";
+import { useEffect } from "react";
 
 interface SuccessAlertProps {
   show: boolean;
   onClose?: () => void;
   message?: string;
   subtitle?: string;
+  autoCloseMs?: number;
 }
 
 export default function SuccessAlert({
   show,
   onClose,
   message = "BERHASIL",
-  subtitle
+  subtitle,
+  autoCloseMs = 2500
 }: SuccessAlertProps) {
+
+  // Auto-close after specified time
+  useEffect(() => {
+    if (show && onClose && autoCloseMs > 0) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, autoCloseMs);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose, autoCloseMs]);
+
   return (
     <AnimatePresence>
       {show && (
@@ -35,7 +49,9 @@ export default function SuccessAlert({
               stiffness: 160,
               damping: 18,
             }}
+            onClick={(e) => e.stopPropagation()}
           >
+
             {/* Ceklis animasi ringan */}
             <motion.div
               className="relative mb-3 flex items-center justify-center w-20 h-20 rounded-full bg-blue-50"

@@ -48,7 +48,7 @@ export default function ArusKas() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ArusKasData | null>(null);
   const [options, setOptions] = useState<{ units: Unit[]; divisis: Divisi[] }>({ units: [], divisis: [] });
-  
+
   // Filter states
   const [filters, setFilters] = useState({
     unit: "",
@@ -127,7 +127,7 @@ export default function ArusKas() {
           }
         }
       );
-      
+
       const result = await response.json();
       if (result.success) {
         setData(result.data);
@@ -160,7 +160,7 @@ export default function ArusKas() {
           }
         }
       );
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -236,7 +236,8 @@ export default function ArusKas() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           body * {
             visibility: hidden;
@@ -259,20 +260,20 @@ export default function ArusKas() {
         <Navbar />
       </div>
 
-      <main className="flex flex-col items-center mt-6 px-4 w-full">
-         {/* Filter Card */}
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full">
+        {/* Filter Card */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-4xl text-center print:hidden">
           <h2 className="font-semibold text-lg mb-5">ARUS KAS</h2>
 
           {/* Export & Print Buttons */}
           <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">
-            <button 
+            <button
               onClick={handleExportExcel}
               className="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-2 font-semibold hover:bg-gray-200 transition"
             >
               <FileSpreadsheet size={18} /> Export Excel
             </button>
-            <button 
+            <button
               onClick={handlePrint}
               className="flex-1 flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 font-semibold hover:bg-[#9CCFFF] transition"
             >
@@ -280,7 +281,7 @@ export default function ArusKas() {
             </button>
           </div>
 
-         {/* Filter Form */}
+          {/* Filter Form */}
           <div className="text-left space-y-3">
             <div>
               <label className="text-sm font-medium">Unit</label>
@@ -316,7 +317,7 @@ export default function ArusKas() {
 
             <div>
               <label className="text-sm font-medium">Dari Tanggal</label>
-                <input
+              <input
                 type="date"
                 value={filters.start_date}
                 onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
@@ -326,7 +327,7 @@ export default function ArusKas() {
 
             <div>
               <label className="text-sm font-medium">Sampai Tanggal</label>
-            <input
+              <input
                 type="date"
                 value={filters.end_date}
                 onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
@@ -334,7 +335,7 @@ export default function ArusKas() {
               />
             </div>
 
-            <button 
+            <button
               onClick={handleResetFilters}
               className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >
@@ -344,7 +345,7 @@ export default function ArusKas() {
           </div>
         </div>
 
-                {/* Data Display */}
+        {/* Data Display */}
         {data && (
           <div className="w-full max-w-4xl mt-6 bg-white shadow-md rounded-xl p-6" id="print-area">
             <h3 className="text-center font-bold text-lg mb-4">
@@ -553,7 +554,7 @@ export default function ArusKas() {
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
       </main>
-      
+
       <div className="print:hidden">
         <NavbarBottom />
       </div>

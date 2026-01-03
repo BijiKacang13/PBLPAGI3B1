@@ -194,7 +194,7 @@ export default function LaporanKomprehensif() {
       <Navbar />
 
       {/* Konten Utama */}
-      <main className="flex flex-col items-center mt-6 px-4 w-full max-w-4xl mx-auto">
+      <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Kartu judul + filter */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
           <div className="flex items-center justify-between mb-4">
@@ -304,7 +304,7 @@ export default function LaporanKomprehensif() {
                   }
                   className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50"
                 />
-                
+
               </div>
             </div>
 
@@ -320,12 +320,12 @@ export default function LaporanKomprehensif() {
                   }
                   className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50"
                 />
-               
+
               </div>
             </div>
 
             {/* Tombol Refresh */}
-            <button 
+            <button
               onClick={handleResetFilters}
               className="w-full flex items-center justify-center gap-2 bg-[#BDE1FF] text-gray-800 py-2 rounded-full font-semibold mt-2 hover:bg-[#9CCFFF] transition"
             >
@@ -410,12 +410,11 @@ export default function LaporanKomprehensif() {
                     KENAIKAN (PENURUNAN) PENGHASILAN KOMPREHENSIF
                   </div>
                   <div
-                    className={`text-lg ${
-                      laporanData.data.summary
+                    className={`text-lg ${laporanData.data.summary
                         .kenaikan_penghasilan_komprehensif >= 0
                         ? "text-green-600"
                         : "text-red-600"
-                    }`}
+                      }`}
                   >
                     Rp{" "}
                     {formatCurrency(

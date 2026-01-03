@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import { api } from "@/lib/api/axiosClient";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -20,6 +20,7 @@ export default function LogAktivitasPage() {
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [selectedUser, setSelectedUser] = useState("Semua User");
   const [dateStart, setDateStart] = useState("");
@@ -49,16 +50,30 @@ export default function LogAktivitasPage() {
   // ============================
   const fetchLog = async () => {
     try {
+      setIsLoading(true);
       const res = await api.get("/log-aktivitas");
 
-      const arr = Array.isArray(res.data?.data)
-        ? res.data.data
-        : Array.isArray(res.data)
-        ? res.data
-        : [];
+      console.log("API Response:", res.data); // Debug log
+
+      // Handle pagination response dari Laravel
+      // Struktur: { success: true, data: { data: [...], current_page: 1, ... } }
+      let arr: any[] = [];
+
+      if (res.data?.data?.data && Array.isArray(res.data.data.data)) {
+        // Pagination response: res.data.data.data
+        arr = res.data.data.data;
+      } else if (Array.isArray(res.data?.data)) {
+        // Non-pagination response: res.data.data
+        arr = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        // Direct array response
+        arr = res.data;
+      }
+
+      console.log("Parsed data array:", arr); // Debug log
 
       const mapped: LogItem[] = arr.map((x: any, i: number) => ({
-        id: Number(x.id_log_activity ?? x.id ?? i + 1), // fallback biar gak NaN
+        id: Number(x.id_log_activity ?? x.id ?? i + 1),
         user: x.user ?? null,
         aktivitas: x.keterangan ?? "",
         waktu: x.created_at ?? "",
@@ -68,6 +83,8 @@ export default function LogAktivitasPage() {
     } catch (err) {
       console.error("Gagal fetch log aktivitas:", err);
       setData([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -138,8 +155,8 @@ export default function LogAktivitasPage() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-24">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-full mb-6">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+        <div className="bg-white shadow-md rounded-xl p-5 w-full mb-6">
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
@@ -163,218 +180,226 @@ export default function LogAktivitasPage() {
             <div className="w-10 h-10" />
           </div>
 
-        {/* SEARCH */}
-        <input
-          type="text"
-          placeholder="Cari aktivitas..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm mb-4 shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
-        />
+          {/* SEARCH */}
+          <input
+            type="text"
+            placeholder="Cari aktivitas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm mb-4 shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
+          />
 
-        {/* FILTER BUTTONS */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-sm">
-          <div className="grid grid-cols-2 gap-3 text-sm w-full">
+          {/* FILTER BUTTONS */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 text-sm">
+            <div className="grid grid-cols-2 gap-3 text-sm w-full">
+              <button
+                onClick={() => setOpenDropdown(openDropdown === "user" ? null : "user")}
+                className="w-full px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition"
+              >
+                {selectedUser}
+              </button>
+
+              <button
+                onClick={() => setOpenDropdown(openDropdown === "date" ? null : "date")}
+                className="w-full px-5 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition"
+              >
+                {dateStart && dateEnd ? `${dateStart} → ${dateEnd}` : "Filter Tanggal"}
+              </button>
+            </div>
+
             <button
-              onClick={() => setOpenDropdown(openDropdown === "user" ? null : "user")}
-              className="w-full px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition"
-            >
-              {selectedUser}
-            </button>
-
-            <button
-              onClick={() => setOpenDropdown(openDropdown === "date" ? null : "date")}
-              className="w-full px-5 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition"
-            >
-              {dateStart && dateEnd ? `${dateStart} → ${dateEnd}` : "Filter Tanggal"}
-            </button>
-          </div>
-
-          <button
-            onClick={() => {
-              setSelectedUser("Semua User");
-              setDateStart("");
-              setDateEnd("");
-            }}
-            className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition sm:ml-auto"
-          >
-            Reset
-          </button>
-        </div>
-
-
-        {/* USER DROPDOWN */}
-        {openDropdown === "user" && (
-          <div className="bg-white border border-blue-200 rounded-xl shadow-md p-3 mb-4">
-            <p className="text-gray-700 text-sm mb-2">Pilih User:</p>
-
-            <div
               onClick={() => {
                 setSelectedUser("Semua User");
-                setOpenDropdown(null);
+                setDateStart("");
+                setDateEnd("");
               }}
-              className={`px-3 py-2 rounded cursor-pointer ${
-                selectedUser === "Semua User"
-                  ? "bg-blue-100 text-blue-700"
-                  : "hover:bg-gray-100"
-              }`}
+              className="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition sm:ml-auto"
             >
-              Semua User
-            </div>
+              Reset
+            </button>
+          </div>
 
-            {userList.map((u) => (
+
+          {/* USER DROPDOWN */}
+          {openDropdown === "user" && (
+            <div className="bg-white border border-blue-200 rounded-xl shadow-md p-3 mb-4">
+              <p className="text-gray-700 text-sm mb-2">Pilih User:</p>
+
               <div
-                key={u}
                 onClick={() => {
-                  setSelectedUser(u);
+                  setSelectedUser("Semua User");
                   setOpenDropdown(null);
                 }}
-                className={`px-3 py-2 rounded cursor-pointer ${
-                  selectedUser === u
-                    ? "bg-blue-100 text-blue-700"
-                    : "hover:bg-gray-100"
-                }`}
+                className={`px-3 py-2 rounded cursor-pointer ${selectedUser === "Semua User"
+                  ? "bg-blue-100 text-blue-700"
+                  : "hover:bg-gray-100"
+                  }`}
               >
-                {u}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* DATE DROPDOWN */}
-        {openDropdown === "date" && (
-          <div className="bg-white border border-green-300 rounded-xl shadow-md p-4 mb-3">
-            <p className="text-gray-700 text-sm mb-3 font-medium">
-              Pilih Rentang Tanggal
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="w-full">
-                <label className="block text-xs text-gray-500 mb-1">
-                  Dari Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={dateStart}
-                  onChange={(e) => setDateStart(e.target.value)}
-                  className="w-full border px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                Semua User
               </div>
 
-              <div className="w-full">
-                <label className="block text-xs text-gray-500 mb-1">
-                  Sampai Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={dateEnd}
-                  onChange={(e) => setDateEnd(e.target.value)}
-                  className="w-full border px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* LIMIT DROPDOWN */}
-        <div className="relative text-sm mb-4">
-          <label className="block text-gray-700 mb-1">Tampilkan Data</label>
-
-          <div
-            onClick={() => setOpenDropdown(openDropdown === "limit" ? null : "limit")}
-            className="w-36 bg-white border border-gray-200 rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
-          >
-            <span>{limit}</span>
-            <ChevronDown
-              className={`w-4 h-4 transition ${
-                openDropdown === "limit" ? "rotate-180" : ""
-              }`}
-            />
-          </div>
-
-          {openDropdown === "limit" && (
-            <div className="absolute w-36 bg-white border border-gray-200 rounded-xl shadow-sm mt-2 py-2 z-10">
-              {[2, 5, 10].map((v) => (
+              {userList.map((u) => (
                 <div
-                  key={v}
+                  key={u}
                   onClick={() => {
-                    setLimit(v);
+                    setSelectedUser(u);
                     setOpenDropdown(null);
                   }}
-                  className={`px-4 py-2 cursor-pointer ${
-                    limit === v ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
-                  }`}
+                  className={`px-3 py-2 rounded cursor-pointer ${selectedUser === u
+                    ? "bg-blue-100 text-blue-700"
+                    : "hover:bg-gray-100"
+                    }`}
                 >
-                  {v} Data
+                  {u}
                 </div>
               ))}
             </div>
           )}
-        </div>
 
-        {/* TABLE */}
-        <div className="overflow-x-auto rounded-xl border border-gray-200">
-          <table className="w-full text-sm text-gray-700 min-w-[600px]">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-2 text-left">User</th>
-                <th className="px-4 py-2 text-left">Aktivitas</th>
-                <th className="px-4 py-2 text-left">Waktu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map((item) => (
-                <tr key={item.id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2">{item.user?.username ?? "-"}</td>
-                  <td className="px-4 py-2">{item.aktivitas}</td>
-                  <td className="px-4 py-2">{formatTime(item.waktu)}</td>
-                </tr>
-              ))}
+          {/* DATE DROPDOWN */}
+          {openDropdown === "date" && (
+            <div className="bg-white border border-green-300 rounded-xl shadow-md p-4 mb-3">
+              <p className="text-gray-700 text-sm mb-3 font-medium">
+                Pilih Rentang Tanggal
+              </p>
 
-              {paginated.length === 0 && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="w-full">
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Dari Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={dateStart}
+                    onChange={(e) => setDateStart(e.target.value)}
+                    className="w-full border px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="w-full">
+                  <label className="block text-xs text-gray-500 mb-1">
+                    Sampai Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={dateEnd}
+                    onChange={(e) => setDateEnd(e.target.value)}
+                    className="w-full border px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+
+          {/* LIMIT DROPDOWN */}
+          <div className="relative text-sm mb-4">
+            <label className="block text-gray-700 mb-1">Tampilkan Data</label>
+
+            <div
+              onClick={() => setOpenDropdown(openDropdown === "limit" ? null : "limit")}
+              className="w-36 bg-white border border-gray-200 rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
+            >
+              <span>{limit}</span>
+              <ChevronDown
+                className={`w-4 h-4 transition ${openDropdown === "limit" ? "rotate-180" : ""
+                  }`}
+              />
+            </div>
+
+            {openDropdown === "limit" && (
+              <div className="absolute w-36 bg-white border border-gray-200 rounded-xl shadow-sm mt-2 py-2 z-10">
+                {[2, 5, 10].map((v) => (
+                  <div
+                    key={v}
+                    onClick={() => {
+                      setLimit(v);
+                      setOpenDropdown(null);
+                    }}
+                    className={`px-4 py-2 cursor-pointer ${limit === v ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
+                      }`}
+                  >
+                    {v} Data
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* TABLE */}
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full text-sm text-gray-700 min-w-[600px]">
+              <thead className="bg-gray-100">
                 <tr>
-                  <td colSpan={3} className="text-center py-4 text-gray-400">
-                    Tidak ada data
-                  </td>
+                  <th className="px-4 py-2 text-left">User</th>
+                  <th className="px-4 py-2 text-left">Aktivitas</th>
+                  <th className="px-4 py-2 text-left">Waktu</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {/* Loading State */}
+                {isLoading && (
+                  <tr>
+                    <td colSpan={3} className="text-center py-12">
+                      <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#004CDF] mb-3" />
+                        <p className="text-gray-500 text-sm">Memuat data...</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
 
-        {/* PAGINATION */}
-        <div className="flex justify-center items-center gap-3 mt-4">
-          <button
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-            className={`px-3 py-1 rounded-lg text-sm ${
-              page === 1
+                {/* Data Rows */}
+                {!isLoading && paginated.map((item) => (
+                  <tr key={item.id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-2">{item.user?.username ?? "-"}</td>
+                    <td className="px-4 py-2">{item.aktivitas}</td>
+                    <td className="px-4 py-2">{formatTime(item.waktu)}</td>
+                  </tr>
+                ))}
+
+                {/* Empty State - hanya tampil jika loading selesai dan tidak ada data */}
+                {!isLoading && paginated.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="text-center py-8 text-gray-400">
+                      {data.length === 0 ? "Tidak ada data aktivitas" : "Tidak ada data yang sesuai filter"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PAGINATION */}
+          <div className="flex justify-center items-center gap-3 mt-4">
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded-lg text-sm ${page === 1
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-blue-600 text-white"
-            }`}
-          >
-            Sebelumnya
-          </button>
+                }`}
+            >
+              Sebelumnya
+            </button>
 
-          <span className="text-gray-700 text-sm font-semibold">
-            Page {page} / {totalPages}
-          </span>
+            <span className="text-gray-700 text-sm font-semibold">
+              Page {page} / {totalPages}
+            </span>
 
-          <button
-            onClick={() => page < totalPages && setPage(page + 1)}
-            disabled={page === totalPages}
-            className={`px-3 py-1 rounded-lg text-sm ${
-              page === totalPages
+            <button
+              onClick={() => page < totalPages && setPage(page + 1)}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded-lg text-sm ${page === totalPages
                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                 : "bg-blue-600 text-white"
-            }`}
-          >
-            Selanjutnya
-          </button>
+                }`}
+            >
+              Selanjutnya
+            </button>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
 
       <NavbarBottom />
     </div>

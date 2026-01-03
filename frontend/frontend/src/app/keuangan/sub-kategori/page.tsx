@@ -33,8 +33,8 @@ export default function SubKategoriAkun() {
       const list = Array.isArray(res)
         ? res
         : Array.isArray(res.data)
-        ? res.data
-        : res.data?.data ?? [];
+          ? res.data
+          : res.data?.data ?? [];
 
       setData(
         list.map((x: any) => ({
@@ -63,8 +63,8 @@ export default function SubKategoriAkun() {
       <Navbar />
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-10">
-        <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full max-w-sm md:max-w-full mb-6">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+        <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full mb-6">
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
@@ -122,7 +122,7 @@ export default function SubKategoriAkun() {
                       className="border-t hover:bg-gray-50"
                     >
                       <td className="px-4 py-2">{item.kode_sub_kategori_akun}</td>
-                  
+
                       <td className="px-4 py-2 flex items-center justify-between">
                         {item.sub_kategori_akun}
                         <div className="flex gap-2">
@@ -135,7 +135,7 @@ export default function SubKategoriAkun() {
                           >
                             <Pencil size={16} />
                           </button>
-                          
+
                           <button
                             className="text-red-600 hover:text-red-700"
                             onClick={() => {
@@ -165,7 +165,7 @@ export default function SubKategoriAkun() {
       <p className="text-gray-400 text-xs italic mt-8 text-center">
         Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
       </p>
-      <NavbarBottom/>
+      <NavbarBottom />
 
       {/* MODALS */}
       <TambahSubKategori

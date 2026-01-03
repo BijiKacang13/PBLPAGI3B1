@@ -108,9 +108,9 @@ export default function SOPPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
-      
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-sm md:max-w-7xl mx-auto mb-6">
+
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+        <div className="bg-white shadow-md rounded-xl p-5 w-full mb-6">
           {/* Title */}
           <div className="flex items-center gap-3 mb-6">
             <button

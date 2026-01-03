@@ -34,8 +34,8 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
       const list = Array.isArray(res.data.data)
         ? res.data.data
         : Array.isArray(res.data)
-        ? res.data
-        : [];
+          ? res.data
+          : [];
 
       const mapped = list.map((item: any) => ({
         id: item.id_sub_kategori_akun,
@@ -109,7 +109,7 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white w-[85%] max-w-md rounded-2xl shadow-lg p-6 relative"
+            className="bg-white w-[90%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl rounded-2xl shadow-lg p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
           >
             <button onClick={onClose} className="absolute top-3 right-3 text-gray-600">
               <X className="w-5 h-5" />
@@ -154,11 +154,10 @@ export default function TambahAkun({ open, onClose, onSuccess }: TambahAkunProps
                             setSelectedSubKategori(item);
                             setDropdownOpen(false);
                           }}
-                          className={`px-4 py-2 text-sm cursor-pointer ${
-                            selectedSubKategori?.id === item.id
-                              ? "bg-blue-100 text-blue-700"
-                              : "hover:bg-blue-50 text-gray-700"
-                          }`}
+                          className={`px-4 py-2 text-sm cursor-pointer ${selectedSubKategori?.id === item.id
+                            ? "bg-blue-100 text-blue-700"
+                            : "hover:bg-blue-50 text-gray-700"
+                            }`}
                         >
                           {item.label}
                         </div>

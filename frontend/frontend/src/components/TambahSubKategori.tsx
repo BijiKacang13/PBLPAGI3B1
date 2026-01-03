@@ -37,9 +37,9 @@ export default function TambahSubKategori({
 
       const list =
         Array.isArray(raw) ? raw :
-        Array.isArray(raw.data) ? raw.data :
-        Array.isArray(raw.data?.data) ? raw.data.data :
-        [];
+          Array.isArray(raw.data) ? raw.data :
+            Array.isArray(raw.data?.data) ? raw.data.data :
+              [];
 
       const mapped = list.map((item: any) => ({
         id: item.id_kategori_akun,
@@ -111,7 +111,7 @@ export default function TambahSubKategori({
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white w-[85%] max-w-xs rounded-2xl shadow-lg p-5 relative"
+            className="bg-white w-[90%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl rounded-2xl shadow-lg p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto"
           >
             {/* Close */}
             <button
@@ -148,9 +148,8 @@ export default function TambahSubKategori({
                   </span>
 
                   <ChevronDown
-                    className={`w-4 h-4 text-gray-500 transition ${
-                      dropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 text-gray-500 transition ${dropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </div>
 
@@ -169,11 +168,10 @@ export default function TambahSubKategori({
                             setSelectedKategori(item);
                             setDropdownOpen(false);
                           }}
-                          className={`px-4 py-2 text-sm cursor-pointer ${
-                            selectedKategori?.id === item.id
-                              ? "bg-blue-100 text-blue-700"
-                              : "hover:bg-blue-50 text-gray-700"
-                          }`}
+                          className={`px-4 py-2 text-sm cursor-pointer ${selectedKategori?.id === item.id
+                            ? "bg-blue-100 text-blue-700"
+                            : "hover:bg-blue-50 text-gray-700"
+                            }`}
                         >
                           {item.label}
                         </div>

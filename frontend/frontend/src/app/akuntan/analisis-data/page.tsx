@@ -85,39 +85,39 @@ const AnalisisData = () => {
       minimumFractionDigits: 0,
     }).format(amount);
 
-    const formatPercentage = (value: number) => {
-      if (!isFinite(value)) return "0%";
-      return `${(value * 100).toFixed(2)}%`;
-    };
+  const formatPercentage = (value: number) => {
+    if (!isFinite(value)) return "0%";
+    return `${(value * 100).toFixed(2)}%`;
+  };
 
-    type Interpretasi = {
-      label: string;
-      warna: string;
-    };
+  type Interpretasi = {
+    label: string;
+    warna: string;
+  };
 
-    const interpretasiROI = (value: number): Interpretasi => {
-      if (value >= 0.1) return { label: "Baik", warna: "text-green-700" };
-      if (value >= 0) return { label: "Cukup", warna: "text-yellow-700" };
-      return { label: "Kurang", warna: "text-red-700" };
-    };
+  const interpretasiROI = (value: number): Interpretasi => {
+    if (value >= 0.1) return { label: "Baik", warna: "text-green-700" };
+    if (value >= 0) return { label: "Cukup", warna: "text-yellow-700" };
+    return { label: "Kurang", warna: "text-red-700" };
+  };
 
-    const interpretasiROA = (value: number): Interpretasi => {
-      if (value >= 0.05) return { label: "Efektif", warna: "text-green-700" };
-      if (value >= 0) return { label: "Kurang Efektif", warna: "text-yellow-700" };
-      return { label: "Tidak Efektif", warna: "text-red-700" };
-    };
+  const interpretasiROA = (value: number): Interpretasi => {
+    if (value >= 0.05) return { label: "Efektif", warna: "text-green-700" };
+    if (value >= 0) return { label: "Kurang Efektif", warna: "text-yellow-700" };
+    return { label: "Tidak Efektif", warna: "text-red-700" };
+  };
 
-    const interpretasiDAR = (value: number): Interpretasi => {
-      if (value <= 0.5) return { label: "Sehat", warna: "text-green-700" };
-      if (value <= 0.7) return { label: "Cukup Sehat", warna: "text-yellow-700" };
-      return { label: "Berisiko", warna: "text-red-700" };
-    };
+  const interpretasiDAR = (value: number): Interpretasi => {
+    if (value <= 0.5) return { label: "Sehat", warna: "text-green-700" };
+    if (value <= 0.7) return { label: "Cukup Sehat", warna: "text-yellow-700" };
+    return { label: "Berisiko", warna: "text-red-700" };
+  };
 
-    const interpretasiDER = (value: number): Interpretasi => {
-      if (value <= 1) return { label: "Aman", warna: "text-green-700" };
-      if (value <= 2) return { label: "Perlu Perhatian", warna: "text-yellow-700" };
-      return { label: "Berisiko Tinggi", warna: "text-red-700" };
-    };
+  const interpretasiDER = (value: number): Interpretasi => {
+    if (value <= 1) return { label: "Aman", warna: "text-green-700" };
+    if (value <= 2) return { label: "Perlu Perhatian", warna: "text-yellow-700" };
+    return { label: "Berisiko Tinggi", warna: "text-red-700" };
+  };
 
 
   if (loading) {
@@ -161,8 +161,8 @@ const AnalisisData = () => {
     <div className="min-h-screen bg-white pb-24">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-6 md:px-6 lg:px-8">
-        <div className="px-3 py-3 space-y-4 max-w-7xl mx-auto w-full">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+        <div className="px-3 py-3 space-y-4 w-full">
           {/* HEADER */}
           <div className="flex items-center gap-3 mb-4">
             <button
