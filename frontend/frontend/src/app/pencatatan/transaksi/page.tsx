@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import TambahTransaksi from "@/components/TambahTransaksi";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /**
@@ -60,6 +60,15 @@ export default function Akun() {
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
+
+  // User role state
+  const [userRole, setUserRole] = useState<string>("");
+
+  // Get user role on mount
+  useEffect(() => {
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+  }, []);
 
   const handleImportExcel = async () => {
     if (!selectedFile) {
@@ -199,55 +208,68 @@ export default function Akun() {
             Download Template Input Transaksi
           </a>
 
-          {/* Pilih File + Input File */}
-          <div className="w-full flex items-center gap-3 mb-4">
+          {/* Import Excel & Tambah Transaksi - Hidden for auditor */}
+          {userRole !== "auditor" && (
+            <>
+              {/* Pilih File + Input File */}
+              <div className="w-full flex items-center gap-3 mb-4">
 
-            {/* PILIH FILE BTN */}
-            <label className="w-28 bg-gray-200 text-gray-700 px-1 py-2 rounded-xl 
-            text-sm font-medium cursor-pointer hover:bg-gray-300 transition text-center whitespace-nowrap">
-              Pilih File
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setSelectedFile(file);
-                    setFileName(file.name);
-                  }
-                }}
-              />
-            </label>
+                {/* PILIH FILE BTN */}
+                <label className="w-28 bg-gray-200 text-gray-700 px-1 py-2 rounded-xl 
+                text-sm font-medium cursor-pointer hover:bg-gray-300 transition text-center whitespace-nowrap">
+                  Pilih File
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setSelectedFile(file);
+                        setFileName(file.name);
+                      }
+                    }}
+                  />
+                </label>
 
-            {/* FILE NAME */}
-            <input
-              type="text"
-              value={fileName}
-              readOnly
-              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 
-              text-xs text-gray-500 outline-none bg-gray-50"
-            />
+                {/* FILE NAME */}
+                <input
+                  type="text"
+                  value={fileName}
+                  readOnly
+                  className="flex-1 border border-gray-300 rounded-xl px-3 py-2 
+                  text-xs text-gray-500 outline-none bg-gray-50"
+                />
 
-            {/* IMPORT BUTTON */}
-            <button
-              onClick={handleImportExcel}
-              disabled={loadingImport}
-              className="bg-blue-200 text-gray-800 px-4 py-2 rounded-xl 
-              text-xs md:text-sm font-medium hover:bg-blue-400 transition 
-              w-full md:w-auto disabled:opacity-50"
-            >
-              {loadingImport ? "Mengimpor..." : "Import Excel"}
-            </button>
-          </div>
+                {/* IMPORT BUTTON */}
+                <button
+                  onClick={handleImportExcel}
+                  disabled={loadingImport}
+                  className="bg-blue-200 text-gray-800 px-4 py-2 rounded-xl 
+                  text-xs md:text-sm font-medium hover:bg-blue-400 transition 
+                  w-full md:w-auto disabled:opacity-50"
+                >
+                  {loadingImport ? "Mengimpor..." : "Import Excel"}
+                </button>
+              </div>
 
-          {/* Tombol Tambah Transaksi */}
-          <button
-            onClick={() => setOpenModal(true)}
-            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm md:text-base shadow hover:bg-blue-400 transition"
-          >
-            Tambah Transaksi
-          </button>
+              {/* Tombol Tambah Transaksi */}
+              <button
+                onClick={() => setOpenModal(true)}
+                className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm md:text-base shadow hover:bg-blue-400 transition"
+              >
+                Tambah Transaksi
+              </button>
+            </>
+          )}
+
+          {/* Message for auditor */}
+          {userRole === "auditor" && (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              <p>Anda login sebagai Auditor.</p>
+              <p className="text-xs mt-1">Silahkan lihat data jurnal umum untuk melihat transaksi.</p>
+            </div>
+          )}
         </div>
       </main>
 

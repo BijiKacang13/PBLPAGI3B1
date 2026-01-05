@@ -51,6 +51,26 @@ export default function JurnalUmum() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // User role state
+  const [userRole, setUserRole] = useState<string>("");
+
+  // ==========================
+  // FETCH DROPDOWN OPTIONS
+  // ==========================
+  useEffect(() => {
+    // Get user role from localStorage
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+
+    const fetchDropdownData = async () => {
+      // Placeholder for actual dropdown data fetching logic
+      // This part was incomplete in the user's instruction,
+      // so I'll just put a placeholder function definition.
+    };
+
+    fetchDropdownData();
+  }, []); // Empty dependency array to run once on mount
+
   // ==========================
   // FETCH API
   // ==========================
@@ -777,7 +797,7 @@ export default function JurnalUmum() {
               {/* Header dengan tombol posting - FIXED, tidak ikut scroll */}
               <div className="flex items-center justify-between mb-2 no-print">
                 <span className="text-xs text-gray-500">Data Jurnal Umum</span>
-                {hasUnposted && (
+                {hasUnposted && userRole !== "auditor" && (
                   <button
                     onClick={openConfirmAll}
                     disabled={postingLoading}
@@ -827,37 +847,41 @@ export default function JurnalUmum() {
                       <>
                         {data?.data?.map((item: any, index: number) => (
                           <tr key={index} className="border-b last:border-none hover:bg-gray-50">
-                            {/* Action Menu */}
+                            {/* Action Menu - Hidden for auditor */}
                             <td className="py-2 px-2 text-center relative">
-                              <div ref={openMenuId === item.id_jurnal_umum ? menuRef : null}>
-                                <button
-                                  onClick={() => toggleMenu(item.id_jurnal_umum)}
-                                  className="p-1 rounded-full hover:bg-gray-200 transition"
-                                  title="Menu Aksi"
-                                >
-                                  <MoreVertical className="w-4 h-4 text-gray-500" />
-                                </button>
+                              {userRole !== "auditor" ? (
+                                <div ref={openMenuId === item.id_jurnal_umum ? menuRef : null}>
+                                  <button
+                                    onClick={() => toggleMenu(item.id_jurnal_umum)}
+                                    className="p-1 rounded-full hover:bg-gray-200 transition"
+                                    title="Menu Aksi"
+                                  >
+                                    <MoreVertical className="w-4 h-4 text-gray-500" />
+                                  </button>
 
-                                {/* Dropdown Menu */}
-                                {openMenuId === item.id_jurnal_umum && (
-                                  <div className="absolute left-8 top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
-                                    <button
-                                      onClick={() => handleEdit(item.id_jurnal_umum)}
-                                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                      Edit
-                                    </button>
-                                    <button
-                                      onClick={() => openConfirmDelete(item.id_jurnal_umum)}
-                                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                      Hapus
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
+                                  {/* Dropdown Menu */}
+                                  {openMenuId === item.id_jurnal_umum && (
+                                    <div className="absolute left-8 top-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
+                                      <button
+                                        onClick={() => handleEdit(item.id_jurnal_umum)}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                        Edit
+                                      </button>
+                                      <button
+                                        onClick={() => openConfirmDelete(item.id_jurnal_umum)}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                        Hapus
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-gray-300">-</span>
+                              )}
                             </td>
                             {/* Status Posting */}
                             <td className="py-2 px-2">
@@ -866,12 +890,17 @@ export default function JurnalUmum() {
                                   className="inline-block w-3 h-3 rounded-full bg-green-500"
                                   title="Sudah diposting"
                                 />
-                              ) : (
+                              ) : userRole !== "auditor" ? (
                                 <button
                                   onClick={() => openConfirmSingle(item.id_jurnal_umum)}
                                   disabled={postingLoading}
                                   className="inline-block w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 cursor-pointer animate-pulse disabled:opacity-50"
                                   title="Klik untuk posting ke Buku Besar"
+                                />
+                              ) : (
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full bg-red-500"
+                                  title="Belum diposting"
                                 />
                               )}
                             </td>

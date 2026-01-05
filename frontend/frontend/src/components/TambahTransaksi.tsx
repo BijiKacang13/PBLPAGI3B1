@@ -109,6 +109,14 @@ export default function TambahTransaksi({ open, onClose }: any) {
 
   /**
    * =========================
+   * USER ROLE STATE
+   * =========================
+   */
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitId, setUserUnitId] = useState<number | null>(null);
+
+  /**
+   * =========================
    * DROPDOWN STATE
    * =========================
    */
@@ -263,6 +271,19 @@ export default function TambahTransaksi({ open, onClose }: any) {
         setAkuns(result.data.akun);
         setSumberAnggaran(result.data.sumber_anggaran);
 
+        // Get user role and unit from localStorage
+        const role = localStorage.getItem("user_role") || "";
+        const unitId = localStorage.getItem("user_unit_id");
+
+        setUserRole(role);
+
+        // If user is akuntan_unit, set their unit automatically
+        if (role === "akuntan_unit" && unitId) {
+          const parsedUnitId = parseInt(unitId);
+          setUserUnitId(parsedUnitId);
+          setForm(prev => ({ ...prev, id_unit: parsedUnitId }));
+        }
+
       } catch (error) {
         console.error("Error fetch form data:", error);
       }
@@ -365,14 +386,24 @@ export default function TambahTransaksi({ open, onClose }: any) {
                     onChange={(e) =>
                       setForm({ ...form, id_unit: e.target.value ? Number(e.target.value) : "" })
                     }
-                    className="w-full border rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                    disabled={userRole === "akuntan_unit"}
+                    className={`w-full border rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none ${userRole === "akuntan_unit" ? "bg-gray-100 cursor-not-allowed" : ""
+                      }`}
                   >
                     <option value="">Pilih Unit</option>
-                    {units.map(u => (
-                      <option key={u.id_unit} value={u.id_unit}>
-                        {u.kode_unit} - {u.unit}
-                      </option>
-                    ))}
+                    {userRole === "akuntan_unit" && userUnitId
+                      ? units
+                        .filter((u) => u.id_unit === userUnitId)
+                        .map((u) => (
+                          <option key={u.id_unit} value={u.id_unit}>
+                            {u.kode_unit} - {u.unit}
+                          </option>
+                        ))
+                      : units.map((u) => (
+                        <option key={u.id_unit} value={u.id_unit}>
+                          {u.kode_unit} - {u.unit}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
