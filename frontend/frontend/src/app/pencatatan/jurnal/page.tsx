@@ -54,26 +54,18 @@ export default function JurnalUmum() {
   // User role state
   const [userRole, setUserRole] = useState<string>("");
 
-  // ==========================
-  // FETCH DROPDOWN OPTIONS
-  // ==========================
+
   useEffect(() => {
     // Get user role from localStorage
     const role = localStorage.getItem("user_role") || "";
     setUserRole(role);
 
     const fetchDropdownData = async () => {
-      // Placeholder for actual dropdown data fetching logic
-      // This part was incomplete in the user's instruction,
-      // so I'll just put a placeholder function definition.
     };
 
     fetchDropdownData();
   }, []); // Empty dependency array to run once on mount
 
-  // ==========================
-  // FETCH API
-  // ==========================
   const fetchJurnal = async (paginationUrl?: string) => {
     try {
       setLoading(true);
@@ -122,9 +114,6 @@ export default function JurnalUmum() {
     }
   };
 
-  // ==========================
-  // POSTING SINGLE JURNAL
-  // ==========================
   const handlePostSingle = async (id: number) => {
     try {
       setPostingLoading(true);
@@ -157,9 +146,6 @@ export default function JurnalUmum() {
     }
   };
 
-  // ==========================
-  // POSTING ALL JURNAL
-  // ==========================
   const handlePostAll = async () => {
     try {
       setPostingLoading(true);
@@ -194,9 +180,6 @@ export default function JurnalUmum() {
     }
   };
 
-  // ==========================
-  // DELETE JURNAL
-  // ==========================
   const handleDelete = async (id: number) => {
     try {
       setPostingLoading(true);
@@ -225,9 +208,6 @@ export default function JurnalUmum() {
     }
   };
 
-  // ==========================
-  // ACTION MENU HANDLERS
-  // ==========================
   const toggleMenu = (id: number) => {
     setOpenMenuId(openMenuId === id ? null : id);
   };
@@ -256,9 +236,6 @@ export default function JurnalUmum() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ==========================
-  // CONFIRMATION HANDLERS
-  // ==========================
   const openConfirmSingle = (id: number) => {
     setSelectedJurnalId(id);
     setConfirmType("single");
@@ -394,7 +371,7 @@ export default function JurnalUmum() {
       }
 
       // Set row heights
-      worksheet['!rows'] = [{ hpt: 25 }]; // Header row height
+      worksheet['!rows'] = [{ hpt: 25 }]; 
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Jurnal Umum");
