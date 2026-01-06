@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { FileSpreadsheet, Printer, Calendar, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Printer, Calendar, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
 
@@ -262,8 +262,19 @@ export default function ArusKas() {
 
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full">
         {/* Filter Card */}
-        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-4xl text-center print:hidden">
-          <h2 className="font-semibold text-lg mb-5">ARUS KAS</h2>
+        <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-7xl text-center print:hidden">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h2 className="font-semibold text-lg flex-1 text-center">
+              LAPORAN ARUS KAS
+            </h2>
+            <div className="w-10" />
+          </div>
 
           {/* Export & Print Buttons */}
           <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">
@@ -347,7 +358,7 @@ export default function ArusKas() {
 
         {/* Data Display */}
         {data && (
-          <div className="w-full max-w-4xl mt-6 bg-white shadow-md rounded-xl p-6" id="print-area">
+          <div className="w-full max-w-7xl mt-6 bg-white shadow-md rounded-xl p-6" id="print-area">
             <h3 className="text-center font-bold text-lg mb-4">
               LAPORAN ARUS KAS
             </h3>

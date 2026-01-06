@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FileSpreadsheet, Printer, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Printer, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
 
@@ -238,9 +238,18 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Filter Section */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
-          <h2 className="font-semibold text-lg mb-5">
-            PROYEKSI RENCANA DAN REALISASI ANGGARAN
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h2 className="font-semibold text-lg flex-1 text-center">
+              PROYEKSI RENCANA & REALISASI ANGGARAN
+            </h2>
+            <div className="w-10" />
+          </div>
 
           {/* Tombol Export dan Print */}
           <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">

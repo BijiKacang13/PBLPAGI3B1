@@ -2,7 +2,7 @@
 
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, List, Eye, Edit2, Trash2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Plus, Search, List, Eye, Edit2, Trash2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
 import CalkFormModal from "@/components/CalkFormModal";
@@ -276,9 +276,18 @@ export default function CatatanLaporanKeuangan() {
             </div>
           )}
 
-          <h2 className="font-semibold text-lg mb-5 text-center">
-            CATATAN ATAS LAPORAN KEUANGAN
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h2 className="font-semibold text-lg flex-1 text-center">
+              CATATAN ATAS LAPORAN KEUANGAN
+            </h2>
+            <div className="w-10" />
+          </div>
 
           {/* Add Button (Admin only) */}
           {userRole.role === "admin" && (

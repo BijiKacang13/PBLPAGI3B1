@@ -1,8 +1,9 @@
 // pages/laporan-perubahan-aset-neto.tsx
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import { FileSpreadsheet, Printer, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Printer, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import { perubahanAsetNetoApi, Unit, Divisi } from "@/lib/api/perubahan-aset-neto";
@@ -25,6 +26,7 @@ interface AsetNetoData {
 type Role = "admin" | "auditor" | "akuntan_unit" | "akuntan_divisi";
 
 export default function LaporanPerubahanAsetNeto() {
+  const router = useRouter();
   const [units, setUnits] = useState<Unit[]>([]);
   const [divisis, setDivisis] = useState<Divisi[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<string>("");
@@ -158,7 +160,18 @@ export default function LaporanPerubahanAsetNeto() {
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Filter Section */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
-          <h2 className="font-semibold text-lg mb-5">LAPORAN PERUBAHAN ASET NETO</h2>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <h2 className="font-semibold text-lg flex-1 text-center">
+              LAPORAN PERUBAHAN ASET NETO
+            </h2>
+            <div className="w-10" />
+          </div>
 
           {/* Tombol Export dan Print */}
           <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">
