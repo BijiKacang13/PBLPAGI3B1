@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { UserPlus, Eye, EyeOff, ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -63,7 +63,7 @@ const DeleteModal = ({
   );
 };
 
-export default function AuditorDetailPage() {
+const AuditorDetailContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
@@ -610,6 +610,20 @@ export default function AuditorDetailPage() {
       />
 
       <NavbarBottom />
+    </div>
+  );
+};
+
+export default function AuditorDetailPage() {
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Suspense fallback={
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#004CDF]" />
+        </div>
+      }>
+        <AuditorDetailContent />
+      </Suspense>
     </div>
   );
 }
