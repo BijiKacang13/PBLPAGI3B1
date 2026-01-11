@@ -200,6 +200,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('kegiatan')->group(function () {
         Route::get('/', [KegiatanController::class, 'index']);
         Route::post('/', [KegiatanController::class, 'store']);
+        Route::post('/import', [KegiatanController::class, 'importExcel']);
         Route::put('/{id}', [KegiatanController::class, 'update']);
         Route::delete('/{id}', [KegiatanController::class, 'destroy']);
     });

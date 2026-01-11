@@ -19,7 +19,7 @@ import { useState, useEffect } from "react";
 import HapusKegiatan from "@/components/HapusKegiatan";
 import EditKegiatan from "@/components/EditKegiatan";
 import { useRouter } from "next/navigation";
-
+import { api } from "@/lib/api/axiosClient";
 
 type Kegiatan = {
   id_kegiatan: number;
@@ -29,9 +29,7 @@ type Kegiatan = {
 
 export default function Akun() {
   const [openModal, setOpenModal] = useState(false);
-
   const [data, setData] = useState<Kegiatan[]>([]);
-
   const [showDropdown, setShowDropdown] = useState(false);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
@@ -39,25 +37,62 @@ export default function Akun() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openHapus, setOpenHapus] = useState(false);
   const [selected, setSelected] = useState<Kegiatan | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
   const router = useRouter();
-
 
   const fetchKegiatan = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/kegiatan");
+      const response = await api.get("/kegiatan"); // Base URL sudah handle /api
 
-      if (!res.ok) {
-        throw new Error("Fetch gagal");
+      console.log("RESPONSE ASLI:", response);
+
+      if (response) {
+        // SAFETY: Wrap semua logic akses data di dalam if(response)
+        const json = response as any;
+        let items = [];
+
+        if (json.data) {
+          items = json.data;
+        } else if (Array.isArray(json)) {
+          items = json;
+        }
+
+        console.log("ITEMS FINAL:", items);
+        setData(Array.isArray(items) ? items : []);
+      } else {
+        console.warn("Response kosong/undefined");
+        setData([]);
       }
-
-      const json = await res.json();
-
-      console.log("DATA DARI API:", json); // ⬅️ WAJIB ADA
-
-      setData(Array.isArray(json) ? json : []);
     } catch (error) {
       console.error("Gagal mengambil data:", error);
       setData([]);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!file) return;
+    setImporting(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      await api.post("/kegiatan/import", formData);
+      alert("Import berhasil!");
+      setFile(null);
+      fetchKegiatan();
+    } catch (error) {
+      console.error("Import error:", error);
+      alert("Gagal mengimport file.");
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -73,7 +108,6 @@ export default function Akun() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
-
       <Navbar />
 
       {/* MAIN CARD */}
@@ -103,27 +137,49 @@ export default function Akun() {
           </div>
 
           {/* IMPORT FILE */}
-          <a
-            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Kegiatan.xlsx`}
-            download="Template_Kegiatan.xlsx"
-            className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
-          >
-            Download Template Import Kegiatan
-          </a>
+          {(() => {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+            let BASE_URL = "";
+            try {
+              const urlObj = new URL(API_URL);
+              BASE_URL = urlObj.origin;
+            } catch (e) {
+              BASE_URL = API_URL.replace(/\/api$/, "");
+            }
+
+            return (
+              <a
+                href={`${BASE_URL}/assets/templates/Template_Kegiatan.xlsx`}
+                download="Template_Kegiatan.xlsx"
+                className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
+              >
+                Download Template Import Kegiatan
+              </a>
+            );
+          })()}
 
           <div className="flex items-center gap-2 mb-3">
             <label className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition">
               Pilih File
-              <input type="file" className="hidden" />
+              <input
+                type="file"
+                className="hidden"
+                accept=".xlsx, .xls"
+                onChange={handleFileChange}
+              />
             </label>
             <input
               type="text"
-              value="Tidak ada file"
+              value={file ? file.name : "Tidak ada file"}
               readOnly
               className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 outline-none bg-gray-50"
             />
-            <button className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition">
-              Import Excel
+            <button
+              onClick={handleImport}
+              disabled={!file || importing}
+              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition disabled:opacity-50"
+            >
+              {importing ? "Importing..." : "Import Excel"}
             </button>
           </div>
 
@@ -293,7 +349,6 @@ export default function Akun() {
         onSuccess={() => fetchKegiatan()}
         data={selected}
       />
-
     </div>
   );
 }

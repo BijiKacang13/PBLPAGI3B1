@@ -2,6 +2,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
+import { api } from "@/lib/api/axiosClient";
+
 type Kegiatan = {
   id_kegiatan: number;
   kode_kegiatan: string;
@@ -29,14 +31,7 @@ export default function HapusKegiatan({
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/kegiatan/${data.id_kegiatan}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!res.ok) throw new Error("Gagal menghapus kegiatan");
+      await api.delete(`/kegiatan/${data.id_kegiatan}`);
 
       onSuccess();
       onClose();

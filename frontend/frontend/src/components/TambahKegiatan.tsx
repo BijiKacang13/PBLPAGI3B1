@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+import { api } from "@/lib/api/axiosClient";
 
 type TambahKegiatanProps = {
   open: boolean;
@@ -24,7 +24,7 @@ export default function TambahKegiatan({
     setLoading(true);
 
     try {
-      await axios.post("http://127.0.0.1:8000/api/kegiatan", {
+      await api.post("/kegiatan", {
         kode_kegiatan: kode,
         kegiatan: kegiatan,
       });

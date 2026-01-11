@@ -72,7 +72,14 @@ export default function SOPPage() {
     }
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL!;
-    const BASE_URL = API_URL.replace("/api", "");
+
+    let BASE_URL = "";
+    try {
+      const urlObj = new URL(API_URL);
+      BASE_URL = urlObj.origin;
+    } catch (e) {
+      BASE_URL = API_URL.replace("/api", "");
+    }
 
     const url = `${BASE_URL}/storage/${filePath}`;
     window.open(url, "_blank");
@@ -99,9 +106,9 @@ export default function SOPPage() {
     fetchSOP();
 
     const role = localStorage.getItem("user_role") as UserRole;
-  if (role) {
-    setUserRole(role);
-  }
+    if (role) {
+      setUserRole(role);
+    }
   }, []);
 
   const fetchSOP = async () => {
@@ -169,12 +176,12 @@ export default function SOPPage() {
 
           {/* Button Tambah SOP */}
           {userRole === "admin" && (
-          <button
-            onClick={handleOpenModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-large py-2 px-6 rounded-full transition-colors duration-200 mb-6"
-          >
-            Tambah SOP
-          </button>
+            <button
+              onClick={handleOpenModal}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-large py-2 px-6 rounded-full transition-colors duration-200 mb-6"
+            >
+              Tambah SOP
+            </button>
           )}
 
           {/* Search Bar */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SuccessAlert from "@/components/SuccessAlert";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import axiosClient from "@/lib/api/axiosClient";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -103,36 +104,26 @@ export default function LoginScreen() {
     }
 
     try {
-      console.log("Attempting login to:", `${process.env.NEXT_PUBLIC_API_URL}/login`);
+      // 1. Ambil "Tiket Masuk" (CSRF Cookie) dulu -- SKIP karena mode Exempt
+      // await axiosClient.get("/sanctum/csrf-cookie");
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          password: password,
-          remember: rememberMe,
-        }),
+      const response = await axiosClient.post("/login", {
+        username: username.trim(),
+        password: password,
+        remember: rememberMe,
       });
 
-      console.log("Response status:", response.status);
+      // Axios otomatis throw error kalau status != 2xx, jadi kalau sampai sini berarti SUKSES
+      const data = response as any;
 
-      const data = await response.json();
-      console.log("Response data:", data);
-
-      if (response.ok && data.success) {
+      if (data.success) {
         localStorage.setItem("auth_token", data.data.token);
         localStorage.setItem("user_data", JSON.stringify(data.data.user));
         localStorage.setItem("user_role", data.data.user.role);
 
-        // Store session info
         localStorage.setItem("session_expires_in", data.data.expires_in || "2 hours");
         localStorage.setItem("remember_me", String(rememberMe));
 
-        // Store unit info for akuntan_unit
         if (data.data.user.unit_name) {
           localStorage.setItem("user_unit_name", data.data.user.unit_name);
         }
@@ -140,8 +131,7 @@ export default function LoginScreen() {
           localStorage.setItem("user_unit_id", String(data.data.user.id_unit));
         }
 
-        console.log("Login successful with remember me:", rememberMe, "expires:", data.data.expires_in);
-
+        console.log("Login successful");
         setShowSuccess(true);
 
         setTimeout(() => {
@@ -149,12 +139,14 @@ export default function LoginScreen() {
           redirectToDashboard(data.data.user.role);
         }, 2000);
       } else {
-        setError(data.message || "Login gagal. Silakan coba lagi.");
+        setError(data.message || "Login gagal.");
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      setError("Terjadi kesalahan koneksi. Periksa koneksi internet Anda atau URL API.");
+      // Handle error Axios
+      const msg = error.response?.data?.message || "Terjadi kesalahan koneksi.";
+      setError(msg);
       setIsLoading(false);
     }
   };

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { api } from "@/lib/api/axiosClient";
 
 type Kegiatan = {
   id_kegiatan: number;
@@ -39,21 +40,10 @@ export default function EditKegiatan({
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/kegiatan/${data.id_kegiatan}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            kode_kegiatan: kode,
-            kegiatan: kegiatan,
-          }),
-        }
-      );
-
-      if (!res.ok) throw new Error("Gagal mengupdate kegiatan");
+      await api.put(`/kegiatan/${data.id_kegiatan}`, {
+        kode_kegiatan: kode,
+        kegiatan: kegiatan,
+      });
 
       onSuccess();
       onClose();
