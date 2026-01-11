@@ -43,7 +43,7 @@ export default function LoginScreen() {
   // Verifikasi token
   const verifyToken = async (token: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/me`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -74,20 +74,24 @@ export default function LoginScreen() {
   };
 
   // Redirect berdasarkan role
+  // Redirect berdasarkan role
   const redirectToDashboard = (role: string) => {
+    let path = "/admin/beranda";
     switch (role) {
       case "admin":
-        router.push("/admin/beranda");
+        path = "/admin/beranda";
         break;
       case "akuntan_unit":
-        router.push("/akuntan/beranda");
+        path = "/akuntan/beranda";
         break;
       case "auditor":
-        router.push("/auditor/beranda");
+        path = "/auditor/beranda";
         break;
       default:
-        router.push("/admin/beranda");
+        path = "/admin/beranda";
     }
+    // Gunakan window.location.href untuk hard refresh dan memastikan navigasi jalan di Prod/PWA
+    window.location.href = path;
   };
 
   // app/login/page.tsx - Update handleLogin function
