@@ -3,7 +3,7 @@
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, Save, Loader2 } from "lucide-react";
 
@@ -27,7 +27,7 @@ interface JurnalData {
     detail_jurnal_umum: DetailJurnal[];
 }
 
-export default function EditJurnal() {
+const EditJurnalContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
@@ -562,6 +562,20 @@ export default function EditJurnal() {
                 message="BERHASIL MENGUBAH JURNAL"
                 onClose={() => setShowSuccess(false)}
             />
+        </div>
+    );
+};
+
+export default function EditJurnal() {
+    return (
+        <div className="min-h-screen bg-gray-100">
+            <Suspense fallback={
+                <div className="flex-1 flex items-center justify-center min-h-screen">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#004CDF]" />
+                </div>
+            }>
+                <EditJurnalContent />
+            </Suspense>
         </div>
     );
 }
