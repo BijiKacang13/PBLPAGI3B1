@@ -94,6 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('jurnal-umum')->group(function () {
         Route::get('/', [JurnalUmumController::class, 'index']);
         Route::get('/export', [JurnalUmumController::class, 'export']);
+        Route::get('/daily-stats', [JurnalUmumController::class, 'dailyStats']);
         Route::post('/', [JurnalUmumController::class, 'store']);
         Route::get('/{id}', [JurnalUmumController::class, 'show']);
         Route::put('/{id}', [JurnalUmumController::class, 'update']);

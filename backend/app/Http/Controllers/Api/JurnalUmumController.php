@@ -383,4 +383,97 @@ class JurnalUmumController extends Controller
             'message' => 'Data berhasil dihapus'
         ]);
     }
+
+    /**
+     * GET /api/jurnal-umum/daily-stats
+     * Mengambil statistik jumlah transaksi harian dalam 30 hari terakhir
+     */
+    public function dailyStats(Request $request)
+    {
+        $user = Auth::user();
+        
+        // ==========================
+        // 1. Determine date range (last 30 days)
+        // ==========================
+        $endDate = Carbon::now()->endOfDay();
+        $startDate = Carbon::now()->subDays(29)->startOfDay();
+        
+        // ==========================
+        // 2. Handle role-based filtering
+        // ==========================
+        $unitFilter = null;
+        $divisiFilter = null;
+        
+        if ($user->role === 'akuntan_unit') {
+            $akunUnit = Akuntan_Unit::where('id_akuntan_unit', $user->id_user)->first();
+            if ($akunUnit) {
+                $unitFilter = $akunUnit->id_unit;
+            }
+        }
+        
+        if ($user->role === 'akuntan_divisi') {
+            $divisiFilter = $user->id_divisi;
+        }
+        
+        // ==========================
+        // 3. Build query for daily counts
+        // ==========================
+        $query = Jurnal_Umum::select(
+                DB::raw('DATE(tanggal) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->whereBetween('tanggal', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+        
+        // Apply role-based filters
+        if ($unitFilter) {
+            $query->where('id_unit', $unitFilter);
+        }
+        if ($divisiFilter) {
+            $query->where('id_divisi', $divisiFilter);
+        }
+        
+        $query->groupBy(DB::raw('DATE(tanggal)'))
+              ->orderBy('date', 'asc');
+        
+        $results = $query->get()->keyBy('date');
+        
+        // ==========================
+        // 4. Build complete 30-day array with all dates
+        // ==========================
+        $data = [];
+        $currentDate = $startDate->copy();
+        
+        while ($currentDate <= $endDate) {
+            $dateKey = $currentDate->format('Y-m-d');
+            $data[] = [
+                'date' => $dateKey,
+                'formatted_date' => $currentDate->locale('id')->isoFormat('DD MMM'),
+                'full_date' => $currentDate->locale('id')->isoFormat('DD MMMM YYYY'),
+                'day_name' => $currentDate->locale('id')->isoFormat('dddd'),
+                'count' => isset($results[$dateKey]) ? (int) $results[$dateKey]->count : 0
+            ];
+            $currentDate->addDay();
+        }
+        
+        // ==========================
+        // 5. Calculate summary statistics
+        // ==========================
+        $totalTransactions = array_sum(array_column($data, 'count'));
+        $maxTransactions = max(array_column($data, 'count'));
+        $avgTransactions = $totalTransactions > 0 ? round($totalTransactions / 30, 1) : 0;
+        
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'summary' => [
+                'total' => $totalTransactions,
+                'max' => $maxTransactions,
+                'average' => $avgTransactions,
+                'period' => [
+                    'start' => $startDate->format('Y-m-d'),
+                    'end' => $endDate->format('Y-m-d')
+                ]
+            ]
+        ]);
+    }
 }
