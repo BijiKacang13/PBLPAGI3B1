@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { apiClient } from "../../lib/api";
 import SuccessAlert from "./SuccessAlert";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 // Logout Confirmation Modal
 const LogoutConfirmModal = ({
@@ -84,9 +85,21 @@ export default function ProfileDropdown() {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [userRole, setUserRole] = useState<string>("admin");
+  const pathname = usePathname();
+
+  // Tentukan role awal berdasarkan URL path untuk menghindari flash
+  const getInitialRole = (): string => {
+    if (pathname.startsWith("/auditor")) return "auditor";
+    if (pathname.startsWith("/akuntan")) return "akuntan_unit";
+    return "admin";
+  };
+
+  const [userRole, setUserRole] = useState<string>(getInitialRole);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+
+  // Gunakan UserContext untuk mendapatkan nama pengguna
+  const { displayName, clearUserData } = useUser();
 
   // Fungsi untuk handle logout
   const handleLogout = async () => {
@@ -102,6 +115,9 @@ export default function ProfileDropdown() {
       localStorage.removeItem("user_role");
     }
 
+    // Clear user data dari context
+    clearUserData();
+
     // Tutup dropdown dan tampilkan alert sukses
     setOpen(false);
     setShowLogoutAlert(true);
@@ -112,11 +128,13 @@ export default function ProfileDropdown() {
     }, 2000);
   };
 
-  // Ambil role dari localStorage
+  // Sinkronisasi dengan localStorage (untuk halaman yang tidak memiliki prefix role di URL)
   useEffect(() => {
-    const role = localStorage.getItem("user_role") || "admin";
-    setUserRole(role);
-  }, []);
+    const storedRole = localStorage.getItem("user_role");
+    if (storedRole && storedRole !== userRole) {
+      setUserRole(storedRole);
+    }
+  }, [pathname]);
 
   // Biar bisa klik di luar → tertutup
   useEffect(() => {
@@ -149,17 +167,34 @@ export default function ProfileDropdown() {
       />
 
       <div className="relative" ref={dropdownRef}>
-        {/* Icon Profile */}
+        {/* Profile Button dengan Nama dan Role */}
         <button
           onClick={() => setOpen(!open)}
-          className="w-9 h-9 rounded-full bg-blue-200 flex items-center justify-center hover:bg-blue-300 transition"
+          className="flex items-center gap-3 px-3 py-1.5 rounded-full hover:bg-gray-50 transition"
         >
-          <span className="text-xl">👤</span>
+          {/* Nama dan Role Pengguna */}
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-sm font-medium text-gray-800 max-w-[140px] truncate">
+              {displayName}
+            </span>
+            <span className="text-xs text-gray-400 capitalize">
+              {userRole === "admin" ? "Administrator" : userRole.replace("_", " ")}
+            </span>
+          </div>
+          {/* Icon Profile - Design sama seperti sebelumnya */}
+          <div className="w-9 h-9 rounded-full bg-blue-200 flex items-center justify-center shadow-sm">
+            <span className="text-xl">👤</span>
+          </div>
         </button>
 
         {/* Dropdown */}
         {open && (
-          <div className="absolute right-0 mt-2 w-44 bg-white shadow-xl rounded-xl p-3 z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-xl p-3 z-50 border border-gray-100">
+            {/* Nama Pengguna di dalam dropdown untuk mobile */}
+            <div className="sm:hidden mb-3 pb-2 border-b border-gray-100">
+              <p className="text-sm font-semibold text-gray-700 truncate">{displayName}</p>
+              <p className="text-xs text-gray-400 capitalize">{userRole.replace("_", " ")}</p>
+            </div>
 
             {/* SOP */}
             <button

@@ -194,6 +194,9 @@ export default function TambahTransaksi({ open, onClose }: any) {
       kredit: accounts.map(a => a.kredit || "0"),
     };
 
+    // Debug: Log payload before sending
+    console.log("Sending payload:", payload);
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/input-transaksi`,
@@ -207,19 +210,49 @@ export default function TambahTransaksi({ open, onClose }: any) {
         }
       );
 
-      const result = await response.json();
+      // Try to parse response as JSON
+      let result;
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        result = await response.json();
+      } else {
+        // Response is not JSON (might be HTML error page)
+        const text = await response.text();
+        console.error("Non-JSON response:", text);
+        result = { message: `Server error (${response.status}): Response bukan JSON` };
+      }
+
+      console.log("Response status:", response.status);
+      console.log("Response body:", result);
 
       if (!response.ok) {
-        console.error(result);
-        alert(result.message || "Gagal menyimpan transaksi");
+        console.error("Error response:", result);
+
+        // Build error message
+        let errorMessage = result.message || "Gagal menyimpan transaksi";
+
+        // If there are validation errors, show them
+        if (result.errors) {
+          const errorDetails = Object.entries(result.errors)
+            .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
+            .join("\n");
+          errorMessage += "\n\nDetail:\n" + errorDetails;
+        }
+
+        alert(errorMessage);
         return;
       }
 
       alert("Transaksi berhasil disimpan");
       onClose();
+
+      // Reload page to refresh data
+      window.location.reload();
+
     } catch (error) {
-      console.error(error);
-      alert("Terjadi kesalahan server");
+      console.error("Network or parsing error:", error);
+      alert("Terjadi kesalahan: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 

@@ -98,6 +98,9 @@ class AnalisisDataController extends Controller
      */
     private function totalByKategori(string $kategoriAkun, int $tahun)
     {
+        // Ambil ID jurnal yang sudah diposting ke Buku Besar
+        $postedJurnalIds = DB::table('buku_besar')->pluck('id_jurnal_umum');
+        
         return Detail_Jurnal_Umum::whereHas(
             'akun.subKategori.kategori_akun',
             function ($query) use ($kategoriAkun) {
@@ -106,8 +109,9 @@ class AnalisisDataController extends Controller
         )
         ->whereHas(
             'jurnal_umum',
-            function ($query) use ($tahun) {
-                $query->whereYear('tanggal', $tahun);
+            function ($query) use ($tahun, $postedJurnalIds) {
+                $query->whereYear('tanggal', $tahun)
+                      ->whereIn('id_jurnal_umum', $postedJurnalIds); // Hanya yang sudah diposting
             }
         )
         ->sum(DB::raw("

@@ -8,16 +8,13 @@ import { useEffect, useState } from "react";
 
 export default function ManajemenKeuangan() {
   const router = useRouter();
-  const [userRole, setUserRole] = useState<string>("admin");
+  const [isAuditor, setIsAuditor] = useState(true); // Default true untuk mencegah flash
 
   useEffect(() => {
     // Ambil role dari localStorage
     const role = localStorage.getItem("user_role") || "admin";
-    setUserRole(role);
+    setIsAuditor(role === "auditor");
   }, []);
-
-  // Tentukan apakah user adalah auditor (hanya bisa lihat jurnal dan buku besar)
-  const isAuditor = userRole === "auditor";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">

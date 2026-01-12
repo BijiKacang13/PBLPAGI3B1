@@ -4,9 +4,11 @@ import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import ChartTransaksi from "@/components/ChartTransaksi";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 export default function Beranda() {
   const router = useRouter();
+  const { displayName, isLoading } = useUser();
 
   const handleAnalisisData = () => {
     router.push("/admin/analisis-data");
@@ -19,7 +21,9 @@ export default function Beranda() {
       {/* Konten utama */}
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10">
         <div className="bg-white shadow-md rounded-xl p-5 w-full max-w-6xl">
-          <p className="font-semibold mb-2 text-center">Selamat datang, Admin!</p>
+          <p className="font-semibold mb-2 text-center">
+            Selamat datang, {isLoading ? "..." : displayName}!
+          </p>
           <p className="text-gray-500 text-sm mb-3 text-center">
             Transaksi dalam 30 hari terakhir
           </p>

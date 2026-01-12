@@ -111,6 +111,7 @@ class AuthController extends Controller
                         'id' => $user->id,
                         'username' => $user->username,
                         'name' => $user->name ?? $user->username,
+                        'nama' => $user->nama ?? $user->username, // nama lengkap
                         'email' => $user->email ?? null,
                         'role' => $user->role,
                         'unit_name' => $unitName,
@@ -156,6 +157,7 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'username' => $user->username,
                     'name' => $user->name ?? $user->username,
+                    'nama' => $user->nama ?? $user->username, // nama lengkap
                     'email' => $user->email ?? null,
                     'role' => $user->role,
                 ]

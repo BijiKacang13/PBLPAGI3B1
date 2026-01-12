@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import OfflineProvider from "@/components/OfflineProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { SessionProvider } from "@/context/SessionContext";
+import { UserProvider } from "@/context/UserContext";
 import "./globals.css";
 
 export default function RootLayout({
@@ -35,10 +36,10 @@ export default function RootLayout({
       <head>
         {/* PWA Meta Tags */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#f97316" />
+        <meta name="theme-color" content="#E9F0FF" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="HR Darussalam" />
+        <meta name="apple-mobile-web-app-title" content="SIA Darussalam" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="description" content="Sistem Manajemen Sumber Daya Manusia untuk Yayasan Darussalam" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -49,25 +50,28 @@ export default function RootLayout({
 
         {/* Session Provider for handling session expiration */}
         <SessionProvider>
-          {/* Offline Provider for handling connectivity */}
-          <OfflineProvider>
-            {/* Sidebar hanya di layar besar dan bukan halaman auth */}
-            {!isAuthPage && (
-              <div className="hidden md:block">
-                <Sidebar />
-              </div>
-            )}
+          {/* User Provider for managing user data state */}
+          <UserProvider>
+            {/* Offline Provider for handling connectivity */}
+            <OfflineProvider>
+              {/* Sidebar hanya di layar besar dan bukan halaman auth */}
+              {!isAuthPage && (
+                <div className="hidden md:block">
+                  <Sidebar />
+                </div>
+              )}
 
-            {/* Konten utama dengan margin-left untuk sidebar di desktop */}
-            <main className={`flex-1 relative ${!isAuthPage ? 'pb-20 md:pb-0 pt-[90px] md:ml-20 lg:ml-64 transition-all duration-300' : ''}`}>{children}</main>
+              {/* Konten utama dengan margin-left untuk sidebar di desktop */}
+              <main className={`flex-1 relative ${!isAuthPage ? 'pb-20 md:pb-0 pt-[90px] md:ml-20 lg:ml-64 transition-all duration-300' : ''}`}>{children}</main>
 
-            {/* Navbar Bottom hanya muncul di mobile DAN hanya jika sudah login */}
-            {showNavbarBottom && (
-              <div className="block md:hidden fixed bottom-0 left-0 w-full z-50">
-                <NavbarBottom />
-              </div>
-            )}
-          </OfflineProvider>
+              {/* Navbar Bottom hanya muncul di mobile DAN hanya jika sudah login */}
+              {showNavbarBottom && (
+                <div className="block md:hidden fixed bottom-0 left-0 w-full z-50">
+                  <NavbarBottom />
+                </div>
+              )}
+            </OfflineProvider>
+          </UserProvider>
         </SessionProvider>
       </body>
     </html>

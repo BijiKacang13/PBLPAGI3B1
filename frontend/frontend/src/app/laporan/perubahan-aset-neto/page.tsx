@@ -38,8 +38,8 @@ export default function LaporanPerubahanAsetNeto() {
   const initialFilters = {
     unit: "",
     divisi: "",
-    tanggal_mulai: "",
-    tanggal_selesai: "",
+    tanggal_mulai: new Date().getFullYear() + "-01-01",
+    tanggal_selesai: new Date().toISOString().split("T")[0],
   };
   const [data, setData] = useState<AsetNetoData | null>(null);
   const [totalSaldoAkhir, setTotalSaldoAkhir] = useState<number>(0);
@@ -106,9 +106,10 @@ export default function LaporanPerubahanAsetNeto() {
 
     fetchUnitsAndDivisi();
 
-    // Set default dates
+    // Set default dates - from beginning of year to today
     const today = new Date().toISOString().split("T")[0];
-    setTanggalMulai(today);
+    const startOfYear = new Date().getFullYear() + "-01-01";
+    setTanggalMulai(startOfYear);
     setTanggalSelesai(today);
   }, []);
 

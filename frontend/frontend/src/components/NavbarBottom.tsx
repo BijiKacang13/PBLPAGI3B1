@@ -15,13 +15,23 @@ import {
 
 export default function NavbarBottom({ isModalOpen = false }) {
   const pathname = usePathname();
-  const [userRole, setUserRole] = useState<string>("admin");
+
+  // Tentukan role awal berdasarkan URL path untuk menghindari flash/loading
+  const getInitialRole = (): string => {
+    if (pathname.startsWith("/auditor")) return "auditor";
+    if (pathname.startsWith("/akuntan")) return "akuntan_unit";
+    return "admin";
+  };
+
+  const [userRole, setUserRole] = useState<string>(getInitialRole);
 
   useEffect(() => {
-    // Ambil role dari localStorage
-    const role = localStorage.getItem("user_role") || "admin";
-    setUserRole(role);
-  }, []);
+    // Sinkronisasi dengan localStorage (untuk halaman yang tidak memiliki prefix role di URL)
+    const storedRole = localStorage.getItem("user_role");
+    if (storedRole && storedRole !== userRole) {
+      setUserRole(storedRole);
+    }
+  }, [pathname]);
 
   // Tentukan href beranda berdasarkan role
   const getBerandaHref = () => {

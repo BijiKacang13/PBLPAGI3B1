@@ -1,6 +1,6 @@
 // Service Worker untuk Sistem Informasi Akuntansi Darussalam PWA
 // Version: 4.0 - Offline caching untuk data referensi non-sensitif
-const CACHE_NAME = 'sia-darussalam-v4.1';
+const CACHE_NAME = 'sia-darussalam-v4.2';
 const DATA_CACHE_NAME = 'sia-darussalam-data-v1';
 const OFFLINE_URL = '/offline.html';
 
@@ -82,6 +82,7 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames
             .filter((cacheName) => cacheName.startsWith('hr-darussalam-') && cacheName !== CACHE_NAME)
+            .filter((cacheName) => cacheName.startsWith('sia-darussalam-') && cacheName !== CACHE_NAME)
             .map((cacheName) => {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
@@ -121,11 +122,14 @@ self.addEventListener('fetch', (event) => {
 
   // Handle navigation requests (page loads)
   if (request.mode === 'navigate') {
+    // Skip caching for development (localhost)
+    const isDevelopment = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful responses
-          if (response.ok) {
+          // Only cache navigation in production, NOT in development
+          if (response.ok && !isDevelopment) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(request, responseClone);

@@ -53,8 +53,8 @@ export default function ArusKas() {
   const [filters, setFilters] = useState({
     unit: "",
     divisi: "",
-    start_date: "",
-    end_date: "",
+    start_date: new Date().getFullYear() + "-01-01",
+    end_date: new Date().toISOString().split("T")[0],
     tahun: new Date().getFullYear()
   });
 
@@ -62,8 +62,8 @@ export default function ArusKas() {
   const initialFilters = {
     unit: "",
     divisi: "",
-    start_date: "",
-    end_date: "",
+    start_date: new Date().getFullYear() + "-01-01",
+    end_date: new Date().toISOString().split("T")[0],
     tahun: new Date().getFullYear()
   };
 

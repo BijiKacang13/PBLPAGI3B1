@@ -24,6 +24,12 @@ interface ApiResponse {
       end: string;
     };
   };
+  debug?: {
+    user_role: string;
+    unit_filter: number | null;
+    divisi_filter: number | null;
+    raw_results_count: number;
+  };
 }
 
 interface TransactionChartData {
@@ -83,6 +89,9 @@ export default function ChartTransaksi() {
 
         const result: ApiResponse = await response.json();
 
+        console.log('ChartTransaksi API Response:', result);
+        console.log('Debug info:', result.debug);
+
         if (result.success && result.data) {
           // Transform API data to chart format
           const chartData: TransactionChartData[] = result.data.map((item) => ({
@@ -91,6 +100,8 @@ export default function ChartTransaksi() {
             dayName: item.day_name,
             jumlah: item.count,
           }));
+
+          console.log('Chart data after transform:', chartData);
 
           setTransactionData(chartData);
 

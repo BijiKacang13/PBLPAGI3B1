@@ -198,40 +198,34 @@ export default function TambahUser() {
 
       <main className="flex-1 w-full pb-20 sm:pb-6">
         <div className="max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
-          {/* Back Button - Desktop */}
-          <button
-            onClick={handleBack}
-            className="hidden sm:flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 transition"
-            disabled={isLoading}
-          >
-            <ArrowLeft size={20} />
-            <span className="text-sm font-medium">Kembali</span>
-          </button>
-
           <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-            {/* Header */}
+            {/* Header - Konsisten dengan halaman akuntan */}
             <div className="bg-white p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleBack}
-                    className="sm:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition"
-                    disabled={isLoading}
+              <div className="flex items-center gap-3 mb-4">
+                <button
+                  onClick={handleBack}
+                  disabled={isLoading}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <ArrowLeft size={20} />
-                  </button>
-                  <div className="flex items-center gap-2">
-                    <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
-                    <h5 className="text-lg sm:text-xl font-semibold text-black">Tambah User</h5>
-                  </div>
-                </div>
-
+                    <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+                  </svg>
+                </button>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-800 flex-1">TAMBAH USER</h1>
                 <select
                   name="tipe_akun"
                   value={tipeAkun}
                   onChange={(e) => setTipeAkun(e.target.value as any)}
                   disabled={isLoading}
-                  className="px-3 sm:px-4 py-2 sm:py-2.5 border border-black/25 bg-white text-gray-700 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent text-sm sm:text-base font-medium w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 bg-white text-gray-700 rounded-lg focus:ring-2 focus:ring-[#004CDF] focus:border-transparent text-sm sm:text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="unit">Akuntan Unit</option>
                   <option value="auditor">Auditor</option>

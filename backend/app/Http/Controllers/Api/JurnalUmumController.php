@@ -473,6 +473,12 @@ class JurnalUmumController extends Controller
                     'start' => $startDate->format('Y-m-d'),
                     'end' => $endDate->format('Y-m-d')
                 ]
+            ],
+            'debug' => [
+                'user_role' => $user->role,
+                'unit_filter' => $unitFilter,
+                'divisi_filter' => $divisiFilter,
+                'raw_results_count' => $results->count()
             ]
         ]);
     }

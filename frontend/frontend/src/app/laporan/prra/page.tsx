@@ -113,8 +113,7 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
         localStorage.removeItem("user_role");
         localStorage.removeItem("user_unit_id");
         localStorage.removeItem("user_unit_name");
-        alert("Sesi sudah habis, silahkan login ulang");
-        router.push("/login");
+        window.dispatchEvent(new CustomEvent("session-expired"));
         return;
       }
 
@@ -153,8 +152,7 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
         localStorage.removeItem("user_role");
         localStorage.removeItem("user_unit_id");
         localStorage.removeItem("user_unit_name");
-        alert("Sesi sudah habis, silahkan login ulang");
-        router.push("/login");
+        window.dispatchEvent(new CustomEvent("session-expired"));
         return;
       }
 

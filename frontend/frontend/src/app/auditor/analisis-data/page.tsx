@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 /**
  * =========================
@@ -122,8 +123,13 @@ const AnalisisData = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">
-        Memuat data analisis...
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 200px)' }}>
+          <Loader2 className="w-8 h-8 animate-spin text-[#004CDF] mx-auto mb-3" />
+          <p className="text-sm text-gray-500">Memuat data analisis...</p>
+        </div>
+        <NavbarBottom />
       </div>
     );
   }
