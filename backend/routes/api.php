@@ -163,6 +163,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('laporan')->group(function () {
         Route::get('calk', [CalkController::class, 'index']);
         Route::post('calk', [CalkController::class, 'store']);
+        Route::get('calk/{id}/download', [CalkController::class, 'download']);
         Route::get('calk/{id}', [CalkController::class, 'show']);
         Route::put('calk/{id}', [CalkController::class, 'update']);
         Route::delete('calk/{id}', [CalkController::class, 'destroy']);
@@ -175,6 +176,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('sop')->group(function () {
         Route::get('/', [SopController::class, 'index']);
         Route::post('/', [SopController::class, 'store']);
+        Route::get('/{id}/download', [SopController::class, 'download']);
         Route::put('/{id}', [SopController::class, 'update']);
         Route::delete('/{id}', [SopController::class, 'destroy']);
         Route::post('/sort', [SopController::class, 'sort']);

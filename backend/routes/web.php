@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/sop/{id}', [SopController::class, 'update'])->middleware('role:admin')->name('sop.update');
     Route::delete('/sop/{id}', [SopController::class, 'destroy'])->middleware('role:admin')->name('sop.destroy');
     Route::post('/sop/sort', [SopController::class, 'sort'])->middleware('role:admin')->name('sop.sort');
+    Route::get('/sop/{id}/download', [SopController::class, 'download'])->name('sop.download');
 
 
 

@@ -201,7 +201,7 @@ export default function Akun() {
           </div>
 
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Transaksi.xlsx`}
+            href="/assets/templates/Template_Transaksi.xlsx"
             download="Template_Transaksi.xlsx"
             className="text-blue-600 text-sm font-semibold underline block mb-4 text-center md:text-right"
           >

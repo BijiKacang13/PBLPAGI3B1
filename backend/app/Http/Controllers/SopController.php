@@ -112,6 +112,19 @@ class SopController extends Controller
         return response()->json(['status' => 'success']);
     }
 
+    public function download($id)
+    {
+        $sop = Sop::findOrFail($id);
+        
+        // Pastikan file ada
+        if (!$sop->file || !Storage::disk('public')->exists($sop->file)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        // Download file
+        return Storage::disk('public')->download($sop->file, $sop->keterangan . '.' . pathinfo(storage_path('app/public/' . $sop->file), PATHINFO_EXTENSION));
+    }
+
 }
 
 

@@ -401,7 +401,9 @@ export default function LogAktivitasPage() {
                 {!isLoading && !error && paginated.map((item) => (
                   <tr key={item.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2">{item.user?.username ?? "-"}</td>
-                    <td className="px-4 py-2">{item.aktivitas}</td>
+                    <td className="px-4 py-2 whitespace-nowrap truncate max-w-xs" title={item.aktivitas}>
+                      {item.aktivitas}
+                    </td>
                     <td className="px-4 py-2">{formatTime(item.waktu)}</td>
                   </tr>
                 ))}

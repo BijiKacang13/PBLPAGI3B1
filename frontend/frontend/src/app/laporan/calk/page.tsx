@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Search, List, Eye, Edit2, Trash2, Loader2, ChevronDown
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
 import CalkFormModal from "@/components/CalkFormModal";
+import { api } from "@/lib/api/axiosClient";
 
 // Types
 interface CALK {
@@ -214,6 +215,36 @@ export default function CatatanLaporanKeuangan() {
     }
   };
 
+  const handleDownloadFile = async (id: number, fileName: string) => {
+    try {
+      const response = await api.get(`/laporan/calk/${id}/download`, {
+        responseType: 'blob',
+      });
+
+      const contentDisposition = response.headers['content-disposition'];
+      let finalFileName = fileName;
+      if (contentDisposition) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          finalFileName = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', finalFileName);
+      document.body.appendChild(link);
+      link.click();
+
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Gagal download CALK:", error);
+      showAlert("error", "Gagal mendownload file. Pastikan Anda memiliki izin.");
+    }
+  };
+
   const toggleExpand = (id: number) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(id)) {
@@ -260,8 +291,8 @@ export default function CatatanLaporanKeuangan() {
           {alert.show && (
             <div
               className={`mb-4 p-4 rounded-lg ${alert.type === "success"
-                  ? "bg-green-100 text-green-800 border border-green-200"
-                  : "bg-red-100 text-red-800 border border-red-200"
+                ? "bg-green-100 text-green-800 border border-green-200"
+                : "bg-red-100 text-red-800 border border-red-200"
                 }`}
             >
               <div className="flex justify-between items-center">
@@ -361,19 +392,13 @@ export default function CatatanLaporanKeuangan() {
                 {/* Expanded Content */}
                 {expandedItems.has(calk.id_calk) && (
                   <div className="p-4 bg-white border-t border-gray-200">
-                    <a
-                      href={
-                        calk.file_url
-                          ? calk.file_url
-                          : `${APP_BASE_URL}/storage/${calk.file}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => handleDownloadFile(calk.id_calk, calk.keterangan)}
                       className="inline-flex items-center gap-2 bg-[#7CA6FF] text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-[#6a95ee] transition-colors"
                     >
                       <Eye size={16} />
-                      Lihat File
-                    </a>
+                      Download File
+                    </button>
                   </div>
                 )}
               </div>

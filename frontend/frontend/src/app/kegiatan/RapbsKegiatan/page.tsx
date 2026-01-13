@@ -203,49 +203,6 @@ export default function RapbsKegiatanPage() {
             </div>
           )}
 
-          {/* Download Template */}
-          <a
-            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Rapbs_Kegiatan.xlsx`}
-            download="Template_Rapbs_Kegiatan.xlsx"
-            className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
-          >
-            Download Template Import RAPBS per-Kegiatan
-          </a>
-
-          {/* Upload Excel */}
-          <div className="flex items-center gap-2 mb-3">
-            <label
-              htmlFor="fileUpload"
-              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
-            >
-              Pilih File
-            </label>
-            <input
-              id="fileUpload"
-              type="file"
-              className="hidden"
-              accept=".xlsx,.xls"
-              onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                setFile(f);
-                setFileName(f?.name || "Tidak ada file");
-              }}
-            />
-            <input
-              type="text"
-              value={fileName}
-              readOnly
-              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 bg-gray-50"
-            />
-            <button
-              onClick={handleImportExcel}
-              disabled={loadingImport}
-              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loadingImport ? "Mengimpor..." : "Import Excel"}
-            </button>
-          </div>
-
           {/* Dropdown Unit - Only for Admin */}
           {userRole === "admin" && (
             <div className="relative text-sm mb-3">
@@ -297,6 +254,58 @@ export default function RapbsKegiatanPage() {
             </div>
           )}
 
+          {/* Download Template */}
+          <a
+            href="/assets/templates/Template_Rapbs_Kegiatan.xlsx"
+            download="Template_Rapbs_Kegiatan.xlsx"
+            className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
+          >
+            Download Template Import RAPBS per-Kegiatan
+          </a>
+
+          {/* Import */}
+          <div className="flex items-center gap-2 mb-4">
+            <label
+              htmlFor="fileUpload"
+              className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition"
+            >
+              Pilih File
+            </label>
+            <input
+              id="fileUpload"
+              type="file"
+              className="hidden"
+              accept=".xlsx,.xls"
+              onChange={(e) => {
+                const f = e.target.files?.[0] || null;
+                setFile(f);
+                setFileName(f?.name || "Tidak ada file");
+              }}
+            />
+            <input
+              type="text"
+              value={fileName}
+              readOnly
+              className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-500 bg-gray-50 outline-none"
+            />
+            <button
+              onClick={handleImportExcel}
+              disabled={loadingImport}
+              className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingImport ? "Mengimpor..." : "Import"}
+            </button>
+          </div>
+
+          {/* SEARCH INPUT */}
+          <input
+            type="text"
+            placeholder="Cari kegiatan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-400 outline-none"
+          />
+
           {/* Dropdown Limit */}
           <div className="relative text-sm mb-3">
             <label className="block text-gray-700 mb-1">
@@ -304,7 +313,7 @@ export default function RapbsKegiatanPage() {
             </label>
             <div
               onClick={() => setShowDropdown(!showDropdown)}
-              className="w-32 border border-gray-200 rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm"
+              className="w-32 border border-gray-200 rounded-xl px-4 py-2 flex justify-between cursor-pointer shadow-sm bg-white"
             >
               <span>{limit}</span>
               <ChevronDown
@@ -313,30 +322,23 @@ export default function RapbsKegiatanPage() {
               />
             </div>
 
-            <AnimatePresence>
-              {showDropdown && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="absolute w-32 bg-white border border-gray-200 shadow-xl rounded-xl mt-2 py-2 z-10"
-                >
-                  {[2, 5, 10].map((v) => (
-                    <div
-                      key={v}
-                      onClick={() => {
-                        setLimit(v);
-                        setShowDropdown(false);
-                      }}
-                      className={`px-4 py-2 cursor-pointer ${limit === v ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
-                        }`}
-                    >
-                      {v} Data
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showDropdown && (
+              <div className="absolute w-32 bg-white border border-gray-200 rounded-xl shadow-xl mt-2 py-2 z-10">
+                {[2, 5, 10].map((v) => (
+                  <div
+                    key={v}
+                    onClick={() => {
+                      setLimit(v);
+                      setShowDropdown(false);
+                    }}
+                    className={`px-4 py-2 cursor-pointer ${limit === v ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50"
+                      }`}
+                  >
+                    {v} Data
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* TABLE */}

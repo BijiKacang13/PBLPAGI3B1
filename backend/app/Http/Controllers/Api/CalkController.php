@@ -250,4 +250,16 @@ class CalkController extends Controller
             ], 500);
         }
     }
+    public function download($id)
+    {
+        $calk = Calk::findOrFail($id);
+        
+        // Pastikan file ada
+        if (!$calk->file || !Storage::disk('public')->exists($calk->file)) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        // Download file
+        return Storage::disk('public')->download($calk->file, $calk->keterangan . '.' . pathinfo(storage_path('app/public/' . $calk->file), PATHINFO_EXTENSION));
+    }
 }

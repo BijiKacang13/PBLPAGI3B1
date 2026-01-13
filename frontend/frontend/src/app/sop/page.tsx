@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/axiosClient";
 import TambahSOPForm, { SOPData } from "@/components/TambahSopForm";
 
 export default function SOPPage() {
@@ -65,24 +66,39 @@ export default function SOPPage() {
 
 
   // Handler untuk download file
-  const handleDownloadFile = (filePath: string | null, fileName: string) => {
-    if (!filePath) {
-      alert("File tidak tersedia");
-      return;
-    }
-
-    const API_URL = process.env.NEXT_PUBLIC_API_URL!;
-
-    let BASE_URL = "";
+  const handleDownloadFile = async (id: number, fileName: string) => {
     try {
-      const urlObj = new URL(API_URL);
-      BASE_URL = urlObj.origin;
-    } catch (e) {
-      BASE_URL = API_URL.replace("/api", "");
-    }
+      const response = await api.get(`/sop/${id}/download`, {
+        responseType: 'blob', // Penting agar response dibaca sebagai binary file
+      });
 
-    const url = `${BASE_URL}/storage/${filePath}`;
-    window.open(url, "_blank");
+      // Ambil filename dari header jika ada, atau gunakan default
+      const contentDisposition = response.headers['content-disposition'];
+      let finalFileName = fileName;
+      if (contentDisposition) {
+        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches != null && matches[1]) {
+          finalFileName = matches[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Buat URL dari blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      // Buat anchor element untuk trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', finalFileName);
+      document.body.appendChild(link);
+      link.click();
+
+      // Bersihkan
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Gagal download SOP:", error);
+      alert("Gagal mendownload file. Pastikan Anda memiliki izin.");
+    }
   };
 
   // Filter SOP berdasarkan search query
@@ -284,7 +300,7 @@ export default function SOPPage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleDownloadFile(sop.file, sop.fileName)}
+                        onClick={() => handleDownloadFile(Number(sop.id), sop.fileName)}
                         className="ml-3 flex-shrink-0 text-blue-600 hover:text-blue-800 transition-colors"
                         title="Download file"
                       >

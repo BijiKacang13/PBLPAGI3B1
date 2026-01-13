@@ -260,7 +260,7 @@ export default function RapbsAkunPage() {
 
           {/* DOWNLOAD TEMPLATE */}
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Rapbs_Akun.xlsx`}
+            href="/assets/templates/Template_Rapbs_Akun.xlsx"
             download="Template_Rapbs_Akun.xlsx"
             className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
           >

@@ -120,12 +120,15 @@ export default function LaporanPerubahanAsetNeto() {
     }
   }, [fetchReportData]);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string | undefined | null) => {
+    const numValue = Number(value);
+    if (isNaN(numValue)) return "Rp 0";
+
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(value);
+    }).format(numValue);
   };
 
   const handleExportExcel = async () => {

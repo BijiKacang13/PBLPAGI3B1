@@ -170,7 +170,7 @@ export default function ProfileDropdown() {
         {/* Profile Button dengan Nama dan Role */}
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-3 px-3 py-1.5 rounded-full hover:bg-gray-50 transition"
+          className="flex items-center gap-3 px-3 py-2 rounded-full hover:bg-gray-50 transition"
         >
           {/* Nama dan Role Pengguna */}
           <div className="hidden sm:flex flex-col items-end">
@@ -189,7 +189,7 @@ export default function ProfileDropdown() {
 
         {/* Dropdown */}
         {open && (
-          <div className="absolute right-0 mt-2 w-48 bg-white shadow-xl rounded-xl p-3 z-50 border border-gray-100">
+          <div className="absolute right-0 mt-2 w-54 bg-white shadow-xl rounded-xl p-3 z-50 border border-gray-100">
             {/* Nama Pengguna di dalam dropdown untuk mobile */}
             <div className="sm:hidden mb-3 pb-2 border-b border-gray-100">
               <p className="text-sm font-semibold text-gray-700 truncate">{displayName}</p>
@@ -207,7 +207,7 @@ export default function ProfileDropdown() {
             {/* Log Aktivitas - hanya untuk admin dan auditor */}
             {showLogAktivitas && (
               <button
-                className="w-full border border-blue-400 text-blue-600 rounded-full py-2 mb-2 hover:bg-blue-50 transition"
+                className="w-full border border-blue-400 text-blue-600 rounded-full py-2 mb-2 hover:bg-blue-50 transition whitespace-nowrap"
                 onClick={() => router.push("/logaktivitas")}
               >
                 LOG AKTIVITAS
