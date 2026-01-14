@@ -55,6 +55,7 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({ units: [], divisis: [] });
   const [prraData, setPrraData] = useState<PRRAData | null>(null);
   const [userRole, setUserRole] = useState<UserRole>({ role: "admin" });
+  const [userUnitName, setUserUnitName] = useState<string>("");
 
   // Filter states
   const [berdasarkan, setBerdasarkan] = useState<"akun" | "kegiatan">("akun");
@@ -77,6 +78,8 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
     fetchFilterOptions();
     const role = localStorage.getItem("user_role") as "admin" | "auditor" | "akuntan_unit";
     const unitId = localStorage.getItem("user_unit_id");
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
 
     if (role) {
       setUserRole({
@@ -85,7 +88,7 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
       });
 
       // Set unit for akuntan_unit
-      if (role === "akuntan_unit" && unitId) {
+      if (role === "akuntan_unit" && unitId && !isNaN(parseInt(unitId))) {
         setSelectedUnit(parseInt(unitId));
       }
     }
@@ -285,7 +288,11 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
             <div>
               <label className="text-sm font-medium">Unit</label>
               <div className="relative mt-1">
-                {userRole.role === "admin" || userRole.role === "auditor" ? (
+                {userRole.role === "akuntan_unit" && userUnitName ? (
+                  <div className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 cursor-not-allowed">
+                    {userUnitName} (Unit Anda)
+                  </div>
+                ) : (
                   <>
                     <select
                       value={selectedUnit || ""}
@@ -298,22 +305,6 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
                           {unit.unit}
                         </option>
                       ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
-                  </>
-                ) : (
-                  <>
-                    <select
-                      className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 appearance-none"
-                      disabled
-                    >
-                      {filterOptions.units
-                        .filter((unit) => unit.id_unit === userRole.id_unit)
-                        .map((unit) => (
-                          <option key={unit.id_unit} value={unit.id_unit}>
-                            {unit.unit}
-                          </option>
-                        ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
                   </>

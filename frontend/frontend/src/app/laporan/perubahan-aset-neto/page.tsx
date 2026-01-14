@@ -43,9 +43,8 @@ export default function LaporanPerubahanAsetNeto() {
   };
   const [data, setData] = useState<AsetNetoData | null>(null);
   const [totalSaldoAkhir, setTotalSaldoAkhir] = useState<number>(0);
-  const [user, setUser] = useState<{ role: Role; id_unit?: number }>({
-    role: "admin",
-  });
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitName, setUserUnitName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
@@ -71,10 +70,7 @@ export default function LaporanPerubahanAsetNeto() {
 
         // Update user info from response
         if (response.data.user) {
-          setUser({
-            role: response.data.user.role as Role,
-            id_unit: response.data.user.id_unit || undefined,
-          });
+          // User info is now handled via localStorage
         }
       } else {
         setError(response.message || "Gagal memuat data");
@@ -111,6 +107,20 @@ export default function LaporanPerubahanAsetNeto() {
     const startOfYear = new Date().getFullYear() + "-01-01";
     setTanggalMulai(startOfYear);
     setTanggalSelesai(today);
+
+    // Get user role & unit name
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
+
+    // Set unit filter if akuntan_unit
+    if (role === "akuntan_unit") {
+      const unitId = localStorage.getItem("user_unit_id");
+      if (unitId && unitId !== "null" && unitId !== "undefined") {
+        setSelectedUnit(unitId);
+      }
+    }
   }, []);
 
   // Fetch report data when filters change
@@ -200,7 +210,11 @@ export default function LaporanPerubahanAsetNeto() {
             <div>
               <label className="text-sm font-medium">Unit</label>
               <div className="relative mt-1">
-                {user.role === "admin" || user.role === "auditor" ? (
+                {userRole === "akuntan_unit" && userUnitName ? (
+                  <div className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 cursor-not-allowed">
+                    {userUnitName} (Unit Anda)
+                  </div>
+                ) : (
                   <>
                     <select
                       value={selectedUnit}
@@ -215,25 +229,6 @@ export default function LaporanPerubahanAsetNeto() {
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
-                  </>
-                ) : (
-                  <>
-                    <select
-                      className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 appearance-none"
-                      disabled
-                    >
-                      {units.map((unit) => (
-                        <option
-                          key={unit.id_unit}
-                          value={unit.id_unit}
-                          selected={unit.id_unit === user.id_unit}
-                        >
-                          {unit.unit}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
-                    <input type="hidden" name="unit" value={user.id_unit} />
                   </>
                 )}
               </div>

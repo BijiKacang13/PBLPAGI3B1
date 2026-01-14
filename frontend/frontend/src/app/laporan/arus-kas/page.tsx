@@ -49,6 +49,10 @@ export default function ArusKas() {
   const [data, setData] = useState<ArusKasData | null>(null);
   const [options, setOptions] = useState<{ units: Unit[]; divisis: Divisi[] }>({ units: [], divisis: [] });
 
+  // Role state
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitName, setUserUnitName] = useState<string>("");
+
   // Filter states
   const [filters, setFilters] = useState({
     unit: "",
@@ -70,9 +74,23 @@ export default function ArusKas() {
   // Track initial mount
   const isInitialMount = useRef(true);
 
-  // Fetch dropdown options
+  // Fetch dropdown options and User Role
   useEffect(() => {
     fetchOptions();
+
+    // Get user role & unit name
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
+
+    // Set unit filter if akuntan_unit
+    if (role === "akuntan_unit") {
+      const unitId = localStorage.getItem("user_unit_id") || "";
+      if (unitId && unitId !== "null" && unitId !== "undefined") {
+        setFilters(prev => ({ ...prev, unit: unitId }));
+      }
+    }
   }, []);
 
   // Auto-fetch data when component mounts or filters change
@@ -296,18 +314,24 @@ export default function ArusKas() {
           <div className="text-left space-y-3">
             <div>
               <label className="text-sm font-medium">Unit</label>
-              <select
-                value={filters.unit}
-                onChange={(e) => setFilters({ ...filters, unit: e.target.value })}
-                className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 mt-1"
-              >
-                <option value="">Akumulasi (Semua Unit)</option>
-                {options.units.map((unit) => (
-                  <option key={unit.id_unit} value={unit.id_unit}>
-                    {unit.nama_unit}
-                  </option>
-                ))}
-              </select>
+              {userRole === "akuntan_unit" && userUnitName ? (
+                <div className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 mt-1 cursor-not-allowed">
+                  {userUnitName} (Unit Anda)
+                </div>
+              ) : (
+                <select
+                  value={filters.unit}
+                  onChange={(e) => setFilters({ ...filters, unit: e.target.value })}
+                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 mt-1"
+                >
+                  <option value="">Akumulasi (Semua Unit)</option>
+                  {options.units.map((unit) => (
+                    <option key={unit.id_unit} value={unit.id_unit}>
+                      {unit.nama_unit}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>

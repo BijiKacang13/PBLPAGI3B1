@@ -36,6 +36,10 @@ export default function LaporanKomprehensif() {
     tanggal_selesai: new Date().toISOString().split("T")[0],
   });
 
+  // Role state
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitName, setUserUnitName] = useState<string>("");
+
   // Initial filters (default values)
   const initialFilters = {
     id_unit: null as number | null,
@@ -52,6 +56,20 @@ export default function LaporanKomprehensif() {
   // Fetch options (units & divisions) saat komponen mount
   useEffect(() => {
     fetchOptions();
+
+    // Get user role & unit name
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
+
+    // Set unit filter if akuntan_unit
+    if (role === "akuntan_unit") {
+      const unitId = localStorage.getItem("user_unit_id");
+      if (unitId && !isNaN(Number(unitId))) {
+        setFilters(prev => ({ ...prev, id_unit: Number(unitId) }));
+      }
+    }
   }, []);
 
   // Auto-fetch laporan saat filter berubah
@@ -246,24 +264,32 @@ export default function LaporanKomprehensif() {
             <div>
               <label className="text-sm font-medium">Unit</label>
               <div className="relative mt-1">
-                <select
-                  value={filters.id_unit || ""}
-                  onChange={(e) =>
-                    handleFilterChange(
-                      "id_unit",
-                      e.target.value ? Number(e.target.value) : null
-                    )
-                  }
-                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 appearance-none cursor-pointer"
-                >
-                  <option value="">Akumulasi (Semua Unit)</option>
-                  {units.map((unit) => (
-                    <option key={unit.id_unit} value={unit.id_unit}>
-                      {unit.nama_unit}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
+                {userRole === "akuntan_unit" && userUnitName ? (
+                  <div className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 cursor-not-allowed">
+                    {userUnitName} (Unit Anda)
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={filters.id_unit || ""}
+                      onChange={(e) =>
+                        handleFilterChange(
+                          "id_unit",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 appearance-none cursor-pointer"
+                    >
+                      <option value="">Akumulasi (Semua Unit)</option>
+                      {units.map((unit) => (
+                        <option key={unit.id_unit} value={unit.id_unit}>
+                          {unit.nama_unit}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
+                  </>
+                )}
               </div>
             </div>
 
@@ -411,9 +437,9 @@ export default function LaporanKomprehensif() {
                   </div>
                   <div
                     className={`text-lg ${laporanData.data.summary
-                        .kenaikan_penghasilan_komprehensif >= 0
-                        ? "text-green-600"
-                        : "text-red-600"
+                      .kenaikan_penghasilan_komprehensif >= 0
+                      ? "text-green-600"
+                      : "text-red-600"
                       }`}
                   >
                     Rp{" "}

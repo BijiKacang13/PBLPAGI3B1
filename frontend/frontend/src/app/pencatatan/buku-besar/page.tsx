@@ -69,7 +69,7 @@ export default function BukuBesar() {
   // ===== STATE MANAGEMENT =====
   const [unit, setUnit] = useState("");
   const [divisi, setDivisi] = useState("");
-  const [akun, setAkun] = useState(""); // Will be set to Kas Tunai after fetching akun list
+  const [akun, setAkun] = useState("");
   const [fromDate, setFromDate] = useState(() => {
     // Default from start of current year
     const now = new Date();
@@ -137,20 +137,6 @@ export default function BukuBesar() {
         if (result.success) {
           setAkunList(result.data);
 
-          // Set default akun to "Kas Tunai" if exists
-          const kasTunai = result.data.find((a: AkunOption) =>
-            a.akun.toLowerCase().includes('kas tunai') ||
-            a.akun.toLowerCase() === 'kas' ||
-            a.akun.toLowerCase().includes('kas')
-          );
-
-          if (kasTunai) {
-            setAkun(kasTunai.id_akun.toString());
-          } else if (result.data.length > 0) {
-            // Fallback to first akun if Kas Tunai not found
-            setAkun(result.data[0].id_akun.toString());
-          }
-
           setIsAkunReady(true);
         }
       } catch (err: any) {
@@ -179,6 +165,7 @@ export default function BukuBesar() {
 
     fetchAkunList();
     fetchDropdownOptions();
+    setAkun(""); // Force reset validation
   }, []);
 
   // ===== FETCH BUKU BESAR DATA =====
@@ -189,7 +176,7 @@ export default function BukuBesar() {
     try {
       // Build query parameters
       const params = new URLSearchParams();
-      if (akun) params.append("akun", akun);
+      if (akun && akun !== "") params.append("akun", akun);
       if (fromDate) params.append("start_date", fromDate);
       if (toDate) params.append("end_date", toDate);
       if (unit) params.append("id_unit", unit);
@@ -234,8 +221,8 @@ export default function BukuBesar() {
 
   // ===== INITIAL FETCH & REFETCH ON FILTER CHANGE =====
   useEffect(() => {
-    // Only fetch after akun list is ready and akun is set
-    if (!isAkunReady || !akun) return;
+    // Only fetch after akun list is ready
+    if (!isAkunReady) return;
 
     fetchBukuBesar(currentPage);
   }, [akun, fromDate, toDate, unit, divisi, currentPage, isAkunReady]);
@@ -251,14 +238,7 @@ export default function BukuBesar() {
     setSearch("");
     setUnit("");
     setDivisi("");
-
-    // Reset akun to Kas Tunai
-    const kasTunai = akunList.find((a) =>
-      a.akun.toLowerCase().includes('kas tunai') ||
-      a.akun.toLowerCase() === 'kas' ||
-      a.akun.toLowerCase().includes('kas')
-    );
-    setAkun(kasTunai ? kasTunai.id_akun.toString() : akunList[0]?.id_akun.toString() || "");
+    setAkun(""); // Reset to "Semua Akun"
 
     // Reset dates to start of year and today
     const now = new Date();
@@ -266,6 +246,7 @@ export default function BukuBesar() {
     setToDate(now.toISOString().split('T')[0]);
 
     setCurrentPage(1);
+
   };
 
   // ===== HANDLE EXPORT EXCEL =====
@@ -600,7 +581,7 @@ export default function BukuBesar() {
                     onChange={(e) => setAkun(e.target.value)}
                     className="w-full border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700 bg-white appearance-none"
                   >
-                    <option value="">Pilih Akun</option>
+                    <option value="">Semua Akun</option>
                     {akunList.map((item) => (
                       <option key={item.id_akun} value={item.id_akun}>
                         {item.kode_akun} - {item.akun}

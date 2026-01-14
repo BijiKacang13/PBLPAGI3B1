@@ -156,4 +156,21 @@ class SopController extends Controller
             'message' => 'Urutan SOP berhasil diperbarui'
         ]);
     }
+    public function download($id)
+    {
+        $sop = Sop::findOrFail($id);
+
+        if (!$sop->file || !Storage::disk('public')->exists($sop->file)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File tidak ditemukan'
+            ], 404);
+        }
+
+        // Gunakan nama file asli atau keterangan sebagai nama download
+        $extension = pathinfo($sop->file, PATHINFO_EXTENSION);
+        $filename = $sop->keterangan . '.' . $extension;
+
+        return Storage::disk('public')->download($sop->file, $filename);
+    }
 }

@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api/axiosClient";
+import { api, authFetch } from "@/lib/api/axiosClient";
 import TambahSOPForm, { SOPData } from "@/components/TambahSopForm";
 
 export default function SOPPage() {
@@ -68,12 +68,14 @@ export default function SOPPage() {
   // Handler untuk download file
   const handleDownloadFile = async (id: number, fileName: string) => {
     try {
-      const response = await api.get(`/sop/${id}/download`, {
-        responseType: 'blob', // Penting agar response dibaca sebagai binary file
-      });
+      const response = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/sop/${id}/download`);
+
+      if (!response.ok) {
+        throw new Error("Gagal mendownload");
+      }
 
       // Ambil filename dari header jika ada, atau gunakan default
-      const contentDisposition = response.headers['content-disposition'];
+      const contentDisposition = response.headers.get("content-disposition");
       let finalFileName = fileName;
       if (contentDisposition) {
         const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
@@ -83,7 +85,8 @@ export default function SOPPage() {
       }
 
       // Buat URL dari blob
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
 
       // Buat anchor element untuk trigger download
       const link = document.createElement('a');

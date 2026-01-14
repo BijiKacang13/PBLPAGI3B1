@@ -6,7 +6,7 @@ import { ArrowLeft, Plus, Search, List, Eye, Edit2, Trash2, Loader2, ChevronDown
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
 import CalkFormModal from "@/components/CalkFormModal";
-import { api } from "@/lib/api/axiosClient";
+import { api, authFetch } from "@/lib/api/axiosClient";
 
 // Types
 interface CALK {
@@ -217,11 +217,10 @@ export default function CatatanLaporanKeuangan() {
 
   const handleDownloadFile = async (id: number, fileName: string) => {
     try {
-      const response = await api.get(`/laporan/calk/${id}/download`, {
-        responseType: 'blob',
-      });
+      const response = await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/laporan/calk/${id}/download`);
+      if (!response.ok) throw new Error("Gagal download");
 
-      const contentDisposition = response.headers['content-disposition'];
+      const contentDisposition = response.headers.get("content-disposition");
       let finalFileName = fileName;
       if (contentDisposition) {
         const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
@@ -230,7 +229,8 @@ export default function CatatanLaporanKeuangan() {
         }
       }
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', finalFileName);

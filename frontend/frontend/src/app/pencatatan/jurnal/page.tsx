@@ -371,7 +371,7 @@ export default function JurnalUmum() {
       }
 
       // Set row heights
-      worksheet['!rows'] = [{ hpt: 25 }]; 
+      worksheet['!rows'] = [{ hpt: 25 }];
 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Jurnal Umum");
@@ -946,7 +946,7 @@ export default function JurnalUmum() {
                 <button
                   disabled={!data?.prev_page_url}
                   onClick={() => fetchJurnal(data.prev_page_url)}
-                  className="px-3 py-1 rounded-full border disabled:opacity-40"
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
                 >
                   Prev
                 </button>
@@ -954,7 +954,7 @@ export default function JurnalUmum() {
                 <button
                   disabled={!data?.next_page_url}
                   onClick={() => fetchJurnal(data.next_page_url)}
-                  className="px-3 py-1 rounded-full border disabled:opacity-40"
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
                 >
                   Next
                 </button>

@@ -58,6 +58,10 @@ export default function PosisiKeuangan() {
   const [startDate, setStartDate] = useState(new Date().getFullYear() + "-01-01");
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
 
+  // Role state
+  const [userRole, setUserRole] = useState<string>("");
+  const [userUnitName, setUserUnitName] = useState<string>("");
+
   // Initial filters (default values)
   const initialFilters = {
     unit: null as number | null,
@@ -66,9 +70,23 @@ export default function PosisiKeuangan() {
     end_date: new Date().toISOString().split("T")[0],
   };
 
-  // Fetch filter options on mount
+  // Fetch filter options and User Role on mount
   useEffect(() => {
     fetchFilterOptions();
+
+    // Get user role & unit name
+    const role = localStorage.getItem("user_role") || "";
+    setUserRole(role);
+    const unitName = localStorage.getItem("user_unit_name") || "";
+    setUserUnitName(unitName);
+
+    // Set unit filter if akuntan_unit
+    if (role === "akuntan_unit") {
+      const unitId = localStorage.getItem("user_unit_id");
+      if (unitId && !isNaN(Number(unitId))) {
+        setSelectedUnit(Number(unitId));
+      }
+    }
   }, []);
 
   // Auto-fetch data saat filter berubah
@@ -223,19 +241,27 @@ export default function PosisiKeuangan() {
             <div>
               <label className="text-sm font-medium">Unit</label>
               <div className="relative mt-1">
-                <select
-                  value={selectedUnit || ""}
-                  onChange={(e) => setSelectedUnit(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 appearance-none cursor-pointer"
-                >
-                  <option value="">Akumulasi (Semua Unit)</option>
-                  {filterOptions.units.map((unit) => (
-                    <option key={unit.id_unit} value={unit.id_unit}>
-                      {unit.unit}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
+                {userRole === "akuntan_unit" && userUnitName ? (
+                  <div className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-100 cursor-not-allowed">
+                    {userUnitName} (Unit Anda)
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={selectedUnit || ""}
+                      onChange={(e) => setSelectedUnit(e.target.value ? Number(e.target.value) : null)}
+                      className="w-full border rounded-full px-4 py-2 text-sm text-gray-600 bg-gray-50 appearance-none cursor-pointer"
+                    >
+                      <option value="">Akumulasi (Semua Unit)</option>
+                      {filterOptions.units.map((unit) => (
+                        <option key={unit.id_unit} value={unit.id_unit}>
+                          {unit.unit}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-2.5 text-gray-500 pointer-events-none" size={18} />
+                  </>
+                )}
               </div>
             </div>
 

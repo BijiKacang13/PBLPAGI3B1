@@ -45,7 +45,7 @@ class BukuBesarController extends Controller
             ]);
 
             // Set default values
-            $akun_id = $request->filled('akun') ? $request->akun : 1;
+            $akun_id = ($request->filled('akun') && $request->akun !== "" && $request->akun !== "null") ? $request->akun : null;
             $start_date = $request->filled('start_date') ? $request->start_date : date('Y-01-01');
             $end_date = $request->filled('end_date') ? $request->end_date : date('Y-m-d');
 
@@ -63,11 +63,46 @@ class BukuBesarController extends Controller
                 }
             }
 
-            // Panggil stored procedure
-            $detail_jurnal = collect(DB::select(
-                'CALL laporan_buku_besar(?, ?, ?, ?, ?)',
-                [$akun_id, $start_date, $end_date, $id_unit, $id_divisi]
-            ));
+            // Ambil data
+            if ($akun_id) {
+                // Jika pilih akun spesifik, gunakan Stored Procedure
+                $detail_jurnal = collect(DB::select(
+                    'CALL laporan_buku_besar(?, ?, ?, ?, ?)',
+                    [$akun_id, $start_date, $end_date, $id_unit, $id_divisi]
+                ));
+            } else {
+                // Jika "Semua Akun" (tanpa filter akun), gunakan Query Builder Manual
+                $query = DB::table('detail_jurnal_umum as dju')
+                    ->join('jurnal_umum as ju', 'dju.id_jurnal_umum', '=', 'ju.id_jurnal_umum')
+                    ->join('akun as a', 'dju.id_akun', '=', 'a.id_akun')
+                    ->leftJoin('unit as u', 'ju.id_unit', '=', 'u.id_unit')
+                    ->leftJoin('divisi as d', 'ju.id_divisi', '=', 'd.id_divisi')
+                    ->whereBetween('ju.tanggal', [$start_date, $end_date])
+                    ->select(
+                        'ju.tanggal',
+                        'ju.no_bukti',
+                        'ju.keterangan',
+                        'a.akun',
+                        'dju.debit_kredit',
+                        'dju.nominal',
+                        'u.unit', 
+                        'd.divisi',
+                        'ju.jenis_transaksi',
+                        'ju.kode_ph',
+                        'ju.kode_sumbangan'
+                    )
+                    ->orderBy('ju.tanggal')
+                    ->orderBy('ju.no_bukti');
+
+                if ($id_unit) {
+                    $query->where('ju.id_unit', $id_unit);
+                }
+                if ($id_divisi) {
+                    $query->where('ju.id_divisi', $id_divisi);
+                }
+
+                $detail_jurnal = collect($query->get());
+            }
 
             // Filter pencarian
             if ($request->filled('search')) {

@@ -208,7 +208,7 @@ export default function AkunPage() {
 
           {/* DOWNLOAD TEMPLATE */}
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/assets/templates/Template_Akun.xlsx`}
+            href="/assets/templates/Template_Akun.xlsx"
             download="Template_Akun.xlsx"
             className="text-blue-600 text-sm font-semibold underline block text-right mb-3"
           >

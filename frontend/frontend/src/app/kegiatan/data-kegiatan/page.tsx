@@ -136,27 +136,13 @@ export default function Akun() {
             <div className="w-10 h-10" />
           </div>
 
-          {/* IMPORT FILE */}
-          {(() => {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
-            let BASE_URL = "";
-            try {
-              const urlObj = new URL(API_URL);
-              BASE_URL = urlObj.origin;
-            } catch (e) {
-              BASE_URL = API_URL.replace(/\/api$/, "");
-            }
-
-            return (
-              <a
-                href={`${BASE_URL}/assets/templates/Template_Kegiatan.xlsx`}
-                download="Template_Kegiatan.xlsx"
-                className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
-              >
-                Download Template Import Kegiatan
-              </a>
-            );
-          })()}
+          <a
+            href="/assets/templates/Template_Kegiatan.xlsx"
+            download="Template_Kegiatan.xlsx"
+            className="text-blue-600 text-sm font-semibold underline block text-center md:text-right mb-3"
+          >
+            Download Template Import Kegiatan
+          </a>
 
           <div className="flex items-center gap-2 mb-3">
             <label className="bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer hover:bg-gray-300 transition">
