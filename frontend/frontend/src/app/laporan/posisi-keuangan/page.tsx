@@ -205,8 +205,8 @@ export default function PosisiKeuangan() {
 
       {/* Konten Utama */}
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
-        {/* Filter Section */}
-        <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
+        {/* Filter Section - Hidden when printing */}
+        <div className="bg-white shadow-md rounded-xl p-5 w-full text-center no-print">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => router.back()}
@@ -326,7 +326,14 @@ export default function PosisiKeuangan() {
             <p className="text-gray-500">Memuat data...</p>
           </div>
         ) : neracaData ? (
-          <div className="w-full mt-6">
+          <div className="w-full mt-6 print-area">
+            {/* Print Header - only visible when printing */}
+            <div className="print-header">
+              <h1>LAPORAN POSISI KEUANGAN</h1>
+              <p>Yayasan Darussalam Batam</p>
+              <p>Periode: {startDate} s/d {endDate}</p>
+            </div>
+
             {Object.entries(neracaData.akun_data).map(([kategori, kategoriData]) => (
               <div key={kategori} className="mb-6">
                 {/* Kategori Header */}
@@ -399,9 +406,14 @@ export default function PosisiKeuangan() {
         )}
 
         {/* Footer */}
-        <p className="text-gray-400 text-xs italic mt-8 text-center">
+        <p className="text-gray-400 text-xs italic mt-8 text-center no-print">
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
+
+        {/* Print Footer */}
+        <div className="print-footer">
+          Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025
+        </div>
       </main>
 
       {/* Navbar bawah */}

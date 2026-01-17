@@ -135,9 +135,223 @@ main {
   transition: opacity 300ms, transform 300ms;
 }
 
-/* Print utility */
+/* ================================== */
+/* PRINT STYLES FOR ALL REPORTS       */
+/* ================================== */
+
 @media print {
-  .no-print {
+
+  /* Hide elements that should not be printed */
+  .no-print,
+  nav,
+  footer,
+  button,
+  select,
+  input,
+  .navbar,
+  .navbar-bottom,
+  [class*="NavbarBottom"],
+  [class*="Navbar"] {
     display: none !important;
   }
+
+  /* Reset page margins and size */
+  @page {
+    margin: 1cm;
+    size: A4 portrait;
+  }
+
+  /* Reset body and html for print */
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    overflow: visible !important;
+    max-width: none !important;
+  }
+
+  /* Reset main container */
+  body>div,
+  #__next,
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* Reset all backgrounds except specific elements */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Keep important backgrounds for report sections */
+  .bg-blue-50,
+  .bg-red-50,
+  .bg-green-50,
+  .bg-gray-50,
+  [class*="bg-\[#7CA6FF\]"],
+  [class*="bg-\[#FF7C7C\]"],
+  [class*="bg-\[#BDE1FF\]"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Cards and containers */
+  .bg-white,
+  .shadow-md,
+  .rounded-xl,
+  .rounded-lg {
+    background: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Print area styling */
+  .print-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Print header - only visible when printing */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #000;
+  }
+
+  .print-header h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .print-header p {
+    font-size: 12px;
+    color: #333;
+    margin: 3px 0;
+  }
+
+  /* Table styles for print */
+  table {
+    width: 100% !important;
+    min-width: unset !important;
+    border-collapse: collapse;
+    font-size: 10px;
+    page-break-inside: auto;
+  }
+
+  th,
+  td {
+    border: 1px solid #333 !important;
+    padding: 4px 6px !important;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: hidden;
+  }
+
+  /* Table header - override dark backgrounds for better print readability */
+  th,
+  thead th,
+  thead tr th,
+  .bg-gray-800 th,
+  thead.bg-gray-800 th {
+    background-color: #e8e8e8 !important;
+    background: #e8e8e8 !important;
+    color: #000 !important;
+    font-weight: bold;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Override thead with dark backgrounds */
+  thead,
+  thead.bg-gray-800,
+  .bg-gray-800 {
+    background-color: #e8e8e8 !important;
+    background: #e8e8e8 !important;
+  }
+
+  /* Ensure thead text is black */
+  thead *,
+  thead.bg-gray-800 *,
+  thead th,
+  thead td {
+    color: #000 !important;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* Hide overflow scrolling */
+  .overflow-x-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+
+  /* Links should show URL */
+  a[href]::after {
+    content: none !important;
+  }
+
+  /* Ensure text is readable */
+  p,
+  span,
+  div {
+    color: black !important;
+  }
+
+  /* Footer text for print */
+  .print-footer {
+    display: block !important;
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+    font-size: 10px;
+    color: #666;
+  }
+
+  /* Ensure specific report sections maintain their styling */
+  .grid {
+    display: grid !important;
+  }
+
+  /* Report section headers */
+  .rounded-t-xl {
+    border-radius: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Border styles for report sections */
+  .border,
+  .border-gray-200,
+  .border-gray-300 {
+    border-color: #333 !important;
+  }
+}
+
+/* Hide print-only elements in normal view */
+.print-header,
+.print-footer {
+  display: none;
 }

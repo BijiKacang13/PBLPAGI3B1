@@ -215,7 +215,14 @@ export default function LaporanKomprehensif() {
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
         {/* Kartu judul + filter */}
         <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
-          <div className="flex items-center justify-between mb-4">
+          {/* Print Header - only visible when printing */}
+          <div className="print-header">
+            <h1>LAPORAN AKTIVITAS KOMPREHENSIF</h1>
+            <p>Yayasan Darussalam Batam</p>
+            <p>Periode: {filters.tanggal_mulai} s/d {filters.tanggal_selesai}</p>
+          </div>
+
+          <div className="flex items-center justify-between mb-4 no-print">
             <button
               onClick={() => router.back()}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -229,7 +236,7 @@ export default function LaporanKomprehensif() {
           </div>
 
           {/* Tombol Export dan Print */}
-          <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200">
+          <div className="flex justify-between mb-4 rounded-full overflow-hidden border border-gray-200 no-print">
             <button
               onClick={handleExportExcel}
               disabled={isExporting || isLoading}
@@ -259,7 +266,7 @@ export default function LaporanKomprehensif() {
           )}
 
           {/* Filter */}
-          <div className="text-left space-y-3 mt-4">
+          <div className="text-left space-y-3 mt-4 no-print">
             {/* Unit */}
             <div>
               <label className="text-sm font-medium">Unit</label>
@@ -371,7 +378,7 @@ export default function LaporanKomprehensif() {
 
         {/* Render Data Laporan */}
         {!isLoading && laporanData && (
-          <div className="w-full mt-6">
+          <div className="w-full mt-6 print-area">
             {/* Pendapatan */}
             {renderAkunSection(
               "Penerimaan dan Sumbangan",
@@ -461,9 +468,14 @@ export default function LaporanKomprehensif() {
           </div>
         )}
 
-        <p className="text-gray-400 text-xs italic mt-8 text-center">
+        <p className="text-gray-400 text-xs italic mt-8 text-center no-print">
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
+
+        {/* Print Footer */}
+        <div className="print-footer">
+          Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025
+        </div>
       </main>
 
       {/* Navbar bawah */}

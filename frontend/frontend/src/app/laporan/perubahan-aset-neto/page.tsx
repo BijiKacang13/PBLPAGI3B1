@@ -172,8 +172,8 @@ export default function LaporanPerubahanAsetNeto() {
       <Navbar />
 
       <main className="flex flex-col items-center mt-6 px-4 md:px-6 lg:px-10 w-full max-w-4xl mx-auto">
-        {/* Filter Section */}
-        <div className="bg-white shadow-md rounded-xl p-5 w-full text-center">
+        {/* Filter Section - Hidden when printing */}
+        <div className="bg-white shadow-md rounded-xl p-5 w-full text-center no-print">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => router.back()}
@@ -290,7 +290,7 @@ export default function LaporanPerubahanAsetNeto() {
 
         {/* Error Message */}
         {error && (
-          <div className="w-full mt-6 bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="w-full mt-6 bg-red-50 border border-red-200 rounded-md p-4 no-print">
             <p className="text-red-600 text-sm">{error}</p>
           </div>
         )}
@@ -302,7 +302,14 @@ export default function LaporanPerubahanAsetNeto() {
             <p className="text-gray-500">Memuat data...</p>
           </div>
         ) : data ? (
-          <div className="w-full mt-6" id="print-area">
+          <div className="w-full mt-6 print-area" id="print-area">
+            {/* Print Header - only visible when printing */}
+            <div className="print-header">
+              <h1>LAPORAN PERUBAHAN ASET NETO</h1>
+              <p>Yayasan Darussalam Batam</p>
+              <p>Periode: {tanggalMulai} s/d {tanggalSelesai}</p>
+            </div>
+
             {/* Aset Neto Dengan Pembatasan */}
             <div className="mb-6">
               <div className="rounded-t-xl bg-[#7CA6FF] text-white text-center py-2 font-semibold">
@@ -396,9 +403,14 @@ export default function LaporanPerubahanAsetNeto() {
           </div>
         )}
 
-        <p className="text-gray-400 text-xs italic mt-8 text-center">
+        <p className="text-gray-400 text-xs italic mt-8 text-center no-print">
           Sistem Informasi Akuntansi Yayasan <br /> Darussalam Batam | 2025
         </p>
+
+        {/* Print Footer */}
+        <div className="print-footer">
+          Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025
+        </div>
       </main>
 
       <NavbarBottom />
