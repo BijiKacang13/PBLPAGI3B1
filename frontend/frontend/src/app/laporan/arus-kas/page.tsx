@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, FileSpreadsheet, Printer, Calendar, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
+import AlertMessage from "@/components/AlertMessage";
 
 interface Unit {
   id_unit: string;
@@ -52,6 +53,10 @@ export default function ArusKas() {
   // Role state
   const [userRole, setUserRole] = useState<string>("");
   const [userUnitName, setUserUnitName] = useState<string>("");
+
+  // Alert state
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -150,11 +155,13 @@ export default function ArusKas() {
       if (result.success) {
         setData(result.data);
       } else {
-        alert(result.message || 'Gagal memuat data');
+        setErrorMessage(result.message || 'Gagal memuat data');
+        setShowError(true);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      alert('Terjadi kesalahan saat memuat data');
+      setErrorMessage('Terjadi kesalahan saat memuat data');
+      setShowError(true);
     } finally {
       setLoading(false);
     }
@@ -192,7 +199,8 @@ export default function ArusKas() {
       }
     } catch (error) {
       console.error('Error exporting:', error);
-      alert('Gagal export Excel');
+      setErrorMessage('Gagal export Excel');
+      setShowError(true);
     }
   };
 
@@ -593,6 +601,13 @@ export default function ArusKas() {
       <div className="print:hidden">
         <NavbarBottom />
       </div>
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }

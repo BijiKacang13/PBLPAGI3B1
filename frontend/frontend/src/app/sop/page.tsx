@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
+import AlertMessage from "@/components/AlertMessage";
+import SuccessAlert from "@/components/SuccessAlert";
 import { useRouter } from "next/navigation";
 import { api, authFetch } from "@/lib/api/axiosClient";
 import TambahSOPForm, { SOPData } from "@/components/TambahSopForm";
@@ -17,6 +19,12 @@ export default function SOPPage() {
   type UserRole = "admin" | "auditor" | "akuntan_unit";
 
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+
+  // Alert states
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -43,15 +51,17 @@ export default function SOPPage() {
       },
     });
 
-    // Handle 401 Unauthenticated
     if (res.status === 401) {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_data");
       localStorage.removeItem("user_role");
       localStorage.removeItem("user_unit_id");
       localStorage.removeItem("user_unit_name");
-      alert("Sesi sudah habis, silahkan login ulang");
-      router.push("/login");
+      setErrorMessage("Sesi sudah habis, silahkan login ulang");
+      setShowError(true);
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
       return;
     }
 
@@ -59,8 +69,11 @@ export default function SOPPage() {
 
     if (res.ok && result.success) {
       setSopList(sopList.filter((sop) => sop.id !== id));
+      setSuccessMessage("SOP berhasil dihapus");
+      setShowSuccess(true);
     } else {
-      alert("Gagal menghapus SOP");
+      setErrorMessage("Gagal menghapus SOP");
+      setShowError(true);
     }
   };
 
@@ -100,7 +113,8 @@ export default function SOPPage() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Gagal download SOP:", error);
-      alert("Gagal mendownload file. Pastikan Anda memiliki izin.");
+      setErrorMessage("Gagal mendownload file. Pastikan Anda memiliki izin.");
+      setShowError(true);
     }
   };
 
@@ -137,15 +151,17 @@ export default function SOPPage() {
       },
     });
 
-    // Handle 401 Unauthenticated
     if (res.status === 401) {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user_data");
       localStorage.removeItem("user_role");
       localStorage.removeItem("user_unit_id");
       localStorage.removeItem("user_unit_name");
-      alert("Sesi sudah habis, silahkan login ulang");
-      router.push("/login");
+      setErrorMessage("Sesi sudah habis, silahkan login ulang");
+      setShowError(true);
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
       return;
     }
 
@@ -369,6 +385,19 @@ export default function SOPPage() {
       )}
 
       <NavbarBottom />
+
+      <SuccessAlert
+        show={showSuccess}
+        message={successMessage}
+        onClose={() => setShowSuccess(false)}
+      />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }

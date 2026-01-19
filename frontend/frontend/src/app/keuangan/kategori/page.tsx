@@ -58,7 +58,7 @@ export default function KategoriAkun() {
       <Navbar />
 
       {/* Content */}
-      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10 mt-4">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full mb-6">
           <div className="flex items-center gap-3 mb-6">
             <button
@@ -92,7 +92,7 @@ export default function KategoriAkun() {
           </button>
 
           {/* Table */}
-          <div className="overflow-hidden rounded-lg border border-gray-200 relative z-[50]">
+          <div className="overflow-hidden rounded-lg border border-gray-200 relative">
             <table className="w-full text-sm text-gray-700">
               <thead className="bg-gray-100">
                 <tr>

@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import NavbarBottom from "@/components/NavbarBottom";
 import EditRapbsAkun from "@/components/EditRapbsAkun";
 import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useRouter } from "next/navigation";
 
 type RapbsAkun = {
@@ -55,6 +56,12 @@ export default function RapbsAkunPage() {
 
   // Loading
   const [loading, setLoading] = useState(true);
+
+  // Error/Warning states
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
 
   // ======================
   // FETCH UNIT LIST
@@ -118,7 +125,6 @@ export default function RapbsAkunPage() {
   // ======================
   const handleImportExcel = async () => {
     if (!file) {
-      alert("Pilih file terlebih dahulu");
       return;
     }
 
@@ -148,11 +154,13 @@ export default function RapbsAkunPage() {
         setFile(null);
         setFileName("Tidak ada file");
       } else {
-        alert(result.message || result.error || "Gagal import");
+        setErrorMessage(result.message || result.error || "Gagal import");
+        setShowError(true);
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Gagal import");
+      setErrorMessage(err.message || "Gagal import");
+      setShowError(true);
     } finally {
       setLoadingImport(false);
     }
@@ -179,7 +187,7 @@ export default function RapbsAkunPage() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
 
-      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10 mt-4">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full mb-6">
           {/* TITLE */}
           <div className="flex items-center gap-3 mb-2">
@@ -296,7 +304,7 @@ export default function RapbsAkunPage() {
 
             <button
               onClick={handleImportExcel}
-              disabled={loadingImport}
+              disabled={!file || loadingImport}
               className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingImport ? "Mengimpor..." : "Import"}
@@ -448,6 +456,20 @@ export default function RapbsAkunPage() {
       <SuccessAlert
         show={showSuccess}
         message={successMessage}
+      />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
+
+      <AlertMessage
+        show={showWarning}
+        type="warning"
+        message={warningMessage}
+        onClose={() => setShowWarning(false)}
       />
     </div>
   );

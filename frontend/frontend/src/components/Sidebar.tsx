@@ -13,12 +13,44 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 
-export default function SidebarHover() {
-  const [expanded, setExpanded] = useState(true);
+interface SidebarProps {
+  expanded?: boolean;
+  onToggle?: () => void;
+}
+
+export default function Sidebar({ expanded: controlledExpanded, onToggle }: SidebarProps = {}) {
   const pathname = usePathname();
+
+  // Internal state for uncontrolled mode
+  const [internalExpanded, setInternalExpanded] = useState(true);
+
+  // Determine if component is controlled or uncontrolled
+  const isControlled = controlledExpanded !== undefined;
+  const expanded = isControlled ? controlledExpanded : internalExpanded;
+
+  // Load from localStorage on mount (for uncontrolled mode)
+  useEffect(() => {
+    if (!isControlled) {
+      const saved = localStorage.getItem("sidebar_expanded");
+      if (saved !== null) {
+        setInternalExpanded(saved === "true");
+      }
+    }
+  }, [isControlled]);
+
+  const handleToggle = () => {
+    if (isControlled && onToggle) {
+      onToggle();
+    } else {
+      const newValue = !internalExpanded;
+      setInternalExpanded(newValue);
+      localStorage.setItem("sidebar_expanded", String(newValue));
+      // Dispatch custom event for layout to detect
+      window.dispatchEvent(new Event("sidebarChange"));
+    }
+  };
 
   // Tentukan role awal berdasarkan URL path untuk menghindari flash/loading
   const getInitialRole = (): string => {
@@ -35,7 +67,7 @@ export default function SidebarHover() {
     if (storedRole && storedRole !== userRole) {
       setUserRole(storedRole);
     }
-  }, [pathname]);
+  }, [pathname, userRole]);
 
   // Tentukan href beranda berdasarkan role
   const getBerandaHref = () => {
@@ -76,21 +108,19 @@ export default function SidebarHover() {
       ];
     }
   };
+
   // Mapping child routes ke parent menu
   const childRouteMapping: Record<string, string[]> = {
-    // RAPBS menu (untuk akuntan_unit) - include semua halaman RAPBS
     "/akuntan/rapbs": [
       "/keuangan/RapbsAkun",
       "/kegiatan/RapbsKegiatan",
       "/keuangan",
     ],
-    // Pencatatan menu
     "/pencatatan": [
       "/pencatatan/jurnal",
       "/pencatatan/buku-besar",
       "/pencatatan/transaksi",
     ],
-    // Laporan menu
     "/laporan": [
       "/laporan/komprehensif",
       "/laporan/posisi-keuangan",
@@ -99,20 +129,17 @@ export default function SidebarHover() {
       "/laporan/calk",
       "/laporan/prra",
     ],
-    // Keuangan menu (untuk admin)
     "/keuangan": [
       "/keuangan/RapbsAkun",
       "/keuangan/kategori",
       "/keuangan/sub-kategori",
       "/keuangan/akun",
     ],
-    // Akun menu
     "/akun": [
       "/akun/akuntan",
       "/akun/auditor",
       "/akun/tambah",
     ],
-    // Kegiatan menu (untuk admin)
     "/kegiatan": [
       "/kegiatan/RapbsKegiatan",
       "/kegiatan/data-kegiatan",
@@ -124,16 +151,10 @@ export default function SidebarHover() {
     const currentPath = pathname.toLowerCase();
     const targetPath = menuPath.toLowerCase();
 
-
-    // Direct match
     if (currentPath === targetPath) return true;
-
-    // Child route match (startsWith)
     if (currentPath.startsWith(targetPath + "/")) return true;
 
-    // Check mapped child routes
     const childRoutes = childRouteMapping[menuPath];
-
     if (childRoutes) {
       for (const childRoute of childRoutes) {
         const childRouteLower = childRoute.toLowerCase();
@@ -150,34 +171,11 @@ export default function SidebarHover() {
 
   const menus = getMenus();
 
-  const getRoleBadgeColor = () => {
-    switch (userRole) {
-      case "akuntan_unit":
-        return "bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 ring-1 ring-purple-200";
-      case "auditor":
-        return "bg-gradient-to-r from-amber-50 to-amber-100 text-amber-700 ring-1 ring-amber-200";
-      default:
-        return "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 ring-1 ring-blue-200";
-    }
-  };
-
-  const getRoleName = () => {
-    switch (userRole) {
-      case "akuntan_unit":
-        return "Akuntan";
-      case "auditor":
-        return "Auditor";
-      default:
-        return "Admin";
-    }
-  };
-
   return (
     <aside
-      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm transition-all duration-300 ease-out ${expanded ? "w-64" : "w-20"
+      className={`fixed top-[90px] left-0 h-[calc(100vh-90px)] bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/60 shadow-sm transition-all duration-300 ease-out z-40 ${expanded ? "w-64" : "w-20"
         } flex flex-col`}
     >
-
       {/* Navigation */}
       <div className="px-3 py-5 flex-1 overflow-y-auto">
         {expanded && (
@@ -217,10 +215,6 @@ export default function SidebarHover() {
                   {expanded && (
                     <span className="whitespace-nowrap relative z-10">{item.name}</span>
                   )}
-
-                  {isActive && expanded && (
-                    <div className="" />
-                  )}
                 </Link>
               </li>
             );
@@ -241,7 +235,7 @@ export default function SidebarHover() {
           )}
           <button
             type="button"
-            onClick={() => setExpanded((prev) => !prev)}
+            onClick={handleToggle}
             className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:border-blue-500 bg-white shadow-sm transition-all duration-200 hover:shadow-md"
             aria-label={expanded ? "Kecilkan sidebar" : "Besarkan sidebar"}
           >

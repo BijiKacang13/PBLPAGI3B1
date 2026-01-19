@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import TambahTransaksi from "@/components/TambahTransaksi";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -64,6 +65,10 @@ export default function Akun() {
   // User role state
   const [userRole, setUserRole] = useState<string>("");
 
+  // Warning alert state
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
+
   // Get user role on mount
   useEffect(() => {
     const role = localStorage.getItem("user_role") || "";
@@ -72,13 +77,15 @@ export default function Akun() {
 
   const handleImportExcel = async () => {
     if (!selectedFile) {
-      alert("Silakan pilih file Excel terlebih dahulu");
+      setWarningMessage("Silakan pilih file Excel terlebih dahulu");
+      setShowWarning(true);
       return;
     }
 
     // Check if API URL is configured
     if (!process.env.NEXT_PUBLIC_API_URL) {
-      alert("Error: API URL tidak dikonfigurasi");
+      setErrorMessage("Error: API URL tidak dikonfigurasi");
+      setShowErrorAlert(true);
       return;
     }
 
@@ -111,8 +118,11 @@ export default function Akun() {
         localStorage.removeItem("user_role");
         localStorage.removeItem("user_unit_id");
         localStorage.removeItem("user_unit_name");
-        alert("Sesi sudah habis, silahkan login ulang");
-        router.push("/login");
+        setErrorMessage("Sesi sudah habis, silahkan login ulang");
+        setShowErrorAlert(true);
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
         return;
       }
 
@@ -244,7 +254,7 @@ export default function Akun() {
                 {/* IMPORT BUTTON */}
                 <button
                   onClick={handleImportExcel}
-                  disabled={loadingImport}
+                  disabled={!selectedFile || loadingImport}
                   className="bg-blue-200 text-gray-800 px-4 py-2 rounded-xl 
                   text-xs md:text-sm font-medium hover:bg-blue-400 transition 
                   w-full md:w-auto disabled:opacity-50"
@@ -279,7 +289,18 @@ export default function Akun() {
       </p>
 
       {/* Modal Tambah Transaksi */}
-      <TambahTransaksi open={openModal} onClose={() => setOpenModal(false)} />
+      <TambahTransaksi
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        onSuccess={(message) => {
+          setSuccessMessage(message);
+          setShowSuccessAlert(true);
+        }}
+        onError={(message) => {
+          setErrorMessage(message);
+          setShowErrorAlert(true);
+        }}
+      />
 
       {/* Success Alert */}
       <SuccessAlert
@@ -326,6 +347,14 @@ export default function Akun() {
           </div>
         </div>
       )}
+
+      {/* Warning Alert */}
+      <AlertMessage
+        show={showWarning}
+        type="warning"
+        message={warningMessage}
+        onClose={() => setShowWarning(false)}
+      />
 
     </div>
   );

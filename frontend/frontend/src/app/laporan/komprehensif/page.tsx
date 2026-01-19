@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
+import AlertMessage from "@/components/AlertMessage";
 import laporanKomprehensifService, {
   LaporanResponse,
   Unit,
@@ -52,6 +53,10 @@ export default function LaporanKomprehensif() {
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Alert state
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Fetch options (units & divisions) saat komponen mount
   useEffect(() => {
@@ -129,7 +134,8 @@ export default function LaporanKomprehensif() {
       await laporanKomprehensifService.exportExcel(filters);
     } catch (err: any) {
       console.error("Error exporting Excel:", err);
-      alert(err.response?.data?.message || "Gagal mengekspor Excel");
+      setErrorMessage(err.response?.data?.message || "Gagal mengekspor Excel");
+      setShowError(true);
     } finally {
       setIsExporting(false);
     }
@@ -480,6 +486,13 @@ export default function LaporanKomprehensif() {
 
       {/* Navbar bawah */}
       <NavbarBottom />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }

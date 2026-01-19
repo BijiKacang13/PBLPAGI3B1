@@ -10,6 +10,7 @@ import TambahAkun from "@/components/TambahAkun";
 import EditAkun from "@/components/EditAkun";
 import HapusAkun from "@/components/HapusAkun";
 import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useRouter } from "next/navigation";
 
 type Akun = {
@@ -46,6 +47,12 @@ export default function AkunPage() {
   const [loadingImport, setLoadingImport] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Alert states
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
 
   // ======================
   // FETCH
@@ -107,7 +114,6 @@ export default function AkunPage() {
   // ======================
   const handleImportExcel = async () => {
     if (!file) {
-      alert("Pilih file terlebih dahulu");
       return;
     }
 
@@ -132,8 +138,11 @@ export default function AkunPage() {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_data");
         localStorage.removeItem("user_role");
-        alert("Sesi sudah habis, silahkan login ulang");
-        router.push("/login");
+        setErrorMessage("Sesi sudah habis, silahkan login ulang");
+        setShowError(true);
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
         return;
       }
 
@@ -165,11 +174,13 @@ export default function AkunPage() {
         setFile(null);
         setFileName("Tidak ada file");
       } else {
-        alert(result.message || "Gagal import");
+        setErrorMessage(result.message || "Gagal import");
+        setShowError(true);
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Gagal import");
+      setErrorMessage(err.message || "Gagal import");
+      setShowError(true);
     } finally {
       setLoadingImport(false);
     }
@@ -179,7 +190,7 @@ export default function AkunPage() {
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800 pb-20">
       <Navbar />
 
-      <main className="w-full px-4 py-6 md:px-6 lg:px-10">
+      <main className="w-full px-4 py-6 md:px-6 lg:px-10 mt-4">
         <div className="bg-white shadow-md rounded-xl px-6 py-5 md:px-8 w-full mb-6">
 
           {/* TITLE */}
@@ -241,7 +252,7 @@ export default function AkunPage() {
             />
             <button
               onClick={handleImportExcel}
-              disabled={loadingImport}
+              disabled={!file || loadingImport}
               className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingImport ? "Mengimpor..." : "Import Excel"}
@@ -251,7 +262,7 @@ export default function AkunPage() {
           {/* BUTTON TAMBAH */}
           <button
             onClick={() => setOpenTambah(true)}
-            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm mb-3 shadow hover:bg-blue-400 transition"
+            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm mb-4 shadow hover:bg-blue-400 transition"
           >
             Tambah Akun
           </button>
@@ -439,6 +450,20 @@ export default function AkunPage() {
         message={successMessage}
         onClose={() => setShowSuccess(false)}
         autoCloseMs={3000}
+      />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
+
+      <AlertMessage
+        show={showWarning}
+        type="warning"
+        message={warningMessage}
+        onClose={() => setShowWarning(false)}
       />
     </div>
   );

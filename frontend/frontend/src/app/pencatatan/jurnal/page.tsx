@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useEffect, useState, useRef } from "react";
 import { Calendar, Search, RefreshCcw, Printer, FileSpreadsheet, MoreVertical, Edit, Trash2, Loader2 } from "lucide-react";
 import CustomCalendar from "@/components/CustomCalendar";
@@ -51,6 +52,14 @@ export default function JurnalUmum() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Error alert state
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Warning alert state
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
+
   // User role state
   const [userRole, setUserRole] = useState<string>("");
 
@@ -98,8 +107,11 @@ export default function JurnalUmum() {
         localStorage.removeItem("user_role");
         localStorage.removeItem("user_unit_id");
         localStorage.removeItem("user_unit_name");
-        alert("Sesi sudah habis, silahkan login ulang");
-        window.location.href = "/login";
+        setErrorMessage("Sesi sudah habis, silahkan login ulang");
+        setShowError(true);
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
         return;
       }
 
@@ -134,11 +146,13 @@ export default function JurnalUmum() {
         setTimeout(() => setShowSuccess(false), 2000);
         fetchJurnal();
       } else {
-        alert(json.message || "Gagal memposting jurnal");
+        setErrorMessage(json.message || "Gagal memposting jurnal");
+        setShowError(true);
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat memposting jurnal");
+      setErrorMessage("Terjadi kesalahan saat memposting jurnal");
+      setShowError(true);
     } finally {
       setPostingLoading(false);
       setShowConfirmModal(false);
@@ -169,11 +183,13 @@ export default function JurnalUmum() {
         setTimeout(() => setShowSuccess(false), 2000);
         fetchJurnal();
       } else {
-        alert(json.message || "Gagal memposting jurnal");
+        setErrorMessage(json.message || "Gagal memposting jurnal");
+        setShowError(true);
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat memposting jurnal");
+      setErrorMessage("Terjadi kesalahan saat memposting jurnal");
+      setShowError(true);
     } finally {
       setPostingLoading(false);
       setShowConfirmModal(false);
@@ -193,14 +209,17 @@ export default function JurnalUmum() {
       const json = await res.json();
 
       if (json.success) {
-        alert("Jurnal berhasil dihapus!");
+        setSuccessMessage("JURNAL BERHASIL DIHAPUS");
+        setShowSuccess(true);
         fetchJurnal();
       } else {
-        alert(json.error || json.message || "Gagal menghapus jurnal");
+        setErrorMessage(json.error || json.message || "Gagal menghapus jurnal");
+        setShowError(true);
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat menghapus jurnal");
+      setErrorMessage("Terjadi kesalahan saat menghapus jurnal");
+      setShowError(true);
     } finally {
       setPostingLoading(false);
       setShowConfirmModal(false);
@@ -276,7 +295,8 @@ export default function JurnalUmum() {
     try {
       const rows = await fetchExportData();
       if (!rows?.length) {
-        alert("Tidak ada data untuk diexport. Coba reset filter atau perluas rentang tanggal.");
+        setWarningMessage("Tidak ada data untuk diexport. Coba reset filter atau perluas rentang tanggal.");
+        setShowWarning(true);
         return;
       }
 
@@ -382,7 +402,8 @@ export default function JurnalUmum() {
 
     } catch (err) {
       console.error("Export error:", err);
-      alert("Gagal mengambil data export");
+      setErrorMessage("Gagal mengambil data export");
+      setShowError(true);
     }
   };
 
@@ -390,13 +411,15 @@ export default function JurnalUmum() {
     try {
       const rows = await fetchExportData();
       if (!rows?.length) {
-        alert("Tidak ada data untuk dicetak");
+        setWarningMessage("Tidak ada data untuk dicetak");
+        setShowWarning(true);
         return;
       }
       console.log("PRINT DATA:", rows);
     } catch (err) {
       console.error(err);
-      alert("Gagal mengambil data print");
+      setErrorMessage("Gagal mengambil data print");
+      setShowError(true);
     }
   };
 
@@ -1015,6 +1038,20 @@ export default function JurnalUmum() {
           show={showSuccess}
           message={successMessage}
           onClose={() => setShowSuccess(false)}
+        />
+
+        <AlertMessage
+          show={showError}
+          type="error"
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+        />
+
+        <AlertMessage
+          show={showWarning}
+          type="warning"
+          message={warningMessage}
+          onClose={() => setShowWarning(false)}
         />
       </div>
     </>

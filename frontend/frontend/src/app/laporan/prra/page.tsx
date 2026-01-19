@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, FileSpreadsheet, Printer, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
+import AlertMessage from "@/components/AlertMessage";
 
 // Types
 interface FilterOptions {
@@ -56,6 +57,10 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
   const [prraData, setPrraData] = useState<PRRAData | null>(null);
   const [userRole, setUserRole] = useState<UserRole>({ role: "admin" });
   const [userUnitName, setUserUnitName] = useState<string>("");
+
+  // Alert state
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Filter states
   const [berdasarkan, setBerdasarkan] = useState<"akun" | "kegiatan">("akun");
@@ -164,11 +169,13 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
       if (result.success) {
         setPrraData(result.data);
       } else {
-        alert(result.message || "Gagal mengambil data");
+        setErrorMessage(result.message || "Gagal mengambil data");
+        setShowError(true);
       }
     } catch (error) {
       console.error("Error fetching PRRA data:", error);
-      alert("Terjadi kesalahan saat mengambil data");
+      setErrorMessage("Terjadi kesalahan saat mengambil data");
+      setShowError(true);
     } finally {
       setLoading(false);
     }
@@ -209,11 +216,13 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        alert("Gagal mengunduh file Excel");
+        setErrorMessage("Gagal mengunduh file Excel");
+        setShowError(true);
       }
     } catch (error) {
       console.error("Error exporting excel:", error);
-      alert("Terjadi kesalahan saat mengunduh file");
+      setErrorMessage("Terjadi kesalahan saat mengunduh file");
+      setShowError(true);
     }
   };
 
@@ -463,6 +472,13 @@ export default function ProyeksiRencanaRealisasiAnggaran() {
 
       {/* Navbar bawah */}
       <NavbarBottom />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }

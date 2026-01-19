@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, FileSpreadsheet, Printer, Calendar, RefreshCcw, ChevronDown, Loader2 } from "lucide-react";
 import NavbarBottom from "@/components/NavbarBottom";
 import Navbar from "@/components/Navbar";
+import AlertMessage from "@/components/AlertMessage";
 
 // Types
 interface FilterOptions {
@@ -57,6 +58,10 @@ export default function PosisiKeuangan() {
   const [selectedDivisi, setSelectedDivisi] = useState<number | null>(null);
   const [startDate, setStartDate] = useState(new Date().getFullYear() + "-01-01");
   const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
+
+  // Alert state
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Role state
   const [userRole, setUserRole] = useState<string>("");
@@ -136,11 +141,13 @@ export default function PosisiKeuangan() {
       if (result.success) {
         setNeracaData(result.data);
       } else {
-        alert(result.message || "Gagal mengambil data");
+        setErrorMessage(result.message || "Gagal mengambil data");
+        setShowError(true);
       }
     } catch (error) {
       console.error("Error fetching neraca data:", error);
-      alert("Terjadi kesalahan saat mengambil data");
+      setErrorMessage("Terjadi kesalahan saat mengambil data");
+      setShowError(true);
     } finally {
       setLoading(false);
     }
@@ -179,11 +186,13 @@ export default function PosisiKeuangan() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        alert("Gagal mengunduh file Excel");
+        setErrorMessage("Gagal mengunduh file Excel");
+        setShowError(true);
       }
     } catch (error) {
       console.error("Error exporting excel:", error);
-      alert("Terjadi kesalahan saat mengunduh file");
+      setErrorMessage("Terjadi kesalahan saat mengunduh file");
+      setShowError(true);
     }
   };
 
@@ -418,6 +427,13 @@ export default function PosisiKeuangan() {
 
       {/* Navbar bawah */}
       <NavbarBottom />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
     </div>
   );
 }

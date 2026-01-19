@@ -201,7 +201,7 @@ export default function AkuntanUnitPage() {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push('/akun')}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
             >
               <svg

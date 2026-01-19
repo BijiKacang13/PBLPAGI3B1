@@ -290,7 +290,7 @@ export default function LaporanPerubahanAsetNeto() {
 
         {/* Error Message */}
         {error && (
-          <div className="w-full mt-6 bg-red-50 border border-red-200 rounded-md p-4 no-print">
+          <div className="w-full mt-6 bg-red-50 border border-red-200 rounded-lg p-4 no-print">
             <p className="text-red-600 text-sm">{error}</p>
           </div>
         )}

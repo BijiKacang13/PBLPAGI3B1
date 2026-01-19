@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar";
 import NavbarBottom from "@/components/NavbarBottom";
 import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, Save, Loader2 } from "lucide-react";
@@ -35,6 +36,12 @@ const EditJurnalContent = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+
+    // Alert states
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [showWarning, setShowWarning] = useState(false);
+    const [warningMessage, setWarningMessage] = useState("");
 
     // Form data
     const [tanggal, setTanggal] = useState("");
@@ -129,13 +136,15 @@ const EditJurnalContent = () => {
                     setEntries(entryList);
                 }
             } else {
-                alert("Data jurnal tidak ditemukan");
-                router.back();
+                setErrorMessage("Data jurnal tidak ditemukan");
+                setShowError(true);
+                setTimeout(() => router.back(), 2000);
             }
         } catch (err) {
             console.error("Error fetching jurnal:", err);
-            alert("Gagal mengambil data jurnal");
-            router.back();
+            setErrorMessage("Gagal mengambil data jurnal");
+            setShowError(true);
+            setTimeout(() => router.back(), 2000);
         } finally {
             setLoading(false);
         }
@@ -179,18 +188,21 @@ const EditJurnalContent = () => {
     // Save handler
     const handleSave = async () => {
         if (!tanggal || !keterangan || !jenisTransaksi || !idUnit || !idDivisi) {
-            alert("Mohon lengkapi semua field yang wajib diisi");
+            setWarningMessage("Mohon lengkapi semua field yang wajib diisi");
+            setShowWarning(true);
             return;
         }
 
         if (!isBalanced) {
-            alert("Total Debit dan Kredit harus seimbang");
+            setWarningMessage("Total Debit dan Kredit harus seimbang");
+            setShowWarning(true);
             return;
         }
 
         const validEntries = entries.filter(e => e.id_akun && (e.debit || e.kredit));
         if (validEntries.length === 0) {
-            alert("Mohon tambahkan minimal satu entri akun");
+            setWarningMessage("Mohon tambahkan minimal satu entri akun");
+            setShowWarning(true);
             return;
         }
 
@@ -258,7 +270,8 @@ const EditJurnalContent = () => {
             }, 2000);
         } catch (err: any) {
             console.error("Error saving:", err);
-            alert(err.message || "Terjadi kesalahan saat menyimpan");
+            setErrorMessage(err.message || "Terjadi kesalahan saat menyimpan");
+            setShowError(true);
         } finally {
             setSaving(false);
         }
@@ -561,6 +574,20 @@ const EditJurnalContent = () => {
                 show={showSuccess}
                 message="BERHASIL MENGUBAH JURNAL"
                 onClose={() => setShowSuccess(false)}
+            />
+
+            <AlertMessage
+                show={showError}
+                type="error"
+                message={errorMessage}
+                onClose={() => setShowError(false)}
+            />
+
+            <AlertMessage
+                show={showWarning}
+                type="warning"
+                message={warningMessage}
+                onClose={() => setShowWarning(false)}
             />
         </div>
     );

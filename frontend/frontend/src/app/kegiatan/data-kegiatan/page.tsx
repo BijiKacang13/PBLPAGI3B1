@@ -18,6 +18,8 @@ import TambahKegiatan from "@/components/TambahKegiatan";
 import { useState, useEffect } from "react";
 import HapusKegiatan from "@/components/HapusKegiatan";
 import EditKegiatan from "@/components/EditKegiatan";
+import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/axiosClient";
 
@@ -40,6 +42,12 @@ export default function Akun() {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const router = useRouter();
+
+  // Alert states
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const fetchKegiatan = async () => {
     try {
@@ -85,12 +93,14 @@ export default function Akun() {
 
     try {
       await api.post("/kegiatan/import", formData);
-      alert("Import berhasil!");
+      setSuccessMessage("BERHASIL MENGIMPOR DATA KEGIATAN");
+      setShowSuccess(true);
       setFile(null);
       fetchKegiatan();
     } catch (error) {
       console.error("Import error:", error);
-      alert("Gagal mengimport file.");
+      setErrorMessage("Gagal mengimport file.");
+      setShowError(true);
     } finally {
       setImporting(false);
     }
@@ -172,7 +182,7 @@ export default function Akun() {
           {/* TOMBOL TAMBAH */}
           <button
             onClick={() => setOpenModal(true)}
-            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm mb-3 shadow hover:bg-blue-400 transition"
+            className="w-full bg-blue-200 text-gray-800 py-2 rounded-xl font-semibold text-sm mb-4 shadow hover:bg-blue-400 transition"
           >
             Tambah Kegiatan
           </button>
@@ -334,6 +344,20 @@ export default function Akun() {
         onClose={() => setOpenEdit(false)}
         onSuccess={() => fetchKegiatan()}
         data={selected}
+      />
+
+      {/* SUCCESS ALERT */}
+      <SuccessAlert
+        show={showSuccess}
+        message={successMessage}
+        onClose={() => setShowSuccess(false)}
+      />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
       />
     </div>
   );

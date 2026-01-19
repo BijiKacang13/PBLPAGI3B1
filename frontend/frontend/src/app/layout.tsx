@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import NavbarBottom from "@/components/NavbarBottom";
 import Sidebar from "@/components/Sidebar";
@@ -15,9 +16,43 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load sidebar state from localStorage after hydration
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar_expanded");
+    if (saved !== null) {
+      setSidebarExpanded(saved === "true");
+    }
+    setIsHydrated(true);
+
+    // Listen for storage changes (when sidebar is toggled)
+    const handleStorage = () => {
+      const saved = localStorage.getItem("sidebar_expanded");
+      if (saved !== null) {
+        setSidebarExpanded(saved === "true");
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    // Custom event for same-tab updates
+    const handleSidebarChange = () => {
+      const saved = localStorage.getItem("sidebar_expanded");
+      if (saved !== null) {
+        setSidebarExpanded(saved === "true");
+      }
+    };
+    window.addEventListener("sidebarChange", handleSidebarChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("sidebarChange", handleSidebarChange);
+    };
+  }, []);
 
   // Daftar halaman yang TIDAK menampilkan Sidebar & Navbar
-  // Tambahkan "/" untuk splash screen dan "/login" untuk halaman login
   const isAuthPage =
     pathname === "/" ||
     pathname === "/login" ||
@@ -30,6 +65,13 @@ export default function RootLayout({
     ["/admin/beranda", "/admin/analisis-data", "/akuntan/beranda", "/akuntan/analisis-data", "/akuntan/rapbs", "/auditor/beranda", "/auditor/analisis-data", "/akun", "/keuangan", "/transaksi", "/kegiatan", "/pencatatan", "/laporan", "/logaktivitas"].some((path) =>
       pathname.startsWith(path)
     );
+
+  // Determine sidebar margin class
+  const getSidebarMarginClass = () => {
+    if (isAuthPage) return "";
+    if (!isHydrated) return "md:ml-64"; // Default before hydration
+    return sidebarExpanded ? "md:ml-64" : "md:ml-20";
+  };
 
   return (
     <html lang="id">
@@ -44,7 +86,7 @@ export default function RootLayout({
         <meta name="description" content="Sistem Manajemen Sumber Daya Manusia untuk Yayasan Darussalam" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="min-h-screen flex flex-col md:flex-row bg-gray-50 text-gray-800">
+      <body className="min-h-screen flex flex-col md:flex-row bg-slate-50 text-gray-800">
         {/* Service Worker Registration */}
         <ServiceWorkerRegistration />
 
@@ -62,7 +104,9 @@ export default function RootLayout({
               )}
 
               {/* Konten utama dengan margin-left untuk sidebar di desktop */}
-              <main className={`flex-1 relative ${!isAuthPage ? 'pb-20 md:pb-0 pt-[90px] md:ml-20 lg:ml-64 transition-all duration-300' : ''}`}>{children}</main>
+              <main className={`flex-1 relative ${!isAuthPage ? `pb-20 md:pb-0 pt-[90px] ${getSidebarMarginClass()} transition-all duration-300` : ''}`}>
+                {children}
+              </main>
 
               {/* Navbar Bottom hanya muncul di mobile DAN hanya jika sudah login */}
               {showNavbarBottom && (
@@ -77,4 +121,3 @@ export default function RootLayout({
     </html>
   );
 }
-

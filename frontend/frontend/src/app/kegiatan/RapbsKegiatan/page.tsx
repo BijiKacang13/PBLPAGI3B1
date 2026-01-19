@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import EditRapbsKegiatan from "@/components/EditRapbsKegiatan";
 import SuccessAlert from "@/components/SuccessAlert";
+import AlertMessage from "@/components/AlertMessage";
 import { useRouter } from "next/navigation";
 
 type RapbsKegiatan = {
@@ -51,6 +52,12 @@ export default function RapbsKegiatanPage() {
   // Alert states
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Error/Warning states
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
 
   // ======================
   // FETCH UNIT LIST
@@ -107,7 +114,6 @@ export default function RapbsKegiatanPage() {
   // ======================
   const handleImportExcel = async () => {
     if (!file) {
-      alert("Pilih file terlebih dahulu");
       return;
     }
 
@@ -137,11 +143,13 @@ export default function RapbsKegiatanPage() {
         setFile(null);
         setFileName("Tidak ada file");
       } else {
-        alert(result.message || result.error || "Gagal import");
+        setErrorMessage(result.message || result.error || "Gagal import");
+        setShowError(true);
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Gagal import");
+      setErrorMessage(err.message || "Gagal import");
+      setShowError(true);
     } finally {
       setLoadingImport(false);
     }
@@ -290,7 +298,7 @@ export default function RapbsKegiatanPage() {
             />
             <button
               onClick={handleImportExcel}
-              disabled={loadingImport}
+              disabled={!file || loadingImport}
               className="bg-blue-200 text-gray-800 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-blue-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loadingImport ? "Mengimpor..." : "Import"}
@@ -441,6 +449,20 @@ export default function RapbsKegiatanPage() {
       <SuccessAlert
         show={showSuccess}
         message={successMessage}
+      />
+
+      <AlertMessage
+        show={showError}
+        type="error"
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+      />
+
+      <AlertMessage
+        show={showWarning}
+        type="warning"
+        message={warningMessage}
+        onClose={() => setShowWarning(false)}
       />
     </div>
   );

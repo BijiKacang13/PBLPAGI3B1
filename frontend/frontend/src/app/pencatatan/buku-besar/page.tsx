@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Calendar, Search, RefreshCcw, Printer, FileSpreadsheet, Loader2 } from "lucide-react";
 import CustomCalendar from "@/components/CustomCalendar";
 import NavbarBottom from "@/components/NavbarBottom";
+import AlertMessage from "@/components/AlertMessage";
 import { useRouter } from "next/navigation";
 
 // ===== TYPE DEFINITIONS =====
@@ -99,6 +100,12 @@ export default function BukuBesar() {
   // Current page state
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Alert states
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
+
 
 
   // ===== HELPER: Get Auth Token =====
@@ -126,8 +133,11 @@ export default function BukuBesar() {
           localStorage.removeItem("user_role");
           localStorage.removeItem("user_unit_id");
           localStorage.removeItem("user_unit_name");
-          alert("Sesi sudah habis, silahkan login ulang");
-          router.push("/login");
+          setErrorMessage("Sesi sudah habis, silahkan login ulang");
+          setShowError(true);
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
           return;
         }
 
@@ -252,7 +262,8 @@ export default function BukuBesar() {
   // ===== HANDLE EXPORT EXCEL =====
   const handleExportExcel = async () => {
     if (!bukuBesarData.length) {
-      alert("Tidak ada data untuk diexport. Coba reset filter atau perluas rentang tanggal.");
+      setWarningMessage("Tidak ada data untuk diexport. Coba reset filter atau perluas rentang tanggal.");
+      setShowWarning(true);
       return;
     }
 
@@ -349,7 +360,8 @@ export default function BukuBesar() {
 
     } catch (error) {
       console.error("Export error:", error);
-      alert("Gagal mengexport data");
+      setErrorMessage("Gagal mengexport data");
+      setShowError(true);
     }
   };
 
@@ -808,6 +820,20 @@ export default function BukuBesar() {
         <footer className="text-center text-xs text-gray-500 mt-6 no-print">
           Sistem Informasi Akuntansi Yayasan Darussalam Batam | 2025
         </footer>
+
+        <AlertMessage
+          show={showError}
+          type="error"
+          message={errorMessage}
+          onClose={() => setShowError(false)}
+        />
+
+        <AlertMessage
+          show={showWarning}
+          type="warning"
+          message={warningMessage}
+          onClose={() => setShowWarning(false)}
+        />
       </div>
     </>
   );

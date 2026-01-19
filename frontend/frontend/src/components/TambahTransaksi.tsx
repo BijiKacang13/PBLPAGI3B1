@@ -91,7 +91,19 @@ const getAuthToken = (): string | null => {
   return localStorage.getItem("auth_token"); // samakan dengan auth kamu
 };
 
-export default function TambahTransaksi({ open, onClose }: any) {
+interface TambahTransaksiProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
+}
+
+export default function TambahTransaksi({
+  open,
+  onClose,
+  onSuccess,
+  onError
+}: TambahTransaksiProps) {
   /**
    * =========================
    * STATE
@@ -177,7 +189,7 @@ export default function TambahTransaksi({ open, onClose }: any) {
     const token = getAuthToken();
 
     if (!token) {
-      alert("Token tidak ditemukan, silakan login ulang.");
+      onError?.("Token tidak ditemukan, silakan login ulang.");
       return;
     }
 
@@ -240,19 +252,19 @@ export default function TambahTransaksi({ open, onClose }: any) {
           errorMessage += "\n\nDetail:\n" + errorDetails;
         }
 
-        alert(errorMessage);
+        onError?.(errorMessage);
         return;
       }
 
-      alert("Transaksi berhasil disimpan");
+      onSuccess?.("Transaksi berhasil disimpan");
       onClose();
 
       // Reload page to refresh data
-      window.location.reload();
+      setTimeout(() => window.location.reload(), 1500);
 
     } catch (error) {
       console.error("Network or parsing error:", error);
-      alert("Terjadi kesalahan: " + (error instanceof Error ? error.message : "Unknown error"));
+      onError?.("Terjadi kesalahan: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
@@ -517,7 +529,7 @@ export default function TambahTransaksi({ open, onClose }: any) {
                     {/* Label for first two default rows */}
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-medium text-gray-500">
-                        {index === 0 ? "Akun Debit" : index === 1 ? "Akun Kredit" : `Akun ${index + 1}`}
+                        {index === 0 ? "Akun 1" : index === 1 ? "Akun 2" : `Akun ${index + 1}`}
                       </span>
                       {accounts.length > 2 && index >= 2 && (
                         <button
