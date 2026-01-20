@@ -214,6 +214,16 @@ export default function ProfileDropdown() {
               </button>
             )}
 
+            {/* Arsip Tahunan - hanya untuk admin */}
+            {userRole === "admin" && (
+              <button
+                className="w-full border border-amber-400 text-amber-600 rounded-full py-2 mb-2 hover:bg-amber-50 transition whitespace-nowrap"
+                onClick={() => router.push("/admin/arsip-tahunan")}
+              >
+                ARSIP TAHUNAN
+              </button>
+            )}
+
             {/* Logout - sekarang membuka modal konfirmasi */}
             <button
               className="w-full border border-red-400 text-red-500 rounded-full py-2 hover:bg-red-50 transition"

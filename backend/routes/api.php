@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\SopController;
 use App\Http\Controllers\Api\LogActivityController;
 use App\Http\Controllers\Api\BudgetRapbsKegiatanController;
 use App\Http\Controllers\Api\AnalisisDataController;
+use App\Http\Controllers\Api\ArsipTahunanController;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -188,6 +189,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'index']);
     Route::post('/budget-rapbs-akun', [BudgetRapbsAkunController::class, 'storeOrUpdate']);
     Route::post('/budget-rapbs-akun/import', [BudgetRapbsAkunController::class, 'importExcel']);
+
+    // Arsip Tahunan
+    Route::prefix('arsip-tahunan')->group(function () {
+        Route::get('/', [ArsipTahunanController::class, 'index']);
+        Route::get('/tahun-tersedia', [ArsipTahunanController::class, 'tahunTersedia']);
+        Route::get('/{tahun}', [ArsipTahunanController::class, 'show']);
+        Route::post('/tutup-buku', [ArsipTahunanController::class, 'tutupBuku']);
+        Route::post('/arsipkan', [ArsipTahunanController::class, 'arsipkan']);
+    });
 });
 
 Route::middleware('auth:sanctum')->group(function () {

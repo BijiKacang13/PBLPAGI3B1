@@ -16,8 +16,9 @@ class DivisiSeeder extends Seeder
         $kategori_akun = [
             ['divisi' => 'Kurikulum'],
             ['divisi' => 'Kesiswaan'],
-            ['divisi' => "Qur'an"],
+            ['divisi' => "Islam Terpadu"],
             ['divisi' => "Umum"],
+            ['divisi' => "Sarana dan Prasarana"],
         ];
 
         foreach ($kategori_akun as $data) {
